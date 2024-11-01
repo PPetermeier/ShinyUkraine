@@ -1,0 +1,283 @@
+#ReadMe
+- read: false
+#Updates and Corrections
+- read: false
+#Bilateral Assistance, MAIN DATA
+- read: false
+#Country Summary (€)
+- read: true
+  extract:
+    name: "Country Summary (€)" # Name of the sheet. This is case and empty string sensitive
+    column_range: "B:AI" # Range specifies which part of the sheet to extract
+    number_rows: 43 # In this case: 51 (last row) - 8 (begin of table) = 43
+    skip_rows: 7
+    number_header_rows: 2
+  transform:
+    clean_column_names: true
+    #columnnames: # This always last to not confuse the other commands
+    #EU member: "Nice Club"
+  load:
+    name: "a_summary_€"
+#Country Summary ($)
+- read: true
+  extract:
+    name: "Country Summary ($)" # Name of the sheet. This is case and empty string sensitive
+    column_range: "B:AI" # Range specifies which part of the sheet to extract
+    number_rows: 43 # In this case: 51 (last row) - 8 (begin of table) = 43
+    skip_rows: 7
+    number_header_rows: 2
+  transform:
+    clean_column_names: true
+  load:
+    name: "b_summary_$"
+#Aggregates by Country Group
+- read: false
+#Fig 1. Allocated over time
+- read: true
+  extract:
+    name: "Fig 1. Allocated over time" # Name of the sheet. This is case and empty string sensitive
+    column_range: "B:L" # Range specifies which part of the sheet to extract
+    number_rows: 33 #40-7 = 33
+    skip_rows: 6
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+    datetime:
+      Month: "%b-%Y"
+  load:
+    name: "c_allocated_over_time"
+#Fig 2. Country Groups (stacked)
+- read: false # can be done by querying a_summary_€ or b_summary_$ with a group by statement
+#Fig 3. Ranking (€)
+- read: false # can be done by querying e_allocations_refugees_€ without refugee cost estimation
+#Fig 4. Ranking, %
+- read: false # Can be done by excluding refugee cost estimations of f_bilateral_allocations_gdp_pct
+#Fig 5. Rank. Alloc vs Comm (€)
+- read: true
+  extract:
+    name: "Fig 5. Rank. Alloc vs Comm (€)"
+    column_range: "B:D" # Country, Committed aid, Allocated aid
+    number_rows: 39 # From US to Malta, excluding total
+    skip_rows: 10 # Skip title, description, and blank rows to reach header
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "d_allocations_vs_commitments"
+#Fig 6. With Refugee Support, €"
+- read: true
+  extract:
+    name: "Fig 6. With Refugee Support, €"
+    column_range: "B:F"
+    number_rows: 42
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "e_allocations_refugees_€"
+#Fig 7. With Refugee Support, %"
+- read: true
+  extract:
+    name: "Fig 7. With Refugee Support, %"
+    column_range: "B:D" # Just three columns: Country and Total, Refugess Cost Estimates
+    number_rows: 37 # From Denmark to China, excluding total
+    skip_rows: 10 # Skip title, description, and blank rows to reach header
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "f_bilateral_allocations_gdp_pct"
+#Fig 8. Military Aid
+- read: false # can be done by querying "e_allocations_refugees_€"
+#Fig 9. Heavy Weapon Ranking"
+- read: true
+  extract:
+    name: "Fig 9. Heavy Weapon Ranking"
+    column_range: "B:C" # Just two columns: Country and Total
+    number_rows: 37 # From Denmark to China, excluding total
+    skip_rows: 10 # Skip title, description, and blank rows to reach header
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "g_heavy_weapon_ranking"
+#Fig 10. Financial Aid by type"
+- read: true
+  extract:
+    name: "Fig 10. Financial Aid by type"
+    column_range: "B:F" # Country, Loan, Grant, Guarantee, Central bank swap line
+    number_rows: 43 # From EU Institutions to Malta
+    skip_rows: 10 # Skip title, description, and blank rows to reach header
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "h_financial_aid_by_type"
+#Fig 11. Budget Support by Donor"
+- read: true
+  extract:
+    name: "Fig 11. Budget Support by Donor"
+    column_range: "B:D" # Country, Allocations (loans, grants, and guarantees), Disbursements
+    number_rows: 24 # From EU Institutions to Taiwan
+    skip_rows: 10 # Skip title, description, and blank rows to reach header
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "i_budget_support_by_donor"
+#Fig 12. Weapon Stocks UKR RU"
+- read: false
+#Fig 13. NATO Stocks"
+- read: true #TODO: This is not working rn
+  extract:
+    name: "Fig 13. NATO Stocks"
+    column_range: "B:R" # From Country through Total % Committed
+    number_rows: 5 # Three weapon types (TANKS, HOWITZERS, MLRS) plus country codes
+    skip_rows: 11 # Skip title, description, blank rows to reach the first data row
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "j_nato_weapon_stocks"
+#Fig 14. Share of stocks pledged"
+- read: true
+  extract:
+    name: "Fig 14. Share of stocks pledged"
+    column_range: "B:K" # From Country through all weapon system share columns
+    number_rows: 31 # From Norway through Romania
+    skip_rows: 10 # Skip title, description to reach the header
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "k_share_of_stocks_pledged"
+#This table will work well with your planned Shiny visualizations - you could create:
+#Radar charts comparing countries across weapon types
+#Heatmaps showing commitment intensities
+#Bar charts ranking countries by different weapon systems
+#Correlation analysis between different types of commitments
+# Fig 15. Comparison WW2 (weap.)"
+- read: false
+# Fig 16. Comparison WW2 % GDP"
+- read: false
+#Fig 17. Comp. with US wars"
+- read: false
+#Fig 18. Comparison Gulf War"
+- read: false
+#Fig 19. Comp. European Crises"
+- read: false
+#Fig 20. Domestic Priorities"
+- read: false
+#Fig 21. Priorities Germany"
+- read: false
+#Fig A1. Transparency Index"
+- read: false
+#Fig A2. Ranking % GDP + EU"
+- read: false
+#Fig A3. Units over Time"
+- read: false
+#Fig A4. Weapon Delivery"
+- read: false
+#Fig A5. Tank Unit Ranking"
+- read: false
+#Fig A6. East vs West Deliver"
+- read: false
+#Fig A7. Delivery Transparency"
+- read: false
+#Fig A8. Comm over Time"
+- read: false
+#Fig A9. Cumu Heavy per Month"
+- read: false
+#Fig A10. Mult. year over time"
+- read: false
+#Fig A11. US Mil Alloc over time"
+- read: false
+#Fig A12. EU Fin Alloc over time"
+- read: false
+#Fig A13. EU vs US Comm & Alloc"
+- read: false
+#Fig A14. Alloc Mil Eur vs US"
+- read: false
+#Fig A15. Alloc Tot Eur vs US"
+- read: false
+#Fig A16. Alloc top donors"
+- read: false
+#Fig A17. Ranking (€ bn.+ EU)"
+- read: false
+#Fig A18. Ranking (€) (comm)"
+- read: false
+#Fig A19. Refugee Number"
+- read: false
+#Fig A20. Budget supp. over time"
+- read: false
+#Fig A21. Eur vs US Weapon Alloc"
+- read: false
+#Fig A22. Aid composition"
+- read: false
+#Fig A23. Patriot-like stock
+- read: false
+# Fig A24 Scenario Analysis
+- read: false
+# Fig A25 Cumulative Alloc.
+- read: false
+# Comm. by type and month
+- read: false
+# Allocations by type and month
+- read: false
+# Commitments per Month
+- read: false
+# Comm. per Month Military
+- read: false
+# Allocations per Month
+- read: false
+# Alloc. per Month (Heavy Weap)
+- read: false
+# Allocations per Month Military
+- read: false
+# Financial disb per Month (€)
+- read: false
+# Delivery Transparency Index
+- read: false
+# Designated Websites, total sums
+- read: false
+# Data Transparency Index
+- read: false
+# Country_Deflator
+- read: false
+# BEA_Deflator
+- read: false
+# EIB Aid Shares
+- read: false
+# EU Aid Shares
+- read: false
+# Exchange Rates (time series)
+- read: false
+# Inflation
+- read: false
+# Exchange Rates (current)
+- read: false
+# Heavy Weapon Stocks
+- read: false
+# Historical comparison (data)
+- read: false
+# In-kind Military per Country
+- read: false
+# International Initiatives
+- read: false
+# Price List, Weapons & Items
+- read: false
+# Refugees Recorded
+- read: false
+# Refugee Cost Calculations
+- read: false
+# Share, Heavy Weapons to Ukraine
+- read: false
+# Summary of US acts
+- read: false
+# Table Aid vs Energy
+- read: false
+# Table European Crisis
+- read: false
+# Table Gulf War
+- read: false
