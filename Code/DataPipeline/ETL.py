@@ -126,7 +126,6 @@ def transform(data: pd.DataFrame, config_transform: dict) -> pd.DataFrame:
         date_format = str(list(config_transform["datetime"].values())[0])
         data[date_columns] = data[date_columns].apply(pd.to_datetime, format=date_format)
 
-
     if "columnnames" in config_transform_keys:
         data = data.rename(columns=lambda col: config_transform["columnnames"].get(col, col))
 
@@ -156,3 +155,4 @@ def load(data: pd.DataFrame, config_load: dict, database: duckdb.DuckDBPyConnect
     table_name = config_load["name"]
     database.register(table_name, data)
     database.execute(f"CREATE TABLE {table_name} AS SELECT * FROM {table_name}")
+    # Correct the typo in the allocated over time table
