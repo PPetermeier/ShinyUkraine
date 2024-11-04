@@ -5,7 +5,7 @@ Aid types visualization card.
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE
-from server import AID_TYPES_COLUMNS, load_time_series_data
+from server.database import load_time_series_data, AID_TYPES_COLUMNS
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
 

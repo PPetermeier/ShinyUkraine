@@ -20,4 +20,5 @@ COLOR_PALETTE = {
     "military": "#FF4B4B",  # Red for military aid
     "financial": "#2E86C1",  # Blue for financial aid
     "humanitarian": "#28B463",  # Green for humanitarian aid
+    "refugee": "#ff7f0e",
 }

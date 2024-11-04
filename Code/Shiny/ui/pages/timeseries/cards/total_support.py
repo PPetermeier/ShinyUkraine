@@ -5,7 +5,7 @@ Total support visualization card.
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE
-from server import TOTAL_SUPPORT_COLUMNS, load_time_series_data
+from server import load_time_series_data, TOTAL_SUPPORT_COLUMNS
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
 
