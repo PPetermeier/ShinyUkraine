@@ -13,12 +13,12 @@ DB_PATH = PROJECT_ROOT / "Data" / "ukrainesupporttracker.db"
 
 COLOR_PALETTE = {
     # Timeseries EU/US
-    "united_states": "#1E3D59",  # Deep navy blue
-    "europe": "#FFC13B",  # Golden yellow
+    "united_states": "#B22234",  # Old Glory Red, from the US Flag
+    "europe": "#003399",  # Reflex blue, from the EU Flag
     "total": "#2ECC71",  # Emerald green for total
     # Timeseries by aid types
-    "military": "#FF4B4B",  # Red for military aid
-    "financial": "#2E86C1",  # Blue for financial aid
-    "humanitarian": "#28B463",  # Green for humanitarian aid
-    "refugee": "#ff7f0e",
+    "military": "#5A189A",  # Red for military aid
+    "financial": "#FF6700",  # Blue for financial aid
+    "humanitarian": "#00CED1",  # Green for humanitarian aid
+    "refugee": "#FFB400",
 }
