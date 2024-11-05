@@ -17,7 +17,7 @@ class AidTypesCard:
     def ui():
         """Return the card UI elements."""
         return ui.card(
-            ui.card_header(ui.h3("Aid Types Over Time"), ui.div({"class": "card-subtitle text-muted"}, "Monthly and cumulative aid allocation by type")),
+            ui.card_header(ui.h3("Monthly and cumulative aid allocation by type"), ui.div({"class": "card-subtitle text-muted"}, "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.")),
             ui.layout_sidebar(
                 ui.sidebar(
                     "Input options",
@@ -124,6 +124,7 @@ class AidTypesServer:
                             hovertemplate="%{y:.1f}B €<extra></extra>",
                         )
                     )
+                title = "Cumulative Support Allocation Over Time"
 
         else:
             # Create stacked bar chart for monthly view
@@ -140,16 +141,18 @@ class AidTypesServer:
                             hovertemplate="%{y:.1f}B €<extra></extra>",
                         )
                     )
+            title = "Monthly Support Allocation"    
 
         view_type = "Cumulative" if self.input.aid_types_cumulative() else "Monthly"
         data_scope = "Excluding US" if self.input.aid_types_exclude_us() else "Including US"
 
         fig.update_layout(
+            title=title, 
             xaxis_title="Month",
             yaxis_title="Allocated Support (Billion €)",
             template="plotly_white",
             height=600,
-            margin=dict(l=20, r=20, t=20, b=20),  # Reduced top margin since title is in card header
+            margin=dict(l=20, r=20, t=40, b=20),
             legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
             showlegend=True,
             hovermode="x unified",

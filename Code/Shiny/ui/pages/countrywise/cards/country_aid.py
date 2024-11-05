@@ -17,8 +17,8 @@ class CountryAidCard:
         """Return the card UI elements."""
         return ui.card(
             ui.card_header(
-                ui.h3("Aid by Country"), 
-                ui.div({"class": "card-subtitle text-muted"}, "Aid allocation by country and type")
+                ui.h3("Aid by country and type"), 
+                ui.div({"class": "card-subtitle text-muted"}, "Includes bilateral allocations to Ukraine and cost estimates for refugees in donor countries. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.")
             ),
             ui.layout_sidebar(
                 ui.sidebar(
@@ -99,10 +99,10 @@ class CountryAidServer:
 
         # Color mapping for aid types
         colors = {
-            "financial": COLOR_PALETTE.get("financial", "#1f77b4"),
-            "humanitarian": COLOR_PALETTE.get("humanitarian", "#2ca02c"),
-            "military": COLOR_PALETTE.get("military", "#d62728"),
-            "refugee_cost_estimation": COLOR_PALETTE.get("refugee", "#ff7f0e")
+            "financial": COLOR_PALETTE.get("financial"),
+            "humanitarian": COLOR_PALETTE.get("humanitarian"),
+            "military": COLOR_PALETTE.get("military"),
+            "refugee_cost_estimation": COLOR_PALETTE.get("refugee")
         }
 
         # Name mapping for aid types

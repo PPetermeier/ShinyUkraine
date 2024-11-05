@@ -17,7 +17,7 @@ class TotalSupportCard:
     def ui():
         """Return the card UI elements."""
         return ui.card(
-            ui.card_header(ui.h3("Donors over time"), ui.div({"class": "card-subtitle text-muted"}, "Monthly and cumulative aid allocation by donor")),
+            ui.card_header(ui.h3("Monthly and cumulative aid allocation by donor"), ui.div({"class": "card-subtitle text-muted"}, "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.")),
             ui.layout_sidebar(
                 ui.sidebar(
                     "Input options",
