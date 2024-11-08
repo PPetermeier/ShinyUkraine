@@ -8,8 +8,12 @@ from .queries import (
     TOTAL_SUPPORT_COLUMNS,
     AID_TYPES_COLUMNS,
     COUNTRY_AID_COLUMNS,
+    GDP_ALLOCATIONS_COLUMNS,
+    ALLOCATIONS_VS_COMMITMENTS_COLUMNS,
     TIME_SERIES_TABLE,
-    COUNTRY_AID_TABLE
+    COUNTRY_AID_TABLE,
+    GDP_ALLOCATIONS_TABLE,
+    ALLOCATIONS_VS_COMMITMENTS_TABLE,
 )
 
 
@@ -20,10 +24,10 @@ def get_db_connection():
 
 def load_data_from_table(table_name, columns=None, where_clause=None, order_by=None):
     """
-    Generic function to load data from a specified table.
+    Generic function to load data from a specified table or query.
 
     Args:
-        table_name (str): Name of the table to query
+        table_name (str): Name of the table or a complete SQL query
         columns (list, optional): List of column names to fetch. If None, fetches all columns.
         where_clause (str, optional): WHERE clause for the query
         order_by (str, optional): ORDER BY clause for the query
@@ -34,17 +38,22 @@ def load_data_from_table(table_name, columns=None, where_clause=None, order_by=N
     conn = get_db_connection()
 
     try:
-        # Build column list
-        columns_str = ", ".join(columns) if columns else "*"
-
-        # Build query
-        query = f"SELECT {columns_str} FROM '{table_name}'"
+        # Check if table_name is actually a query (starts with SELECT)
+        is_query = table_name.strip().upper().startswith('SELECT')
         
-        if where_clause:
-            query += f" WHERE {where_clause}"
+        if is_query:
+            # If it's a query, execute it directly
+            query = table_name
+        else:
+            # Build query for table
+            columns_str = ", ".join(columns) if columns else "*"
+            query = f"SELECT {columns_str} FROM '{table_name}'"
             
-        if order_by:
-            query += f" ORDER BY {order_by}"
+            if where_clause:
+                query += f" WHERE {where_clause}"
+                
+            if order_by:
+                query += f" ORDER BY {order_by}"
 
         df = conn.execute(query).fetchdf()
         return df

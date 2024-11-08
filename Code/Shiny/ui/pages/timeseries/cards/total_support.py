@@ -5,7 +5,7 @@ Total support visualization card.
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE
-from server import load_time_series_data, TOTAL_SUPPORT_COLUMNS
+from server import TOTAL_SUPPORT_COLUMNS, load_time_series_data
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
 
@@ -17,7 +17,13 @@ class TotalSupportCard:
     def ui():
         """Return the card UI elements."""
         return ui.card(
-            ui.card_header(ui.h3("Monthly and cumulative aid allocation by donor"), ui.div({"class": "card-subtitle text-muted"}, "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.")),
+            ui.card_header(
+                ui.h3("Monthly and cumulative bilateral aid allocation by donor"),
+                ui.div(
+                    {"class": "card-subtitle text-muted"},
+                    "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.",
+                ),
+            ),
             ui.layout_sidebar(
                 ui.sidebar(
                     "Input options",
@@ -84,14 +90,12 @@ class TotalSupportServer:
         if self.input.total_support_additive():
             fig = go.Figure()
 
-            # Get the maximum values to determine plotting order
-            max_us = data["united_states_allocated__billion"].max() if "united_states_allocated__billion" in data.columns else 0
-            max_eu = data["europe_allocated__billion"].max() if "europe_allocated__billion" in data.columns else 0
+            # Get the maximum values to determine plotting order (smaller value first)
+            regions = sorted(self.input.total_support_regions(), 
+                        key=lambda x: data[f"{x}_allocated__billion"].max())
 
-            # Plot the larger value first (in background)
-            regions = sorted(self.input.total_support_regions(), key=lambda x: data[f"{x}_allocated__billion"].max(), reverse=True)
-
-            for region in regions:
+            # Plot the smaller value first
+            for i, region in enumerate(regions):
                 col_name = f"{region}_allocated__billion"
                 name = "United States" if region == "united_states" else "Europe"
 
@@ -100,25 +104,11 @@ class TotalSupportServer:
                         x=data["month"],
                         y=data[col_name],
                         name=name,
-                        fill="tozeroy",
+                        fill='tonexty' if i > 0 else 'tozeroy',  # First trace fills to zero, others fill to trace below
                         mode="lines",
                         line=dict(color=COLOR_PALETTE[region], width=2),
-                        fillcolor=COLOR_PALETTE[region],
-                        opacity=0.85 if region == regions[-1] else 0.75,
+                        stackgroup='one',  # Enable stacking
                         hovertemplate="%{y:.1f}B $<extra></extra>",
-                    )
-                )
-
-            # Add total line if both regions are selected
-            if len(regions) == 2 and "total" in data.columns:
-                fig.add_trace(
-                    go.Scatter(
-                        x=data["month"],
-                        y=data["total"],
-                        name="Total Support",
-                        mode="lines",
-                        line=dict(color=COLOR_PALETTE["total"], width=3, dash="solid"),
-                        hovertemplate="Total: %{y:.1f}B $<extra></extra>",
                     )
                 )
 
@@ -131,7 +121,10 @@ class TotalSupportServer:
                 col_name = f"{region}_allocated__billion"
                 fig.add_trace(
                     go.Bar(
-                        x=data["month"], y=data[col_name], name="United States" if region == "united_states" else "Europe", marker_color=COLOR_PALETTE[region]
+                        x=data["month"], 
+                        y=data[col_name], 
+                        name="United States" if region == "united_states" else "Europe", 
+                        marker_color=COLOR_PALETTE[region]
                     )
                 )
 
@@ -140,7 +133,7 @@ class TotalSupportServer:
         fig.update_layout(
             title=title,
             xaxis_title="Month",
-            yaxis_title="Allocated Support (Billion $)",
+            yaxis_title="Billion $",
             barmode="group",
             template="plotly_white",
             height=600,
@@ -150,10 +143,12 @@ class TotalSupportServer:
             hovermode="x unified",
             autosize=True,
             yaxis=dict(
+                showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
             ),
             xaxis=dict(
+                showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
             ),

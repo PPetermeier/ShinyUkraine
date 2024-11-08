@@ -5,10 +5,10 @@ Aid types visualization card.
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE
-from server.database import load_time_series_data, AID_TYPES_COLUMNS
+from server.database import AID_TYPES_COLUMNS, load_time_series_data
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
-
+from ....colorutilities import desaturate_color
 
 class AidTypesCard:
     """UI components for the aid types visualization card."""
@@ -17,7 +17,13 @@ class AidTypesCard:
     def ui():
         """Return the card UI elements."""
         return ui.card(
-            ui.card_header(ui.h3("Monthly and cumulative aid allocation by type"), ui.div({"class": "card-subtitle text-muted"}, "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.")),
+            ui.card_header(
+                ui.h3("Monthly and cumulative bilateral aid allocation by type"),
+                ui.div(
+                    {"class": "card-subtitle text-muted"},
+                    "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.",
+                ),
+            ),
             ui.layout_sidebar(
                 ui.sidebar(
                     "Input options",
@@ -107,24 +113,30 @@ class AidTypesServer:
         }
 
         if self.input.aid_types_cumulative():
+            # Get columns except 'month' and sort by their maximum values
+            data_cols = [col for col in data.columns if col != "month"]
+            sorted_cols = sorted(data_cols, key=lambda x: data[x].max())
+
             # Create stacked area chart for cumulative view
-            for col in data.columns:
-                if col != "month":
-                    aid_type = "military" if "military" in col else "financial" if "financial" in col else "humanitarian"
-                    fig.add_trace(
-                        go.Scatter(
-                            x=data["month"],
-                            y=data[col],
-                            name=name_mapping.get(col, col),
-                            stackgroup="one",
-                            mode="lines",
-                            line=dict(width=0),
-                            fillcolor=COLOR_PALETTE[aid_type],
-                            opacity=0.8,
-                            hovertemplate="%{y:.1f}B €<extra></extra>",
-                        )
+            for i, col in enumerate(sorted_cols):
+                aid_type = "military" if "military" in col else "financial" if "financial" in col else "humanitarian"
+                fig.add_trace(
+                    go.Scatter(
+                        x=data["month"],
+                        y=data[col],
+                        name=name_mapping.get(col, col),
+                        stackgroup="one",
+                        mode="lines",
+                        line=dict(
+                            color=COLOR_PALETTE[aid_type],
+                            width=2
+                        ),
+                        fill='tonexty' if i > 0 else 'tozeroy',
+                        fillcolor=desaturate_color(COLOR_PALETTE[aid_type], factor=0.6),  # More saturated than total_support
+                        hovertemplate="%{y:.1f}B €<extra></extra>",
                     )
-                title = "Cumulative Support Allocation Over Time"
+                )
+            title = "Cumulative Support Allocation Over Time"
 
         else:
             # Create stacked bar chart for monthly view
@@ -137,19 +149,18 @@ class AidTypesServer:
                             y=data[col],
                             name=name_mapping.get(col, col),
                             marker_color=COLOR_PALETTE[aid_type],
-                            opacity=0.8,
                             hovertemplate="%{y:.1f}B €<extra></extra>",
                         )
                     )
-            title = "Monthly Support Allocation"    
+            title = "Monthly Support Allocation"
 
         view_type = "Cumulative" if self.input.aid_types_cumulative() else "Monthly"
         data_scope = "Excluding US" if self.input.aid_types_exclude_us() else "Including US"
 
         fig.update_layout(
-            title=title, 
+            title=title,
             xaxis_title="Month",
-            yaxis_title="Allocated Support (Billion €)",
+            yaxis_title="Billion €",
             template="plotly_white",
             height=600,
             margin=dict(l=20, r=20, t=40, b=20),
@@ -158,10 +169,12 @@ class AidTypesServer:
             hovermode="x unified",
             autosize=True,
             yaxis=dict(
+                showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
             ),
             xaxis=dict(
+                showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
             ),

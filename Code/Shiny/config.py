@@ -21,4 +21,48 @@ COLOR_PALETTE = {
     "financial": "#FF6700",  # Blue for financial aid
     "humanitarian": "#00CED1",  # Green for humanitarian aid
     "refugee": "#FFB400",
+    "total_bilateral":"#2ECC71",
+    'EU_institutions': '#FFCC00',      
+    # Commmitments vs. 
+    'Australia': '#00008B',      # Dark Blue from Australian flag
+    'Austria': '#ED2939',        # Red from Austrian flag
+    'Belgium': '#FAE042',        # Yellow from Belgian flag
+    'Bulgaria': '#00966E',       # Green from Bulgarian flag
+    'Canada': '#FF0000',         # Red from Canadian flag
+    'Croatia': '#0093DD',        # Blue from Croatian flag
+    'Cyprus': '#D47600',         # Copper color from Cypriot flag
+    'Czech Republic': '#11457E',  # Blue from Czech flag
+    'Denmark': '#C60C30',        # Red from Danish flag
+    'Estonia': '#0072CE',        # Blue from Estonian flag
+    'EU (Commission and Council)': '#003399',  # EU Blue
+    'Finland': '#002F6C',        # Blue from Finnish flag
+    'France': '#0055A4',         # Blue from French flag
+    'Germany': '#FFCC00',        # Gold from German flag
+    'Greece': '#0D5EAF',         # Blue from Greek flag
+    'Hungary': '#CE2939',        # Red from Hungarian flag
+    'Iceland': '#02529C',        # Blue from Icelandic flag
+    'Ireland': '#169B62',        # Green from Irish flag
+    'Italy': '#009246',          # Green from Italian flag
+    'Japan': '#BC002D',          # Red from Japanese flag
+    'Latvia': '#9E3039',         # Maroon from Latvian flag
+    'Lithuania': '#FDB913',      # Yellow from Lithuanian flag
+    'Luxembourg': '#00A1DE',     # Light blue from Luxembourg flag
+    'Malta': '#CF142B',          # Red from Maltese flag
+    'Netherlands': '#FF9B00',    # Dutch Orange
+    'New Zealand': '#00247D',    # Blue from New Zealand flag
+    'Norway': '#EF2B2D',         # Red from Norwegian flag
+    'Poland': '#DC143C',         # Red from Polish flag
+    'Portugal': '#006600',       # Green from Portuguese flag
+    'South Korea': '#CD2E3A',    # Red from South Korean flag
+    'Romania': '#002B7F',        # Blue from Romanian flag
+    'Slovakia': '#0B4EA2',       # Blue from Slovak flag
+    'Slovenia': '#005CE6',       # Blue from Slovenian flag
+    'Spain': '#F1BF00',          # Yellow from Spanish flag
+    'Sweden': '#006AA7',         # Blue from Swedish flag
+    'Switzerland': '#FF0000',    # Red from Swiss flag
+    'Turkey': '#E30A17',         # Red from Turkish flag
+    'United Kingdom': '#012169',  # Blue from UK flag
+    'United States': '#B22234',  # Red from US flag
+    'China': '#DE2910',          # Red from Chinese flag
+    'Taiwan': '#FE0000',         # Red from Taiwanese flag
 }
