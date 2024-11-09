@@ -17,6 +17,9 @@ from .queries import (
     MAP_SUPPORT_TYPES,  # Add this
     TIME_SERIES_TABLE,  # Add this
     TOTAL_SUPPORT_COLUMNS,
+    FINANCIAL_AID_COLUMNS,  # Add this
+    FINANCIAL_AID_TABLE,    # Add this
+    FINANCIAL_AID_QUERY,    # Add this
     build_group_allocations_query,
     build_map_support_query,
 )
@@ -32,11 +35,15 @@ __all__ = [
     "TOTAL_SUPPORT_COLUMNS",
     "AID_TYPES_COLUMNS",
     "COUNTRY_AID_COLUMNS",
+    "FINANCIAL_AID_COLUMNS",  
     "MAP_SUPPORT_TYPES",
     # Tables definition
     "TIME_SERIES_TABLE",
     "COUNTRY_AID_TABLE",
-    "COUNTRY_LOOKUP_TABLE",
+    "COUNTRY_LOOKUP_TABLE",    
+    "FINANCIAL_AID_TABLE", 
+    # Queries 
+    "FINANCIAL_AID_QUERY",   
     # Other constants
     "COUNTRY_GROUPS",
     "AID_TYPE_CONFIG",

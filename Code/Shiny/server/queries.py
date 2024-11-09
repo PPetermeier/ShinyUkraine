@@ -22,6 +22,13 @@ ALLOCATIONS_VS_COMMITMENTS_COLUMNS = ["country", "allocated_aid", "committed_aid
 
 MAP_SUPPORT_COLUMNS = ["e.country", "l.iso3_code", "e.financial", "e.humanitarian", "e.military", "e.refugee_cost_estimation"]
 
+FINANCIAL_AID_COLUMNS = [
+    "country",
+    "loan",
+    "grant", 
+    "guarantee",
+    "central_bank_swap_line"
+]
 
 # Table names
 TIME_SERIES_TABLE = "c_allocated_over_time"
@@ -29,6 +36,8 @@ COUNTRY_AID_TABLE = "e_allocations_refugees_€"
 GDP_ALLOCATIONS_TABLE = "f_bilateral_allocations_gdp_pct"
 ALLOCATIONS_VS_COMMITMENTS_TABLE = "d_allocations_vs_commitments"
 COUNTRY_LOOKUP_TABLE = "zz_country_lookup"
+# Update the table name
+FINANCIAL_AID_TABLE = "h_financial_aid_by_type"
 
 # New configurations for the aid allocation card
 AID_TYPE_CONFIG = {"total": {"label": "Total", "allocated_col": "allocated_aid", "committed_col": "committed_aid"}}
@@ -109,6 +118,19 @@ GROUP_ALLOCATIONS_QUERY = """
     
     ORDER BY allocated_aid DESC"""
 
+
+FINANCIAL_AID_QUERY = """
+    SELECT 
+        country,
+        "loan",
+        "grant",
+        "guarantee",
+        "central_bank_swap_line"
+    FROM h_financial_aid_by_type
+    WHERE country IS NOT NULL
+    ORDER BY (COALESCE("loan", 0) + COALESCE("grant", 0) + 
+             COALESCE("guarantee", 0) + COALESCE("central_bank_swap_line", 0)) DESC
+"""
 
 def build_group_allocations_query(aid_type, selected_groups):
     """Build the complete query for group allocations."""

@@ -65,4 +65,10 @@ COLOR_PALETTE = {
     'United States': '#B22234',  # Red from US flag
     'China': '#DE2910',          # Red from Chinese flag
     'Taiwan': '#FE0000',         # Red from Taiwanese flag
+    # Financial bilateral allocations colors
+    'financial_grant': '#048BA8',      # Darkest - teal blue
+    'financial_swap': '#0DB39E',       # Dark - blue green
+    'financial_guarantee': '#16DB93',   # Light - mint
+    'financial_loan': '#54E8B9',       # Lightest - pale mint
+
 }

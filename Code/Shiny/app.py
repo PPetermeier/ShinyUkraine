@@ -1,8 +1,9 @@
 from shiny import App
 from ui import get_main_ui
 from ui.pages.countrywise import CountryAidPageServer
-from ui.pages.landing import LandingPageServer  # Add this import
+from ui.pages.landing import LandingPageServer
 from ui.pages.timeseries import TimeSeriesPageServer
+from ui.pages.financial import FinancialPageServer  # Add this import
 
 
 def server(input, output, session):
@@ -17,6 +18,10 @@ def server(input, output, session):
     # Initialize the country aid page server
     ca_server = CountryAidPageServer(input, output, session)
     ca_server.initialize()
+
+    # Initialize the financial aid page server
+    financial_server = FinancialPageServer(input, output, session)
+    financial_server.initialize() 
 
 
 app = App(get_main_ui(), server)
