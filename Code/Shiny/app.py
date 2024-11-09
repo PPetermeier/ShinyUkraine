@@ -1,15 +1,22 @@
 from shiny import App
 from ui import get_main_ui
-from ui.pages.timeseries import TimeSeriesPageServer
 from ui.pages.countrywise import CountryAidPageServer
+from ui.pages.landing import LandingPageServer  # Add this import
+from ui.pages.timeseries import TimeSeriesPageServer
+
 
 def server(input, output, session):
+    # Initialize the landing page server
+    landing_server = LandingPageServer(input, output, session)
+    landing_server.initialize()
+
     # Initialize the time series page server
     ts_server = TimeSeriesPageServer(input, output, session)
     ts_server.initialize()
-    
+
     # Initialize the country aid page server
     ca_server = CountryAidPageServer(input, output, session)
     ca_server.initialize()
+
 
 app = App(get_main_ui(), server)

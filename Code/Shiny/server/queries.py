@@ -18,11 +18,10 @@ COUNTRY_AID_COLUMNS = ["country", "financial", "humanitarian", "military", "refu
 
 GDP_ALLOCATIONS_COLUMNS = ["country", "total_bilateral_allocation", "refugee_cost_estimation"]
 
-ALLOCATIONS_VS_COMMITMENTS_COLUMNS = [
-    "country",
-    "allocated_aid",
-    "committed_aid"
-]
+ALLOCATIONS_VS_COMMITMENTS_COLUMNS = ["country", "allocated_aid", "committed_aid"]
+
+MAP_SUPPORT_COLUMNS = ["e.country", "l.iso3_code", "e.financial", "e.humanitarian", "e.military", "e.refugee_cost_estimation"]
+
 
 # Table names
 TIME_SERIES_TABLE = "c_allocated_over_time"
@@ -32,20 +31,42 @@ ALLOCATIONS_VS_COMMITMENTS_TABLE = "d_allocations_vs_commitments"
 COUNTRY_LOOKUP_TABLE = "zz_country_lookup"
 
 # New configurations for the aid allocation card
-AID_TYPE_CONFIG = {
-    "total": {
-        "label": "Total",
-        "allocated_col": "allocated_aid",
-        "committed_col": "committed_aid"
-    }
+AID_TYPE_CONFIG = {"total": {"label": "Total", "allocated_col": "allocated_aid", "committed_col": "committed_aid"}}
+MAP_SUPPORT_TYPES = {
+    "military": "Military Support",
+    "financial": "Financial Support",
+    "humanitarian": "Humanitarian Support",
+    "refugee_cost_estimation": "Refugee Support",
 }
-
 COUNTRY_GROUPS = {
     "EU_member": "EU Members",
     "EU_institutions": "EU Institutions",
     "Anglosaxon_countries": "Anglo-Saxon Countries",
-    "Other_donor_countries": "Other Donors"
+    "Other_donor_countries": "Other Donors",
 }
+
+
+# Updated map query template
+MAP_SUPPORT_QUERY = """
+    WITH support_data AS (
+        SELECT 
+            e.country,
+            l.iso3_code,
+            {selected_columns},
+            ({sum_columns}) as total_support,
+            e.gdp_2021,
+            CASE 
+                WHEN e.gdp_2021 > 0 THEN (({sum_columns}) / e.gdp_2021) * 100
+                ELSE 0 
+            END as pct_gdp
+        FROM "e_allocations_refugees_€" e
+        JOIN "zz_country_lookup" l ON e.country = l.country_name
+        WHERE l.iso3_code IS NOT NULL
+    )
+    SELECT *
+    FROM support_data
+    ORDER BY pct_gdp DESC
+"""
 
 GROUP_ALLOCATIONS_QUERY = """
     SELECT 'EU_member' as group_name,
@@ -94,8 +115,24 @@ def build_group_allocations_query(aid_type, selected_groups):
     group_filter = ", ".join(f"'{group}'" for group in selected_groups)
     if not group_filter:
         group_filter = "''"
+
+    query = GROUP_ALLOCATIONS_QUERY.format(group_filter=group_filter)
+    return query
+
+
+
+def build_map_support_query(selected_types):
+    """Build query for map visualization with selected aid types."""
+    if not selected_types:
+        return None
+        
+    # Build column selections
+    selected_columns = [f"e.{aid_type} as {aid_type}" for aid_type in selected_types]
+    sum_columns = " + ".join([f"COALESCE({aid_type}, 0)" for aid_type in selected_types])
     
-    query = GROUP_ALLOCATIONS_QUERY.format(
-        group_filter=group_filter
+    query = MAP_SUPPORT_QUERY.format(
+        selected_columns=", ".join(selected_columns),
+        sum_columns=sum_columns
     )
+    
     return query

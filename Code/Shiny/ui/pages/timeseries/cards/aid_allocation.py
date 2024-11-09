@@ -31,7 +31,10 @@ class AidAllocationCard:
                 ui.sidebar(
                     "Input options",
                     ui.input_checkbox_group(
-                        "country_groups", "Select Country Groups", choices=COUNTRY_GROUPS, selected=["EU_member","EU_institutions","Anglosaxon_countries","Other_donor_countries"],
+                        "country_groups",
+                        "Select Country Groups",
+                        choices=COUNTRY_GROUPS,
+                        selected=["EU_member", "EU_institutions", "Anglosaxon_countries", "Other_donor_countries"],
                     ),
                     position="fixed",
                     min_width="300px",
@@ -130,7 +133,14 @@ class AidAllocationServer:
             template="plotly_white",
             height=600,
             margin=dict(l=20, r=20, t=40, b=20),
-            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01, bgcolor="rgba(255, 255, 255, 0.8)"),
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="right",
+                x=0.01,
+                bgcolor="rgba(255, 255, 255, 0.8)",
+                itemsizing="constant",
+            ),
             showlegend=False,
             hovermode="x unified",
             yaxis=dict(

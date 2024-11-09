@@ -1,19 +1,24 @@
 """
 Makes the server directory a Python package and exposes key functionality.
 """
+
 from .database import (
-    load_time_series_data,
     load_country_data,
     load_data_from_table,
+    load_time_series_data,
 )
-
 from .queries import (
-    TOTAL_SUPPORT_COLUMNS,
+    AID_TYPE_CONFIG,
     AID_TYPES_COLUMNS,
     COUNTRY_AID_COLUMNS,
+    COUNTRY_AID_TABLE,  # Add this
     COUNTRY_GROUPS,
-    AID_TYPE_CONFIG,  # Add this
-    build_group_allocations_query
+    COUNTRY_LOOKUP_TABLE,  # Add this
+    MAP_SUPPORT_TYPES,  # Add this
+    TIME_SERIES_TABLE,  # Add this
+    TOTAL_SUPPORT_COLUMNS,
+    build_group_allocations_query,
+    build_map_support_query,
 )
 
 __all__ = [
@@ -22,13 +27,17 @@ __all__ = [
     "load_country_data",
     "load_data_from_table",
     "build_group_allocations_query",
-    
+    "build_map_support_query",
     # Column definitions
     "TOTAL_SUPPORT_COLUMNS",
     "AID_TYPES_COLUMNS",
     "COUNTRY_AID_COLUMNS",
-    
-    # New constants
+    "MAP_SUPPORT_TYPES",
+    # Tables definition
+    "TIME_SERIES_TABLE",
+    "COUNTRY_AID_TABLE",
+    "COUNTRY_LOOKUP_TABLE",
+    # Other constants
     "COUNTRY_GROUPS",
-    "AID_TYPE_CONFIG",  # Add this
+    "AID_TYPE_CONFIG",
 ]

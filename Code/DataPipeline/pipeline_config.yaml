@@ -76,6 +76,16 @@
     number_header_rows: 1
   transform:
     clean_column_names: true
+    add_columns: # Move this under transform
+      gdp_2021:
+        source_table: "a_summary_€"
+        join_query: |
+          SELECT 
+            r.*, 
+            s.gdp_2021__billion as gdp_2021
+          FROM temp_transform_table r
+          LEFT JOIN "a_summary_€" s 
+          ON r.country = s.country
   load:
     name: "e_allocations_refugees_€"
 #Fig 7. With Refugee Support, %"

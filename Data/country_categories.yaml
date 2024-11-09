@@ -1,3 +1,4 @@
+# Country Groups, will be converted into boolean columns for querying
 EU_institutions:
   - European Investment Bank
   - EU (Commission and Council)
@@ -51,3 +52,49 @@ EU_Member:
   - Slovenia
   - Spain
   - Sweden
+
+# ISO 3 Country codes, needed for geographic plotting of main page. Will be added as an extra column in the lookup table as well
+country_codes:
+  EU (Commission and Council): EUU
+  European Investment Bank: EIB
+  United States: USA
+  United Kingdom: GBR
+  Canada: CAN
+  Australia: AUS
+  New Zealand: NZL
+  China: CHN
+  Japan: JPN
+  South Korea: KOR
+  Taiwan: TWN
+  Turkey: TUR
+  India: IND
+  Switzerland: CHE
+  Norway: NOR
+  Iceland: ISL
+  Austria: AUT
+  Belgium: BEL
+  Bulgaria: BGR
+  Croatia: HRV
+  Cyprus: CYP
+  Czech Republic: CZE
+  Denmark: DNK
+  Estonia: EST
+  Finland: FIN
+  France: FRA
+  Germany: DEU
+  Greece: GRC
+  Hungary: HUN
+  Ireland: IRL
+  Italy: ITA
+  Latvia: LVA
+  Lithuania: LTU
+  Luxembourg: LUX
+  Malta: MLT
+  Netherlands: NLD
+  Poland: POL
+  Portugal: PRT
+  Romania: ROU
+  Slovakia: SVK
+  Slovenia: SVN
+  Spain: ESP
+  Sweden: SWE

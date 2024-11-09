@@ -29,7 +29,7 @@ def run(excel_file_location: os.path, config_file_location: os.path, database: d
     for sheet_configuration in config:
         if sheet_configuration["read"]:
             raw_data = extract(excel_file_location, sheet_configuration["extract"])
-            transformed_data = transform(raw_data, sheet_configuration["transform"])
+            transformed_data = transform(raw_data, sheet_configuration["transform"], database)
             load(transformed_data, sheet_configuration["load"], database)
 
 
@@ -49,7 +49,7 @@ def load_config(config_file_location: os.path) -> dict:
 
 def create_country_lookup(country_categories: dict) -> pd.DataFrame:
     """
-    Creates a lookup table for countries with their categories.
+    Creates a lookup table for countries with their categories and ISO codes.
     Special handling for Geographic Europe and EU membership:
     - EU members are automatically part of Geographic Europe
     - Geographic Europe includes both explicit Geographic Europe countries and EU members
@@ -58,23 +58,30 @@ def create_country_lookup(country_categories: dict) -> pd.DataFrame:
     country_categories: dict from country_categories.yaml
 
     Returns:
-    DataFrame with country info and category columns
+    DataFrame with country info, category columns, and ISO codes
     """
-    # Get unique countries from all category lists
-    all_countries = sorted(set(country for category in country_categories.values() for country in category))
+    # Get unique countries from all category lists (excluding the country_codes dictionary)
+    category_lists = {k: v for k, v in country_categories.items() if k != "country_codes"}
+    all_countries = sorted(set(country for category in category_lists.values() for country in category))
 
-    # Create base DataFrame with country_id
-    lookup_df = pd.DataFrame({"country_id": range(1, len(all_countries) + 1), "country_name": all_countries})
+    # Create base DataFrame with country_id and ISO codes
+    lookup_df = pd.DataFrame(
+        {
+            "country_id": range(1, len(all_countries) + 1),
+            "country_name": all_countries,
+            "iso3_code": [country_categories["country_codes"].get(country) for country in all_countries],
+        }
+    )
 
     # Add regular category columns
-    for category in country_categories:
+    for category in category_lists:
         if category not in ["Geographic_Europe", "EU_Member"]:  # Skip these for special handling
-            lookup_df[category] = lookup_df["country_name"].isin(country_categories[category])
+            lookup_df[category] = lookup_df["country_name"].isin(category_lists[category])
 
     # Special handling for EU and Geographic Europe
-    lookup_df["EU_member"] = lookup_df["country_name"].isin(country_categories["EU_Member"])
+    lookup_df["EU_member"] = lookup_df["country_name"].isin(category_lists["EU_Member"])
     lookup_df["geographic_europe"] = (
-        lookup_df["country_name"].isin(country_categories["Geographic_Europe"])  # Explicit Geographic Europe countries
+        lookup_df["country_name"].isin(category_lists["Geographic_Europe"])  # Explicit Geographic Europe countries
         | lookup_df["EU_member"]  # EU members are automatically part of Geographic Europe
     )
 
@@ -116,8 +123,21 @@ def extract(excel_file_location: os.path, config_extract: dict) -> pd.DataFrame:
     return data
 
 
-def transform(data: pd.DataFrame, config_transform: dict) -> pd.DataFrame:
+def transform(data: pd.DataFrame, config_transform: dict, database: duckdb.DuckDBPyConnection = None) -> pd.DataFrame:
+    """
+    Transforms data according to configuration.
+
+    Parameters:
+    - data: pd.DataFrame - The data to transform
+    - config_transform: dict - Configuration for transformations
+    - database: duckdb.DuckDBPyConnection - Database connection for SQL-based transformations
+
+    Returns:
+    - pd.DataFrame: Transformed data
+    """
     config_transform_keys = config_transform.keys()
+
+    # Apply existing transformations
     if "datatypes" in config_transform_keys:
         data = data.astype(config_transform["datatypes"])
 
@@ -130,14 +150,11 @@ def transform(data: pd.DataFrame, config_transform: dict) -> pd.DataFrame:
         data = data.rename(columns=lambda col: config_transform["columnnames"].get(col, col))
 
     if "clean_column_names" in config_transform_keys:
-        """ Standardizes column names by:
-        - Converting to lowercase
-        - Replacing spaces with underscores
-        - Removing special characters
-        - Trimming whitespace
-        Uses vectorized operations for efficiency.
-        """
         data.columns = pd.Series(data.columns).str.lower().str.replace("\s+", "_", regex=True).str.replace("[^a-z0-9_]", "", regex=True).str.strip("_")
+
+    # Handle SQL-based column additions
+    if "add_columns" in config_transform_keys and database is not None:
+        data = _add_columns_from_sql(data, config_transform["add_columns"], database)
 
     return data
 
@@ -155,4 +172,46 @@ def load(data: pd.DataFrame, config_load: dict, database: duckdb.DuckDBPyConnect
     table_name = config_load["name"]
     database.register(table_name, data)
     database.execute(f"CREATE TABLE {table_name} AS SELECT * FROM {table_name}")
-    # Correct the typo in the allocated over time table
+
+
+def _add_columns_from_sql(data: pd.DataFrame, add_columns_config: dict, database: duckdb.DuckDBPyConnection) -> pd.DataFrame:
+    """
+    Adds columns to DataFrame using SQL queries.
+
+    Parameters:
+    - data: pd.DataFrame - Original data
+    - add_columns_config: dict - Configuration for columns to add
+    - database: duckdb.DuckDBPyConnection - Database connection
+
+    Returns:
+    - pd.DataFrame: Data with added columns
+    """
+    # Register the input DataFrame as a temporary table
+    temp_table_name = "temp_transform_table"
+    database.register(temp_table_name, data)
+
+    try:
+        for column_name, column_config in add_columns_config.items():
+            # Execute the query directly from the config
+            # The query in the config now references temp_transform_table directly
+            try:
+                result = database.execute(column_config["join_query"]).fetchdf()
+
+                # Verify the result
+                if result.empty:
+                    print(f"Warning: No data returned for column {column_name}")
+                else:
+                    print(f"Successfully added column {column_name}")
+                    # Update the original DataFrame
+                    data = result
+
+            except Exception as e:
+                print(f"Error executing query for column {column_name}: {str(e)}")
+                raise
+
+    finally:
+        # Clean up temporary table
+        database.execute(f"DROP VIEW IF EXISTS {temp_table_name}")
+        database.execute(f"DROP TABLE IF EXISTS {temp_table_name}")
+
+    return data
