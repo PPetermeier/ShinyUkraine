@@ -4,11 +4,12 @@ Aid types visualization card.
 
 import pandas as pd
 import plotly.graph_objects as go
-from config import COLOR_PALETTE
+from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
 from server.database import AID_TYPES_COLUMNS, load_time_series_data
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
 from ....colorutilities import desaturate_color
+
 
 class AidTypesCard:
     """UI components for the aid types visualization card."""
@@ -20,29 +21,23 @@ class AidTypesCard:
             ui.card_header(
                 ui.h3("Monthly and cumulative bilateral aid allocation by type"),
                 ui.div(
-                    {"class": "card-subtitle text-muted"},
-                    "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.",
-                ),
-            ),
-            ui.layout_sidebar(
-                ui.sidebar(
-                    "Input options",
-                    ui.input_checkbox_group(
-                        "aid_types_select",
-                        "Select Aid Types",
-                        choices={"military": "Military Aid", "financial": "Financial Aid", "humanitarian": "Humanitarian Aid"},
-                        selected=["military", "financial", "humanitarian"],
+                    {"class": "d-flex flex-row justify-content-between"},  # Changed to flex-row and justify-content-between
+                    ui.div(
+                        {"class": "flex-grow-1 me-4"},  # Added margin-end to create space before toggle
+                        "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been "
+                        "delivered or specified for delivery. Does not include private donations, support for refugees "
+                        "outside of Ukraine, and aid by international organizations. Data on European Union aid include "
+                        "the EU Commission and Council, EPF, and EIB. For information on data quality and transparency "
+                        "please see our data transparency index.",
                     ),
-                    ui.input_date_range("aid_types_date_range", "Select Date Range", start="2022-01-01", end="2024-12-31"),
-                    ui.input_switch("aid_types_exclude_us", "Exclude US Data", value=False),
-                    ui.input_switch("aid_types_cumulative", "Show Cumulative View", value=False),
-                    position="fixed",
-                    min_width="300px",
-                    max_width="300px",
-                    bg="#f8f8f8",
+                    ui.div(
+                        {"class": "flex-shrink-0 d-flex align-items-center"},  # Made toggle container non-shrinkable
+                        ui.span({"class": "me-2"}, "Cumulative"),  # Added explicit spacing
+                        ui.input_switch("aid_types_cumulative", None, value=False),
+                    ),
                 ),
-                output_widget("aid_types_plot"),
             ),
+            output_widget("aid_types_plot"),
             height="800px",
         )
 
@@ -58,42 +53,25 @@ class AidTypesServer:
         self._filtered_data = reactive.Calc(self._compute_filtered_data)
         self.register_outputs()
 
-    def _get_column_name(self, aid_type, exclude_us=False):
-        """Helper method to get the correct column name based on aid type and US exclusion."""
-        if aid_type == "humanitarian":
-            # Humanitarian aid is always without US
-            return "humanitarian_aid_allocated__billion"
-        elif aid_type == "financial":
-            return "financial_aid_allocated__billion_without_us" if exclude_us else "financial_aid_allocated__billion"
-        else:  # military
-            return "military_aid_allocated__billion_without_us" if exclude_us else "military_aid_allocated__billion"
-
     def _compute_filtered_data(self):
-        """Internal method to compute filtered data based on user inputs."""
-        # Filter date range
-        mask = (pd.to_datetime(self.df["month"]) >= pd.to_datetime(self.input.aid_types_date_range()[0])) & (
-            pd.to_datetime(self.df["month"]) <= pd.to_datetime(self.input.aid_types_date_range()[1])
-        )
-        filtered_df = self.df[mask].copy()
+        """Internal method to compute filtered data."""
+        # Use all aid types and include US data by default
+        result = self.df.copy()
+        
+        # Select all aid types columns
+        aid_columns = ["military_aid_allocated__billion", 
+                      "financial_aid_allocated__billion",
+                      "humanitarian_aid_allocated__billion"]
 
-        # Select relevant columns based on aid types and US exclusion
-        selected_cols = []
-        for aid_type in self.input.aid_types_select():
-            col_name = self._get_column_name(aid_type, self.input.aid_types_exclude_us())
-            if col_name in self.df.columns:
-                selected_cols.append(col_name)
-
-        if not selected_cols:
-            return pd.DataFrame()
-
-        result = filtered_df[["month"] + selected_cols]
+        result = result[["month"] + aid_columns]
 
         # Calculate cumulative sums if needed
         if self.input.aid_types_cumulative():
-            for col in selected_cols:
+            for col in aid_columns:
                 result[col] = result[col].cumsum()
 
         return result
+
 
     def create_plot(self):
         """Create and return the plot figure."""
@@ -106,18 +84,18 @@ class AidTypesServer:
         # Define consistent naming for the legend
         name_mapping = {
             "military_aid_allocated__billion": "Military Aid",
-            "military_aid_allocated__billion_without_us": "Military Aid (Excl. US)",
             "financial_aid_allocated__billion": "Financial Aid",
-            "financial_aid_allocated__billion_without_us": "Financial Aid (Excl. US)",
             "humanitarian_aid_allocated__billion": "Humanitarian Aid",
         }
 
+        # Set the title based on the view type
+        plot_title = "Cumulative Support Allocation Over Time" if self.input.aid_types_cumulative() else "Monthly Support Allocation"
+
         if self.input.aid_types_cumulative():
-            # Get columns except 'month' and sort by their maximum values
+            # Your existing cumulative view code...
             data_cols = [col for col in data.columns if col != "month"]
             sorted_cols = sorted(data_cols, key=lambda x: data[x].max())
 
-            # Create stacked area chart for cumulative view
             for i, col in enumerate(sorted_cols):
                 aid_type = "military" if "military" in col else "financial" if "financial" in col else "humanitarian"
                 fig.add_trace(
@@ -132,14 +110,12 @@ class AidTypesServer:
                             width=2
                         ),
                         fill='tonexty' if i > 0 else 'tozeroy',
-                        fillcolor=desaturate_color(COLOR_PALETTE[aid_type], factor=0.6),  # More saturated than total_support
+                        fillcolor=desaturate_color(COLOR_PALETTE[aid_type], factor=0.6),
                         hovertemplate="%{y:.1f}B €<extra></extra>",
                     )
                 )
-            title = "Cumulative Support Allocation Over Time"
-
         else:
-            # Create stacked bar chart for monthly view
+            # Your existing monthly view code...
             for col in data.columns:
                 if col != "month":
                     aid_type = "military" if "military" in col else "financial" if "financial" in col else "humanitarian"
@@ -152,22 +128,37 @@ class AidTypesServer:
                             hovertemplate="%{y:.1f}B €<extra></extra>",
                         )
                     )
-            title = "Monthly Support Allocation"
 
-        view_type = "Cumulative" if self.input.aid_types_cumulative() else "Monthly"
-        data_scope = "Excluding US" if self.input.aid_types_exclude_us() else "Including US"
 
         fig.update_layout(
-            title=title,
+            title= dict(
+        text=f"{plot_title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+        font=dict(size=14),
+        y=0.95,
+        x=0.5,
+        xanchor='center',
+        yanchor='top'
+    ),  # Using the title we defined above
             xaxis_title="Month",
             yaxis_title="Billion €",
             template="plotly_white",
             height=600,
-            margin=dict(l=20, r=20, t=40, b=20),
-            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+            margin=MARGIN,
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01,
+                bgcolor="rgba(255, 255, 255, 0.8)",
+                bordercolor="rgba(0, 0, 0, 0.2)",
+                borderwidth=1,
+                itemsizing="constant",
+                tracegroupgap=5
+            ),
             showlegend=True,
             hovermode="x unified",
             autosize=True,
+            width=None,
             yaxis=dict(
                 showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",

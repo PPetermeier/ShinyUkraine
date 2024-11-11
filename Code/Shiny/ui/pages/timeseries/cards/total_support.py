@@ -4,7 +4,7 @@ Total support visualization card.
 
 import pandas as pd
 import plotly.graph_objects as go
-from config import COLOR_PALETTE
+from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
 from server import TOTAL_SUPPORT_COLUMNS, load_time_series_data
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
@@ -18,30 +18,28 @@ class TotalSupportCard:
         """Return the card UI elements."""
         return ui.card(
             ui.card_header(
-                ui.h3("Monthly and cumulative bilateral aid allocation by donor"),
                 ui.div(
-                    {"class": "card-subtitle text-muted"},
-                    "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.",
-                ),
-            ),
-            ui.layout_sidebar(
-                ui.sidebar(
-                    "Input options",
-                    ui.input_checkbox_group(
-                        "total_support_regions",
-                        "Select Regions",
-                        choices={"united_states": "United States", "europe": "Europe"},
-                        selected=["united_states", "europe"],
+                    {"class": "d-flex justify-content-between"},
+                    ui.div(
+                        {"class": "flex-grow-1"},
+                        ui.h3("Monthly and cumulative bilateral aid allocation by donor"),
+                        ui.div(
+                            {"class": "card-subtitle text-muted"},
+                            "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been "
+                            "delivered or specified for delivery. Does not include private donations, support for refugees "
+                            "outside of Ukraine, and aid by international organizations. Data on European Union aid include "
+                            "the EU Commission and Council, EPF, and EIB. For information on data quality and transparency "
+                            "please see our data transparency index.",
+                        ),
                     ),
-                    ui.input_date_range("total_support_date_range", "Select Date Range", start="2022-01-01", end="2024-12-31"),
-                    ui.input_switch("total_support_additive", "Show Cumulative View", value=False),
-                    position="fixed",
-                    min_width="300px",
-                    max_width="300px",
-                    bg="#f8f8f8",
+                    ui.div(
+                        {"class": "d-flex align-items-center"},
+                        "Cumulative",
+                        ui.input_switch("total_support_additive", None, value=False),
+                    ),
                 ),
-                output_widget("support_plot"),  # Simplified output placement
             ),
+            output_widget("support_plot"),
             height="800px",
         )
 
@@ -52,22 +50,15 @@ class TotalSupportServer:
         self.output = output
         self.session = session
         self.df = load_time_series_data(TOTAL_SUPPORT_COLUMNS)
-        # Create the reactive calculation in init
         self._filtered_data = reactive.Calc(self._compute_filtered_data)
-        # Register outputs immediately
         self.register_outputs()
 
     def _compute_filtered_data(self):
         """Internal method to compute filtered data."""
-        selected_cols = [f"{region}_allocated__billion" for region in self.input.total_support_regions()]
+        selected_cols = ["united_states_allocated__billion", "europe_allocated__billion"]
 
-        mask = (pd.to_datetime(self.df["month"]) >= pd.to_datetime(self.input.total_support_date_range()[0])) & (
-            pd.to_datetime(self.df["month"]) <= pd.to_datetime(self.input.total_support_date_range()[1])
-        )
-        filtered_df = self.df[mask].copy()
-
-        if not selected_cols:
-            return pd.DataFrame()
+        # Use all available data
+        filtered_df = self.df.copy()
 
         result = filtered_df[["month"] + selected_cols]
 
@@ -75,9 +66,8 @@ class TotalSupportServer:
             for col in selected_cols:
                 result[col] = result[col].cumsum()
 
-            # Calculate total if both regions are selected
-            if len(selected_cols) == 2:
-                result["total"] = result[selected_cols].sum(axis=1)
+            # Calculate total for both regions
+            result["total"] = result[selected_cols].sum(axis=1)
 
         return result
 
@@ -90,9 +80,9 @@ class TotalSupportServer:
         if self.input.total_support_additive():
             fig = go.Figure()
 
-            # Get the maximum values to determine plotting order (smaller value first)
-            regions = sorted(self.input.total_support_regions(), 
-                        key=lambda x: data[f"{x}_allocated__billion"].max())
+            regions = ["united_states", "europe"]
+            # Sort regions based on maximum values
+            regions = sorted(regions, key=lambda x: data[f"{x}_allocated__billion"].max())
 
             # Plot the smaller value first
             for i, region in enumerate(regions):
@@ -104,10 +94,10 @@ class TotalSupportServer:
                         x=data["month"],
                         y=data[col_name],
                         name=name,
-                        fill='tonexty' if i > 0 else 'tozeroy',  # First trace fills to zero, others fill to trace below
+                        fill="tonexty" if i > 0 else "tozeroy",
                         mode="lines",
                         line=dict(color=COLOR_PALETTE[region], width=2),
-                        stackgroup='one',  # Enable stacking
+                        stackgroup="one",
                         hovertemplate="%{y:.1f}B $<extra></extra>",
                     )
                 )
@@ -117,27 +107,24 @@ class TotalSupportServer:
         else:
             fig = go.Figure()
 
-            for region in self.input.total_support_regions():
+            for region in ["united_states", "europe"]:
                 col_name = f"{region}_allocated__billion"
                 fig.add_trace(
                     go.Bar(
-                        x=data["month"], 
-                        y=data[col_name], 
-                        name="United States" if region == "united_states" else "Europe", 
-                        marker_color=COLOR_PALETTE[region]
+                        x=data["month"], y=data[col_name], name="United States" if region == "united_states" else "Europe", marker_color=COLOR_PALETTE[region]
                     )
                 )
 
             title = "Monthly Support Allocation"
 
         fig.update_layout(
-            title=title,
+            title=dict(text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"),
             xaxis_title="Month",
             yaxis_title="Billion $",
             barmode="group",
             template="plotly_white",
             height=600,
-            margin=dict(l=20, r=20, t=40, b=20),
+            margin=MARGIN,
             legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
             showlegend=True,
             hovermode="x unified",
@@ -155,7 +142,7 @@ class TotalSupportServer:
             plot_bgcolor="rgba(255,255,255,1)",
             paper_bgcolor="rgba(255,255,255,1)",
         )
-
+        fig.data = list(fig.data[:-1]) + [fig.data[-1]]
         return fig
 
     def register_outputs(self):

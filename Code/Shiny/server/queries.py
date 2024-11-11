@@ -30,13 +30,29 @@ FINANCIAL_AID_COLUMNS = [
     "central_bank_swap_line"
 ]
 
+BUDGET_SUPPORT_COLUMNS = [
+    "country",
+    "allocations_loans_grants_and_guarantees",
+    "disbursements"
+]
+
+HEAVY_WEAPONS_COLUMNS = [
+    "country",
+    "tanks",
+    "armored_vehicles",
+    "artillery",
+    "mlrs",
+    "air_defense",
+    "total_deliveries"
+]
+
 # Table names
 TIME_SERIES_TABLE = "c_allocated_over_time"
 COUNTRY_AID_TABLE = "e_allocations_refugees_€"
 GDP_ALLOCATIONS_TABLE = "f_bilateral_allocations_gdp_pct"
 ALLOCATIONS_VS_COMMITMENTS_TABLE = "d_allocations_vs_commitments"
 COUNTRY_LOOKUP_TABLE = "zz_country_lookup"
-# Update the table name
+BUDGET_SUPPORT_TABLE = "i_budget_support_by_donor"
 FINANCIAL_AID_TABLE = "h_financial_aid_by_type"
 
 # New configurations for the aid allocation card
@@ -117,6 +133,25 @@ GROUP_ALLOCATIONS_QUERY = """
         AND 'EU_institutions' IN ({group_filter})
     
     ORDER BY allocated_aid DESC"""
+
+BUDGET_SUPPORT_QUERY = """
+    SELECT 
+        country,
+        allocations_loans_grants_and_guarantees,
+        disbursements
+    FROM i_budget_support_by_donor
+    WHERE country IS NOT NULL
+    ORDER BY allocations_loans_grants_and_guarantees DESC
+"""
+
+HEAVY_WEAPONS_DELIVERY_QUERY = """
+    SELECT
+        country,
+        SUM(value_estimates_heavy_weapons) AS value_estimates_heavy_weapons
+    FROM g_heavy_weapon_ranking
+    GROUP BY country
+    ORDER BY value_estimates_heavy_weapons DESC
+"""
 
 
 FINANCIAL_AID_QUERY = """

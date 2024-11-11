@@ -8,6 +8,8 @@ from .database import (
     load_time_series_data,
 )
 from .queries import (
+    HEAVY_WEAPONS_COLUMNS,
+    HEAVY_WEAPONS_DELIVERY_QUERY,
     AID_TYPE_CONFIG,
     AID_TYPES_COLUMNS,
     COUNTRY_AID_COLUMNS,
@@ -16,7 +18,7 @@ from .queries import (
     COUNTRY_LOOKUP_TABLE,  # Add this
     MAP_SUPPORT_TYPES,  # Add this
     TIME_SERIES_TABLE,  # Add this
-    TOTAL_SUPPORT_COLUMNS,
+    TOTAL_SUPPORT_COLUMNS,BUDGET_SUPPORT_COLUMNS,
     FINANCIAL_AID_COLUMNS,  # Add this
     FINANCIAL_AID_TABLE,    # Add this
     FINANCIAL_AID_QUERY,    # Add this
@@ -32,18 +34,23 @@ __all__ = [
     "build_group_allocations_query",
     "build_map_support_query",
     # Column definitions
+    "HEAVY_WEAPONS_COLUMNS",
+    "BUDGET_SUPPORT_COLUMNS",
     "TOTAL_SUPPORT_COLUMNS",
     "AID_TYPES_COLUMNS",
     "COUNTRY_AID_COLUMNS",
     "FINANCIAL_AID_COLUMNS",  
     "MAP_SUPPORT_TYPES",
     # Tables definition
+    "BUDGET_SUPPORT_TABLE",
     "TIME_SERIES_TABLE",
     "COUNTRY_AID_TABLE",
     "COUNTRY_LOOKUP_TABLE",    
     "FINANCIAL_AID_TABLE", 
     # Queries 
-    "FINANCIAL_AID_QUERY",   
+    "BUDGET_SUPPORT_QUERY",
+    "FINANCIAL_AID_QUERY", 
+    "HEAVY_WEAPONS_DELIVERY_QUERY",  
     # Other constants
     "COUNTRY_GROUPS",
     "AID_TYPE_CONFIG",

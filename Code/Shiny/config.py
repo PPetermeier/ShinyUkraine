@@ -11,18 +11,24 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 DB_PATH = PROJECT_ROOT / "Data" / "ukrainesupporttracker.db"
 
 
+# Plot related
+LAST_UPDATE = "2024/08/31"  # For data Transparency in the plots
+MARGIN = dict(l=20, r=20, t=80, b=20)
+
 COLOR_PALETTE = {
     # Timeseries EU/US
     "united_states": "#B22234",  # Old Glory Red, from the US Flag
     "europe": "#003399",  # Reflex blue, from the EU Flag
-    "total": "#2ECC71",  # Emerald green for total
+    "other_countries": "#2ECC71",  # Emerald green for total
     # Timeseries by aid types
-    "military": "#5A189A",  # Red for military aid
-    "financial": "#FF6700",  # Blue for financial aid
-    "humanitarian": "#00CED1",  # Green for humanitarian aid
+    "military": "#5A189A",  
+    "heavy_weapons_deliveries": "#6932A4" , # Darker purple color for heavy weapons
+    "financial": "#FF6700", 
+    "humanitarian": "#00CED1", 
     "refugee": "#FFB400",
     "total_bilateral":"#2ECC71",
-    'EU_institutions': '#FFCC00',      
+    'EU_institutions': '#FFCC00',
+    'base_color':'#003399',      
     # Commmitments vs. 
     'Australia': '#00008B',      # Dark Blue from Australian flag
     'Austria': '#ED2939',        # Red from Austrian flag
@@ -70,5 +76,6 @@ COLOR_PALETTE = {
     'financial_swap': '#0DB39E',       # Dark - blue green
     'financial_guarantee': '#16DB93',   # Light - mint
     'financial_loan': '#54E8B9',       # Lightest - pale mint
-
+    'financial_allocations': '#2A9D8F',    # Teal blue, complementary to existing financial colors
+    'financial_disbursements': '#264653',   # Dark blue-gray, complementary to existing financial colors
 }

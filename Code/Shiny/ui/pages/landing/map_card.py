@@ -4,7 +4,7 @@ Map visualization card for displaying country-level support data.
 
 import pandas as pd
 import plotly.graph_objects as go
-from config import COLOR_PALETTE
+from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
 from server.database import load_data_from_table
 from server.queries import MAP_SUPPORT_TYPES, build_map_support_query
 from shiny import reactive, ui
@@ -60,7 +60,7 @@ class MapServer:
             aid_type = "refugee" if selected_types[0] == "refugee_cost_estimation" else selected_types[0]
             base_color = COLOR_PALETTE.get(aid_type, "#003399")
         else:
-            base_color = "#003399"
+            base_color = COLOR_PALETTE.get("base_color")
 
         return [[0, "rgba(255,255,255,1)"], [1, base_color]]
 
@@ -105,9 +105,16 @@ class MapServer:
                 colorbar_title="% of GDP",
             )
         )
-
+        title = "Bilateral Support as Percentage of GDP"
         fig.update_layout(
-            title_text="Bilateral Support as Percentage of GDP",
+            title=dict(
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                font=dict(size=14),
+                y=0.95,
+                x=0.5,
+                xanchor='center',
+                yanchor='top'
+            ),
             geo=dict(
                 showframe=False,
                 showcoastlines=True,
@@ -118,15 +125,14 @@ class MapServer:
                 landcolor="rgba(240,240,240,1)",
                 showocean=True,
                 oceancolor="rgba(250,250,250,1)",
-                # Add these parameters to adjust the map view
-                lataxis_range=[-60, 90],  # Exclude Antarctica
+                lataxis_range=[-60, 90],
                 lonaxis_range=[-180, 180],
-                projection_scale=1.1,  # Make the map a bit wider
+                projection_scale=1.1,
             ),
             width=None,
             height=600,
             autosize=True,
-            margin={"r": 0, "t": 30, "l": 0, "b": 0},
+            margin=MARGIN,
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
         )

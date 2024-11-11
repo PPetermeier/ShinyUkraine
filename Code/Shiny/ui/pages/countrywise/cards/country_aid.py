@@ -4,7 +4,7 @@ Country and aid type visualization card.
 
 import pandas as pd
 import plotly.graph_objects as go
-from config import COLOR_PALETTE
+from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
 from server import load_country_data
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
@@ -20,32 +20,31 @@ class CountryAidCard:
             ui.card_header(
                 ui.h3("Bilateral aid by country and type"),
                 ui.div(
-                    {"class": "card-subtitle text-muted"},
-                    "Includes bilateral allocations to Ukraine and cost estimates for refugees in donor countries. Allocations are defined as aid which has been delivered or specified for delivery. Does not include private donations, support for refugees outside of Ukraine, and aid by international organizations. Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on data quality and transparency please see our data transparency index.",
-                ),
-            ),
-            ui.layout_sidebar(
-                ui.sidebar(
-                    "Input options",
-                    ui.input_checkbox_group(
-                        "aid_types",
-                        "Select Aid Types",
-                        choices={
-                            "financial": "Financial",
-                            "humanitarian": "Humanitarian",
-                            "military": "Military",
-                            "refugee_cost_estimation": "Refugee Support",
-                        },
-                        selected=["financial", "military", "humanitarian", "refugee_cost_estimation"],
+                    {"class": "d-flex justify-content-between"},
+                    ui.div(
+                        {"class": "card-subtitle text-muted"},
+                        "Includes bilateral allocations to Ukraine and cost estimates for refugees in donor countries. "
+                        "Allocations are defined as aid which has been delivered or specified for delivery. Does not include "
+                        "private donations, support for refugees outside of Ukraine, and aid by international organizations. "
+                        "Data on European Union aid include the EU Commission and Council, EPF, and EIB. For information on "
+                        "data quality and transparency please see our data transparency index.",
                     ),
-                    ui.input_numeric("top_n_countries_total_aid", "Show Top N Countries", value=15, min=5, max=50),
-                    position="fixed",
-                    min_width="300px",
-                    max_width="300px",
-                    bg="#f8f8f8",
+                    ui.div(
+                        {"class": "d-flex align-items-center"},
+                        "First  ",
+                        ui.input_numeric(
+                            "top_n_countries_total_aid",
+                            None,
+                            value=15,
+                            min=5,
+                            max=50,
+                            width="80px",
+                        ),
+                        " countries",
+                    ),
                 ),
-                output_widget("country_aid_plot"),
             ),
+            output_widget("country_aid_plot"),
             height="800px",
         )
 
@@ -63,28 +62,21 @@ class CountryAidServer:
 
     def _compute_filtered_data(self):
         """Filter and process data based on user selections."""
-        selected_cols = self.input.aid_types()
+        # Get all aid type columns
+        aid_cols = ["financial", "humanitarian", "military", "refugee_cost_estimation"]
 
-        if not selected_cols:
-            return pd.DataFrame()
-
-        # Filter data for selected aid types
+        # Filter data
         result = self.df.copy()
 
-        # Calculate total aid for sorting - fix: iterate through columns
-        total_aid = pd.Series(0, index=result.index)
-        for col in selected_cols:
-            if col in result.columns:  # Add safety check
-                total_aid += result[col]
-
-        result["total_aid"] = total_aid
+        # Calculate total aid for sorting
+        result["total_aid"] = result[aid_cols].sum(axis=1)
 
         # Get top N countries and sort
         result = result.nlargest(self.input.top_n_countries_total_aid(), "total_aid")
         result = result.sort_values("total_aid", ascending=True)
 
-        # Return only needed columns
-        return result[["country"] + list(selected_cols)]
+        # Return all columns needed for plotting
+        return result[["country"] + aid_cols]
 
     def create_plot(self):
         """Create and return the plot figure."""
@@ -106,32 +98,43 @@ class CountryAidServer:
         # Name mapping for aid types
         name_map = {"financial": "Financial", "humanitarian": "Humanitarian", "military": "Military", "refugee_cost_estimation": "Refugee Support"}
 
-        # Add bars for each selected aid type
-        for aid_type in self.input.aid_types():
+        # Add bars for each aid type
+        for aid_type, color in colors.items():
             fig.add_trace(
                 go.Bar(
                     y=data["country"],
                     x=data[aid_type],
                     name=name_map[aid_type],
                     orientation="h",
-                    marker_color=colors[aid_type],
+                    marker_color=color,
                 )
             )
 
+        fig.add_trace(
+            go.Scatter(x=[None], y=[None], mode="markers", marker=dict(size=0), showlegend=True, name=f"Last updated: {LAST_UPDATE}", hoverinfo="skip")
+        )
+        title = "Aid Allocation by Country and Type"
         fig.update_layout(
-            title="Aid Allocation by Country and Type",
+            title=dict(
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                font=dict(size=14),
+                y=0.95,
+                x=0.5,
+                xanchor="center",
+                yanchor="top",
+            ),
             xaxis_title="Billion €",
             barmode="stack",
             template="plotly_white",
             height=600,
-            margin=dict(l=20, r=20, t=40, b=20),
+            margin=MARGIN,
             legend=dict(
-                yanchor="bottom",  # Anchor to bottom
-                y=0.01,  # Position near bottom
-                xanchor="right",  # Anchor to right
-                x=0.99,  # Position near right
-                bgcolor="rgba(255, 255, 255, 0.8)",  # Semi-transparent white background
-                bordercolor="rgba(0, 0, 0, 0.2)",  # Light border
+                yanchor="bottom",
+                y=0.01,
+                xanchor="right",
+                x=0.99,
+                bgcolor="rgba(255, 255, 255, 0.8)",
+                bordercolor="rgba(0, 0, 0, 0.2)",
                 borderwidth=1,
             ),
             showlegend=True,
@@ -150,7 +153,6 @@ class CountryAidServer:
             plot_bgcolor="rgba(255,255,255,1)",
             paper_bgcolor="rgba(255,255,255,1)",
         )
-
         return fig
 
     def register_outputs(self):

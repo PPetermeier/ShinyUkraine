@@ -3,7 +3,7 @@ Aid allocation visualization card showing allocated vs committed aid.
 """
 
 import plotly.graph_objects as go
-from config import COLOR_PALETTE
+from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
 from server import load_data_from_table
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
@@ -21,27 +21,45 @@ class CommittmentRatioCard:
             ui.card_header(
                 ui.h3("Aid Allocation Progress"),
                 ui.div(
-                    {"class": "card-subtitle text-muted"},
-                    "Includes bilateral allocations to Ukraine. Allocations are defined as aid "
-                    "which has been delivered or specified for delivery. Does not include private donations, "
-                    "support for refugees outside of Ukraine, and aid by international organizations.",
-                ),
-            ),
-            ui.layout_sidebar(
-                ui.sidebar(
-                    "Input options",
-                    ui.input_switch("show_percentage_commitment_ratio", "Show as Percentage", value=False),
-                    ui.panel_conditional(
-                        "input.show_percentage_commitment_ratio", ui.input_switch("reverse_sort_commitment_ratio", "Reverse Sort Order", value=False)
+                    {"class": "d-flex justify-content-between"},
+                    ui.div(
+                        {"class": "card-subtitle text-muted"},
+                        "Includes bilateral allocations to Ukraine. Allocations are defined as aid "
+                        "which has been delivered or specified for delivery. Does not include private donations, "
+                        "support for refugees outside of Ukraine, and aid by international organizations.",
                     ),
-                    ui.input_numeric("top_n_countries_committment_ratio", "Show Top N Countries", value=15, min=5, max=50),
-                    position="fixed",
-                    min_width="300px",
-                    max_width="300px",
-                    bg="#f8f8f8",
+                    ui.div(
+                        {"class": "d-flex align-items-right gap-4"},
+                        ui.div(
+                            {"class": "d-flex align-items-center gap-2"},
+                            "Percentage",
+                            ui.input_switch("show_percentage_commitment_ratio", None, value=False),
+                        ),
+                        ui.panel_conditional(
+                            "input.show_percentage_commitment_ratio",
+                            ui.div(
+                                {"class": "d-flex align-items-center gap-2"},
+                                "Ascending",
+                                ui.input_switch("reverse_sort_commitment_ratio", None, value=False),
+                            ),
+                        ),
+                        ui.div(
+                            {"class": "d-flex align-items-center"},
+                            "First  ",
+                            ui.input_numeric(
+                                "top_n_countries_committment_ratio",
+                                None,
+                                value=15,
+                                min=5,
+                                max=50,
+                                width="80px",
+                            ),
+                            " countries",
+                        ),
+                    ),
                 ),
-                output_widget("aid_allocation_plot"),
             ),
+            output_widget("aid_allocation_plot"),
             height="800px",
         )
 
@@ -134,13 +152,21 @@ class CommittmentRatioServer:
                     hovertemplate="%{y}<br>To be allocated: %{x:.1f}" + hover_suffix + "<extra></extra>",
                 )
             )
-
+        title = "Committed and allocated aid by country"
         fig.update_layout(
+            title=dict(
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                font=dict(size=14),
+                y=0.95,
+                x=0.5,
+                xanchor="center",
+                yanchor="top",
+            ),
             barmode="stack",
             xaxis_title="Percent of Committed Aid" if show_percentage else "Billion €",
             template="plotly_white",
             height=600,
-            margin=dict(l=20, r=20, t=40, b=20),
+            margin=MARGIN,
             legend=dict(yanchor="bottom", y=0.01, xanchor="right", x=0.99, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.2)", borderwidth=1),
             showlegend=not show_percentage,  # Only show legend for non-percentage view
             hovermode="y unified",
@@ -159,7 +185,6 @@ class CommittmentRatioServer:
             plot_bgcolor="rgba(255,255,255,1)",
             paper_bgcolor="rgba(255,255,255,1)",
         )
-
         return fig
 
     def register_outputs(self):
