@@ -13,15 +13,22 @@ from .queries import (
     AID_TYPE_CONFIG,
     AID_TYPES_COLUMNS,
     COUNTRY_AID_COLUMNS,
+    WEAPON_STOCKS_COLUMNS,
+    WEAPON_STOCKS_QUERY,
+    WEAPON_STOCKS_BASE_TABLE,
+    WEAPON_STOCKS_DETAIL_TABLE,
+    WEAPON_STOCKS_SUPPORT_QUERY,
+    WEAPON_STOCKS_PREWAR_QUERY,
     COUNTRY_AID_TABLE,  # Add this
     COUNTRY_GROUPS,
     COUNTRY_LOOKUP_TABLE,  # Add this
     MAP_SUPPORT_TYPES,  # Add this
     TIME_SERIES_TABLE,  # Add this
-    TOTAL_SUPPORT_COLUMNS,BUDGET_SUPPORT_COLUMNS,
+    TOTAL_SUPPORT_COLUMNS,
+    BUDGET_SUPPORT_COLUMNS,
     FINANCIAL_AID_COLUMNS,  # Add this
-    FINANCIAL_AID_TABLE,    # Add this
-    FINANCIAL_AID_QUERY,    # Add this
+    FINANCIAL_AID_TABLE,  # Add this
+    FINANCIAL_AID_QUERY,  # Add this
     build_group_allocations_query,
     build_map_support_query,
 )
@@ -33,24 +40,29 @@ __all__ = [
     "load_data_from_table",
     "build_group_allocations_query",
     "build_map_support_query",
+    "load_weapon_stocks_data",
     # Column definitions
     "HEAVY_WEAPONS_COLUMNS",
+    "WEAPON_STOCKS_COLUMNS",
     "BUDGET_SUPPORT_COLUMNS",
     "TOTAL_SUPPORT_COLUMNS",
     "AID_TYPES_COLUMNS",
     "COUNTRY_AID_COLUMNS",
-    "FINANCIAL_AID_COLUMNS",  
+    "FINANCIAL_AID_COLUMNS",
     "MAP_SUPPORT_TYPES",
     # Tables definition
     "BUDGET_SUPPORT_TABLE",
+    "WEAPON_STOCKS_BASE_TABLE",
+    "WEAPON_STOCKS_DETAIL_TABLE",
     "TIME_SERIES_TABLE",
     "COUNTRY_AID_TABLE",
-    "COUNTRY_LOOKUP_TABLE",    
-    "FINANCIAL_AID_TABLE", 
-    # Queries 
+    "COUNTRY_LOOKUP_TABLE",
+    "FINANCIAL_AID_TABLE",
+    # Queries
     "BUDGET_SUPPORT_QUERY",
-    "FINANCIAL_AID_QUERY", 
-    "HEAVY_WEAPONS_DELIVERY_QUERY",  
+    "WEAPON_STOCKS_QUERY",
+    "FINANCIAL_AID_QUERY",
+    "HEAVY_WEAPONS_DELIVERY_QUERY",
     # Other constants
     "COUNTRY_GROUPS",
     "AID_TYPE_CONFIG",

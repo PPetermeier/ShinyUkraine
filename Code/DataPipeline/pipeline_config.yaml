@@ -138,8 +138,35 @@
     clean_column_names: true
   load:
     name: "i_budget_support_by_donor"
-#Fig 12. Weapon Stocks UKR RU"
-- read: false
+#Fig 12. Weapon Stocks UKR RU / We will need two reading instructions here to handle both tables individually
+- read: true
+  extract:
+    name: "Fig 12. Weapon Stocks UKR RU"
+    column_range: "B:F"
+    number_rows: 6
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+    reshape:
+      type: "melt"
+      id_vars: ["item"] # Now matches cleaned column name
+      value_vars: ["howitzer155mm", "mlrs", "tanks", "ifvs"] # Now matches cleaned column names
+      var_name: "equipment_type"
+      value_name: "quantity"
+  load:
+    name: "j_weapon_stocks_base"
+- read: true
+  extract:
+    name: "Fig 12. Weapon Stocks UKR RU"
+    column_range: "B:F" # Item, Type, Ukraine Need, Delivered, To be Delivered, Ukrainian stock
+    number_rows: 3 # The three weapon type rows
+    skip_rows: 19 # Skip to the second table
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "k_weapon_stocks_detail"
 #Fig 13. NATO Stocks"
 - read: true #TODO: This is not working rn
   extract:
@@ -151,7 +178,7 @@
   transform:
     clean_column_names: true
   load:
-    name: "j_nato_weapon_stocks"
+    name: "l_nato_weapon_stocks"
 #Fig 14. Share of stocks pledged"
 - read: true
   extract:
@@ -163,7 +190,7 @@
   transform:
     clean_column_names: true
   load:
-    name: "k_share_of_stocks_pledged"
+    name: "m_share_of_stocks_pledged"
 #This table will work well with your planned Shiny visualizations - you could create:
 #Radar charts comparing countries across weapon types
 #Heatmaps showing commitment intensities

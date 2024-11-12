@@ -14,6 +14,13 @@ AID_TYPES_COLUMNS = [
     "humanitarian_aid_allocated__billion",
 ]
 
+WEAPON_STOCKS_COLUMNS = [
+    "country",
+    "equipment_type",
+    "status",
+    "quantity"
+]
+
 COUNTRY_AID_COLUMNS = ["country", "financial", "humanitarian", "military", "refugee_cost_estimation"]
 
 GDP_ALLOCATIONS_COLUMNS = ["country", "total_bilateral_allocation", "refugee_cost_estimation"]
@@ -22,29 +29,11 @@ ALLOCATIONS_VS_COMMITMENTS_COLUMNS = ["country", "allocated_aid", "committed_aid
 
 MAP_SUPPORT_COLUMNS = ["e.country", "l.iso3_code", "e.financial", "e.humanitarian", "e.military", "e.refugee_cost_estimation"]
 
-FINANCIAL_AID_COLUMNS = [
-    "country",
-    "loan",
-    "grant", 
-    "guarantee",
-    "central_bank_swap_line"
-]
+FINANCIAL_AID_COLUMNS = ["country", "loan", "grant", "guarantee", "central_bank_swap_line"]
 
-BUDGET_SUPPORT_COLUMNS = [
-    "country",
-    "allocations_loans_grants_and_guarantees",
-    "disbursements"
-]
+BUDGET_SUPPORT_COLUMNS = ["country", "allocations_loans_grants_and_guarantees", "disbursements"]
 
-HEAVY_WEAPONS_COLUMNS = [
-    "country",
-    "tanks",
-    "armored_vehicles",
-    "artillery",
-    "mlrs",
-    "air_defense",
-    "total_deliveries"
-]
+HEAVY_WEAPONS_COLUMNS = ["country", "tanks", "armored_vehicles", "artillery", "mlrs", "air_defense", "total_deliveries"]
 
 # Table names
 TIME_SERIES_TABLE = "c_allocated_over_time"
@@ -54,6 +43,8 @@ ALLOCATIONS_VS_COMMITMENTS_TABLE = "d_allocations_vs_commitments"
 COUNTRY_LOOKUP_TABLE = "zz_country_lookup"
 BUDGET_SUPPORT_TABLE = "i_budget_support_by_donor"
 FINANCIAL_AID_TABLE = "h_financial_aid_by_type"
+WEAPON_STOCKS_BASE_TABLE = "weapon_stocks_base"
+WEAPON_STOCKS_DETAIL_TABLE = "weapon_stocks_detail"
 
 # New configurations for the aid allocation card
 AID_TYPE_CONFIG = {"total": {"label": "Total", "allocated_col": "allocated_aid", "committed_col": "committed_aid"}}
@@ -70,6 +61,70 @@ COUNTRY_GROUPS = {
     "Other_donor_countries": "Other Donors",
 }
 
+
+WEAPON_STOCKS_PREWAR_QUERY = """
+    SELECT 
+        equipment_type,
+        CASE 
+            WHEN item LIKE '%Russian%' THEN 'Russia'
+            WHEN item LIKE '%Ukrainian%' THEN 'Ukraine'
+        END as country,
+        quantity
+    FROM j_weapon_stocks_base
+    WHERE item LIKE '%pre-war%'
+    AND quantity IS NOT NULL
+"""
+
+WEAPON_STOCKS_SUPPORT_QUERY = """
+    SELECT 
+        equipment_type,
+        status,
+        SUM(quantity) as quantity
+    FROM (
+        SELECT 
+            equipment_type,
+            CASE 
+                WHEN item LIKE '%Delivered%' THEN 'delivered'
+                WHEN item LIKE '%be delivered%' THEN 'to_be_delivered'
+            END as status,
+            quantity
+        FROM j_weapon_stocks_base
+        WHERE (item LIKE '%Delivered%' OR item LIKE '%be delivered%')
+        AND quantity IS NOT NULL
+    )
+    GROUP BY equipment_type, status
+"""
+
+WEAPON_STOCKS_QUERY = """
+    SELECT 
+        CASE 
+            WHEN item LIKE '%Russian%' THEN 'Russia'
+            WHEN item LIKE '%Ukrainian%' THEN 'Ukraine'
+        END as country,
+        equipment_type,
+        CASE 
+            WHEN item LIKE '%pre-war stock%' THEN 'pre-war'
+            WHEN item LIKE '%Committed%' THEN 'committed'
+            WHEN item LIKE '%Delivered%' THEN 'delivered'
+            WHEN item LIKE '%be delivered%' THEN 'to_be_delivered'
+        END as status,
+        quantity
+    FROM j_weapon_stocks_base
+    WHERE quantity IS NOT NULL
+        AND equipment_type IS NOT NULL
+    ORDER BY 
+        equipment_type,
+        CASE country 
+            WHEN 'Russia' THEN 1
+            WHEN 'Ukraine' THEN 2
+        END,
+        CASE status
+            WHEN 'pre-war' THEN 1
+            WHEN 'committed' THEN 2
+            WHEN 'delivered' THEN 3
+            WHEN 'to_be_delivered' THEN 4
+        END
+"""
 
 # Updated map query template
 MAP_SUPPORT_QUERY = """
@@ -167,6 +222,7 @@ FINANCIAL_AID_QUERY = """
              COALESCE("guarantee", 0) + COALESCE("central_bank_swap_line", 0)) DESC
 """
 
+
 def build_group_allocations_query(aid_type, selected_groups):
     """Build the complete query for group allocations."""
     group_filter = ", ".join(f"'{group}'" for group in selected_groups)
@@ -177,19 +233,15 @@ def build_group_allocations_query(aid_type, selected_groups):
     return query
 
 
-
 def build_map_support_query(selected_types):
     """Build query for map visualization with selected aid types."""
     if not selected_types:
         return None
-        
+
     # Build column selections
     selected_columns = [f"e.{aid_type} as {aid_type}" for aid_type in selected_types]
     sum_columns = " + ".join([f"COALESCE({aid_type}, 0)" for aid_type in selected_types])
-    
-    query = MAP_SUPPORT_QUERY.format(
-        selected_columns=", ".join(selected_columns),
-        sum_columns=sum_columns
-    )
-    
+
+    query = MAP_SUPPORT_QUERY.format(selected_columns=", ".join(selected_columns), sum_columns=sum_columns)
+
     return query

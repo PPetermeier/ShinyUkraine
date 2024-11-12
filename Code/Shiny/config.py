@@ -78,4 +78,10 @@ COLOR_PALETTE = {
     'financial_loan': '#54E8B9',       # Lightest - pale mint
     'financial_allocations': '#2A9D8F',    # Teal blue, complementary to existing financial colors
     'financial_disbursements': '#264653',   # Dark blue-gray, complementary to existing financial colors
+    # Weapon Stocks
+    'weapon_stocks_russia': '#E63946',     # Russian red
+    'weapon_stocks_prewar': '#457B9D',     # Pre-war blue
+    'weapon_stocks_committed': '#E9C46A',   # Committed yellow
+    'weapon_stocks_delivered': '#2A9D8F',   # Delivered green
+    'weapon_stocks_pending': '#FF9F1C',     # Pending orange
 }

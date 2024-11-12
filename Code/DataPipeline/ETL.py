@@ -137,7 +137,6 @@ def transform(data: pd.DataFrame, config_transform: dict, database: duckdb.DuckD
     """
     config_transform_keys = config_transform.keys()
 
-    # Apply existing transformations
     if "datatypes" in config_transform_keys:
         data = data.astype(config_transform["datatypes"])
 
@@ -151,6 +150,19 @@ def transform(data: pd.DataFrame, config_transform: dict, database: duckdb.DuckD
 
     if "clean_column_names" in config_transform_keys:
         data.columns = pd.Series(data.columns).str.lower().str.replace("\s+", "_", regex=True).str.replace("[^a-z0-9_]", "", regex=True).str.strip("_")
+
+    # Apply existing transformations
+    if "reshape" in config_transform_keys:
+            reshape_config = config_transform["reshape"]
+            if reshape_config["type"] == "melt":
+                data = pd.melt(
+                    data,
+                    id_vars=reshape_config["id_vars"],
+                    value_vars=reshape_config["value_vars"],
+                    var_name=reshape_config["var_name"],
+                    value_name=reshape_config["value_name"]
+                )
+
 
     # Handle SQL-based column additions
     if "add_columns" in config_transform_keys and database is not None:
@@ -192,22 +204,7 @@ def _add_columns_from_sql(data: pd.DataFrame, add_columns_config: dict, database
 
     try:
         for column_name, column_config in add_columns_config.items():
-            # Execute the query directly from the config
-            # The query in the config now references temp_transform_table directly
-            try:
-                result = database.execute(column_config["join_query"]).fetchdf()
-
-                # Verify the result
-                if result.empty:
-                    print(f"Warning: No data returned for column {column_name}")
-                else:
-                    print(f"Successfully added column {column_name}")
-                    # Update the original DataFrame
-                    data = result
-
-            except Exception as e:
-                print(f"Error executing query for column {column_name}: {str(e)}")
-                raise
+            data = database.execute(column_config["join_query"]).fetchdf()
 
     finally:
         # Clean up temporary table

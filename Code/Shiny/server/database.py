@@ -5,14 +5,7 @@ Database connection and query functions.
 import duckdb
 from config import DB_PATH
 
-from .queries import (
-    AID_TYPES_COLUMNS,
-    COUNTRY_AID_COLUMNS,
-    COUNTRY_AID_TABLE,
-    TIME_SERIES_TABLE,
-    TOTAL_SUPPORT_COLUMNS,
-)
-
+from .queries import AID_TYPES_COLUMNS, COUNTRY_AID_COLUMNS, COUNTRY_AID_TABLE, TIME_SERIES_TABLE, TOTAL_SUPPORT_COLUMNS, WEAPON_STOCKS_PREWAR_QUERY, WEAPON_STOCKS_SUPPORT_QUERY, WEAPON_STOCKS_QUERY
 
 def get_db_connection():
     """Create and return a database connection."""
@@ -96,6 +89,17 @@ def load_country_data(columns=None):
     total_aid = " + ".join(col for col in columns if col != "country")
 
     return load_data_from_table(table_name_or_query=COUNTRY_AID_TABLE, columns=columns, where_clause="country IS NOT NULL", order_by=f"({total_aid}) DESC")
+
+
+def load_weapon_stocks_data():
+    """
+    Load weapon stocks comparison data from database.
+
+    Returns:
+        pandas.DataFrame: Weapon stocks data with countries, equipment types,
+                        status and quantities
+    """
+    return load_data_from_table(table_name_or_query=WEAPON_STOCKS_QUERY)
 
 
 # For backward compatibility and convenience

@@ -110,9 +110,7 @@ class CountryAidServer:
                 )
             )
 
-        fig.add_trace(
-            go.Scatter(x=[None], y=[None], mode="markers", marker=dict(size=0), showlegend=True, name=f"Last updated: {LAST_UPDATE}", hoverinfo="skip")
-        )
+
         title = "Aid Allocation by Country and Type"
         fig.update_layout(
             title=dict(
