@@ -21,7 +21,7 @@ class MapCard:
                 ui.h3("Total Bilateral Support by Country"),
                 ui.div(
                     {"class": "card-subtitle text-muted"},
-                    "Bilateral aid allocations to Ukraine as percentage of donor country's 2021 GDP.",
+                    "Toggle between total support values and percentage of GDP.",
                 ),
             ),
             ui.layout_sidebar(
@@ -33,14 +33,23 @@ class MapCard:
                         choices=MAP_SUPPORT_TYPES,
                         selected=list(MAP_SUPPORT_TYPES.keys()),
                     ),
+                    ui.input_radio_buttons(
+                        "map_display_mode",
+                        "Display Mode",
+                        choices={
+                            "gdp": "As % of GDP",
+                            "total": "Total Value (Billion €)",
+                        },
+                        selected="gdp",
+                    ),
                     position="fixed",
                     min_width="300px",
                     max_width="300px",
                     bg="#f8f8f8",
                 ),
-                output_widget("map_plot"),
+                output_widget("map_plot", height="700px"),  # Fixed height
             ),
-            height="800px",
+            class_="h-full",
         )
 
 
@@ -71,12 +80,11 @@ class MapServer:
             return pd.DataFrame()
         query = build_map_support_query(selected_types)
 
-        # Making it explicit that we're executing a complex query
         data = load_data_from_table(
-            table_name_or_query=query,  # Using the named parameter
-            columns=None,  # Not needed for complex query
-            where_clause=None,  # Not needed for complex query
-            order_by=None,  # Not needed for complex query
+            table_name_or_query=query,
+            columns=None,
+            where_clause=None,
+            order_by=None,
         )
         return data
 
@@ -86,35 +94,49 @@ class MapServer:
         if data.empty:
             return go.Figure()
 
+        display_mode = self.input.map_display_mode()
         colorscale = self._get_color_scale(self.input.map_aid_types())
+
+        # Choose which value to display based on display mode
+        if display_mode == "gdp":
+            z_values = data["pct_gdp"]
+            colorbar_title = "% of GDP"
+            hover_template = "%{text}<br>" "Sum of Categories: %{customdata[0]:.1f}B €<br>" "% of GDP: %{z:.2f}%" "<extra></extra>"
+        else:
+            z_values = data["total_support"]
+            colorbar_title = "Billion €"
+            hover_template = "%{text}<br>" "Sum of Categories: %{z:.1f}B €<br>" "% of GDP: %{customdata[0]:.2f}%" "<extra></extra>"
 
         fig = go.Figure(
             data=go.Choropleth(
                 locations=data["iso3_code"],
-                z=data["pct_gdp"],
-                text=data.apply(
-                    lambda row: (f"{row['country']}<br>" f"Total Support: {row['total_support']:.1f}B €<br>" f"% of GDP: {row['pct_gdp']:.2f}%"), axis=1
-                ),
-                hovertemplate="%{text}<extra></extra>",
+                z=z_values,
+                text=data["country"],
+                customdata=data[["total_support", "pct_gdp"]].values,
+                hovertemplate=hover_template,
                 colorscale=colorscale,
                 autocolorscale=False,
                 zmin=0,
-                zmax=data["pct_gdp"].max(),
+                zmax=z_values.max(),
                 marker_line_color="white",
                 marker_line_width=0.5,
-                colorbar_title="% of GDP",
+                colorbar_title=colorbar_title,
             )
         )
-        title = "Bilateral Support as Percentage of GDP"
+        fig.add_choropleth(
+            locations=["UKR"],
+            z=[1],  # Dummy value, won't be visible
+            text=["Ukraine"],
+            hovertemplate="Ukraine<extra></extra>",
+            colorscale=[[0, "#006400"], [1, "#006400"]],  # Deep green
+            showscale=False,
+            marker_line_color="white",
+            marker_line_width=0.5,
+        )
+
+        title = "Bilateral Support " + ("as Percentage of GDP" if display_mode == "gdp" else "in Billion €")
         fig.update_layout(
-            title=dict(
-                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
-                font=dict(size=14),
-                y=0.95,
-                x=0.5,
-                xanchor='center',
-                yanchor='top'
-            ),
+            title=dict(text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"),
             geo=dict(
                 showframe=False,
                 showcoastlines=True,
@@ -129,13 +151,12 @@ class MapServer:
                 lonaxis_range=[-180, 180],
                 projection_scale=1.1,
             ),
-            width=None,
-            height=600,
             autosize=True,
-            margin=MARGIN,
+            height=700,  # Fixed pixel height
+            margin=dict(l=0, r=0, t=50, b=0, pad=0),
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-        )
+            )
         return fig
 
     def register_outputs(self):

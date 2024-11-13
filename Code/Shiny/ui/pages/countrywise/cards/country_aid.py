@@ -45,7 +45,6 @@ class CountryAidCard:
                 ),
             ),
             output_widget("country_aid_plot"),
-            height="800px",
         )
 
 
@@ -85,6 +84,9 @@ class CountryAidServer:
         if data.empty:
             return go.Figure()
 
+        # Calculate dynamic height based on number of entries
+        dynamic_height = max(400, len(data) * 40)
+
         fig = go.Figure()
 
         # Color mapping for aid types
@@ -110,7 +112,6 @@ class CountryAidServer:
                 )
             )
 
-
         title = "Aid Allocation by Country and Type"
         fig.update_layout(
             title=dict(
@@ -124,7 +125,7 @@ class CountryAidServer:
             xaxis_title="Billion €",
             barmode="stack",
             template="plotly_white",
-            height=600,
+            height=dynamic_height,  # Use dynamic height
             margin=MARGIN,
             legend=dict(
                 yanchor="bottom",
@@ -142,6 +143,7 @@ class CountryAidServer:
                 showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
+                tickfont=dict(size=12),  # Add font size setting
             ),
             xaxis=dict(
                 showgrid=False,

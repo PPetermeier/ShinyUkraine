@@ -1,5 +1,5 @@
 """
-GDP-relative allocations visualization card.
+GDP-relative allocations visualization card with dynamic height scaling.
 """
 
 import pandas as pd
@@ -43,7 +43,7 @@ class GDPAllocationsCard:
                 ),
             ),
             output_widget("gdp_allocations_plot"),
-            height="800px",
+            # Remove fixed height from card
         )
 
 
@@ -81,6 +81,10 @@ class GDPAllocationsServer:
         if data.empty:
             return go.Figure()
 
+        # Calculate dynamic height based on number of entries
+        # Allow ~40px per entry with a minimum height of 400px
+        dynamic_height = max(400, len(data) * 40)
+
         fig = go.Figure()
 
         # Color mapping
@@ -115,7 +119,7 @@ class GDPAllocationsServer:
             xaxis_title="Percentage of 2021 GDP",
             barmode="stack",
             template="plotly_white",
-            height=600,
+            height=dynamic_height,  # Use dynamic height
             margin=MARGIN,
             legend=dict(yanchor="bottom", y=0.01, xanchor="right", x=0.99, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.2)", borderwidth=1),
             showlegend=True,
@@ -125,6 +129,8 @@ class GDPAllocationsServer:
                 showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
+                # Add some padding to prevent text cutoff
+                tickfont=dict(size=12),
             ),
             xaxis=dict(
                 showgrid=False,

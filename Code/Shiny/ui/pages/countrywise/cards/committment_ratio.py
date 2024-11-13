@@ -14,6 +14,7 @@ from ui.colorutilities import desaturate_color
 class CommittmentRatioCard:
     """UI components for the aid allocation visualization card."""
 
+   
     @staticmethod
     def ui():
         """Return the card UI elements."""
@@ -60,7 +61,6 @@ class CommittmentRatioCard:
                 ),
             ),
             output_widget("aid_allocation_plot"),
-            height="800px",
         )
 
 
@@ -110,6 +110,9 @@ class CommittmentRatioServer:
 
         if data.empty:
             return go.Figure()
+
+        # Calculate dynamic height based on number of entries
+        dynamic_height = max(400, len(data) * 40)
 
         fig = go.Figure()
 
@@ -165,16 +168,17 @@ class CommittmentRatioServer:
             barmode="stack",
             xaxis_title="Percent of Committed Aid" if show_percentage else "Billion €",
             template="plotly_white",
-            height=600,
+            height=dynamic_height,  # Use dynamic height
             margin=MARGIN,
             legend=dict(yanchor="bottom", y=0.01, xanchor="right", x=0.99, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.2)", borderwidth=1),
-            showlegend=not show_percentage,  # Only show legend for non-percentage view
+            showlegend=not show_percentage,
             hovermode="y unified",
             autosize=True,
             yaxis=dict(
                 showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
+                tickfont=dict(size=12),  # Add font size setting
             ),
             xaxis=dict(
                 showgrid=False,
