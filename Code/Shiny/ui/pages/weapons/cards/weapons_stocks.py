@@ -247,7 +247,7 @@ class WeaponsStocksServer:
             hovermode="closest",
             xaxis=dict(
                 title="Number of Units",
-                showgrid=True,
+                showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zeroline=True,
                 zerolinecolor="rgba(0,0,0,0.2)",

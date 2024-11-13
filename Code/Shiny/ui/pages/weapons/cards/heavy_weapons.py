@@ -35,9 +35,9 @@ class HeavyWeaponsCard:
                         ui.input_numeric(
                             "top_n_countries_heavy_weapons",
                             None,  # No label needed as it's inline
-                            value=10,
+                            value=15,
                             min=5,
-                            max=20,
+                            max=30,
                             width="80px",
                         ),
                         ui.span({"class": "ms-2"}, "countries",),

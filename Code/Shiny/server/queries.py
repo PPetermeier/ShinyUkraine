@@ -74,6 +74,33 @@ WEAPON_STOCKS_PREWAR_QUERY = """
     WHERE item LIKE '%pre-war%'
     AND quantity IS NOT NULL
 """
+WEAPON_STOCK_PLEDGES_QUERY = """
+    SELECT 
+        m.country,
+        m.average_total_delivered as delivered,
+        m.average_total_to_be_delivered as to_be_delivered
+    FROM m_share_of_stocks_pledged m
+    WHERE m.country != 'Average EU' 
+    AND m.country != 'Average non-EU-NATO'
+    ORDER BY (COALESCE(m.average_total_delivered, 0) + COALESCE(m.average_total_to_be_delivered, 0)) DESC"""
+
+
+WEAPON_TYPE_PLEDGES_QUERY = """
+    SELECT 
+        m.country,
+        m.tanks as tanks_delivered,
+        m."155mm152mm_howitzers" as howitzers_delivered,
+        m.mlrs as mlrs_delivered,
+        -- Calculate the to-be-delivered amounts
+        (m.tanks * (m.average_total_to_be_delivered / NULLIF(m.average_total_delivered, 0))) as tanks_to_deliver,
+        (m."155mm152mm_howitzers" * (m.average_total_to_be_delivered / NULLIF(m.average_total_delivered, 0))) as howitzers_to_deliver,
+        (m.mlrs * (m.average_total_to_be_delivered / NULLIF(m.average_total_delivered, 0))) as mlrs_to_deliver
+    FROM m_share_of_stocks_pledged m
+    WHERE m.country != 'Average EU' 
+    AND m.country != 'Average non-EU-NATO'
+    AND (m.tanks > 0 OR m."155mm152mm_howitzers" > 0 OR m.mlrs > 0)
+    ORDER BY (m.average_total_delivered + COALESCE(m.average_total_to_be_delivered, 0)) DESC
+"""
 
 WEAPON_STOCKS_SUPPORT_QUERY = """
     SELECT 

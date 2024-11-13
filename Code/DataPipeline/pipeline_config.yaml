@@ -183,8 +183,8 @@
 - read: true
   extract:
     name: "Fig 14. Share of stocks pledged"
-    column_range: "B:K" # From Country through all weapon system share columns
-    number_rows: 31 # From Norway through Romania
+    column_range: "B:N" # From Country through all weapon system share columns
+    number_rows: 34 # From Norway through Romania
     skip_rows: 10 # Skip title, description to reach the header
     number_header_rows: 1
   transform:
