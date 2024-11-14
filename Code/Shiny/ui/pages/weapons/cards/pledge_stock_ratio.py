@@ -67,77 +67,75 @@ class PledgeStockServer:
         return df
     
     def create_plot(self):
-        """Create the stacked bar plot visualization."""
-        data = self._filtered_data()
-        
-        if data.empty:
-            return go.Figure()
+            """Create the stacked bar plot visualization."""
+            data = self._filtered_data()
             
-        # Create figure
-        fig = go.Figure()
-        
-        # Calculate y-positions and get country names
-        countries = data['country'].tolist()
-        
-        # Add delivered weapons bars
-        fig.add_trace(go.Bar(
-            y=countries,
-            x=data['delivered'].multiply(100),  # Convert to percentage
-            name='Delivered',
-            orientation='h',
-            marker_color=[COLOR_PALETTE.get(country, "#808080") for country in countries],
-            hovertemplate="Delivered: %{x:.1f}%<extra></extra>"
-        ))
-        
-        # Add to-be-delivered weapons bars
-        fig.add_trace(go.Bar(
-            y=countries,
-            x=data['to_be_delivered'].multiply(100),  # Convert to percentage
-            name='To Be Delivered',
-            orientation='h',
-            marker_color=[desaturate_color(COLOR_PALETTE.get(country, "#808080"), 0.5) for country in countries],
-            hovertemplate="To Be Delivered: %{x:.1f}%<extra></extra>"
-        ))
-        
-        # Update layout
-        fig.update_layout(
-            title=dict(
-                text=f"Share of National Stocks Pledged to Ukraine<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 14</sub>",
-                font=dict(size=14),
-                y=0.95,
-                x=0.5,
-                xanchor="center",
-                yanchor="top"
-            ),
-            height=600,
-            margin=MARGIN,
-            barmode='stack',
-            showlegend=True,
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
-            ),
-            xaxis=dict(
-                title="Percentage of National Stock",
-                ticksuffix="%",
-                showgrid=True,
-                gridcolor="rgba(0,0,0,0.1)",
-            ),
-            yaxis=dict(
-                title=None,
-                autorange="reversed",  # To match the order in original visualization
-                showgrid=False,
-                gridcolor="rgba(0,0,0,0.1)",
-                zerolinecolor="rgba(0,0,0,0.2)",
-            ),
-            plot_bgcolor="rgba(255,255,255,1)",
-            paper_bgcolor="rgba(255,255,255,1)",
-        )
-        
-        return fig
+            if data.empty:
+                return go.Figure()
+                
+            fig = go.Figure()
+            
+            # Create traces with consistent colors for all countries
+            fig.add_trace(go.Bar(
+                y=data['country'],
+                x=data['delivered'].multiply(100),
+                name='Delivered',
+                orientation='h',
+                marker_color=COLOR_PALETTE.get("military"),
+                hovertemplate="Delivered: %{x:.1f}%<extra></extra>"
+            ))
+            
+            fig.add_trace(go.Bar(
+                y=data['country'],
+                x=data['to_be_delivered'].multiply(100),
+                name='To Be Delivered',
+                orientation='h',
+                marker_color=COLOR_PALETTE.get("aid_committed"),
+                hovertemplate="To Be Delivered: %{x:.1f}%<extra></extra>"
+            ))
+            
+            # Dynamic height calculation
+            plot_height = max(600, len(data) * 40)
+            
+            fig.update_layout(
+                title=dict(
+                    text=f"Share of National Stocks Pledged to Ukraine<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 14</sub>",
+                    font=dict(size=14),
+                    y=0.95,
+                    x=0.5,
+                    xanchor="center",
+                    yanchor="top"
+                ),
+                height=plot_height,
+                margin=MARGIN,
+                barmode='stack',
+                showlegend=True,
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1
+                ),
+                xaxis=dict(
+                    title="Percentage of National Stock",
+                    ticksuffix="%",
+                    showgrid=True,
+                    gridcolor="rgba(0,0,0,0.1)",
+                ),
+                yaxis=dict(
+                    title=None,
+                    autorange="reversed",
+                    showgrid=False,
+                    gridcolor="rgba(0,0,0,0.1)",
+                    zerolinecolor="rgba(0,0,0,0.2)",
+                    categoryorder='total descending'
+                ),
+                plot_bgcolor="rgba(255,255,255,1)",
+                paper_bgcolor="rgba(255,255,255,1)",
+            )
+            
+            return fig
     
     def register_outputs(self):
         """Register all outputs for the module."""

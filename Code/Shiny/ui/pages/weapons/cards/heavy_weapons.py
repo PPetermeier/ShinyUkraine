@@ -85,7 +85,7 @@ class HeavyWeaponsServer:
                 x=data["value_estimates_heavy_weapons"],
                 y=data["country"],
                 orientation="h",
-                marker_color=COLOR_PALETTE.get("heavy_weapons_deliveries", "#E76F51"),
+                marker_color=COLOR_PALETTE.get("military"),
                 hovertemplate="%{y}<br>" + "Value Estimate: %{x:.1f}B €<extra></extra>",
             )
         )

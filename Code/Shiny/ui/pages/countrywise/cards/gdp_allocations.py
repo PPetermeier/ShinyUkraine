@@ -47,6 +47,7 @@ class GDPAllocationsCard:
         )
 
 
+
 class GDPAllocationsServer:
     """Server logic for the GDP allocations visualization card."""
 
@@ -54,7 +55,19 @@ class GDPAllocationsServer:
         self.input = input
         self.output = output
         self.session = session
-        self.df = load_data_from_table("f_bilateral_allocations_gdp_pct")
+        
+        # Load and join the data from both tables
+        df_allocations = load_data_from_table("f_bilateral_allocations_gdp_pct")
+        df_summary = load_data_from_table("a_summary_€")
+        
+        # Merge the dataframes
+        self.df = pd.merge(
+            df_allocations,
+            df_summary[["country", "share_in_total_eu_allocations__2021_gdp"]],
+            on="country",
+            how="left"
+        )
+        
         self._filtered_data = reactive.Calc(self._compute_filtered_data)
         self.register_outputs()
 
@@ -62,7 +75,11 @@ class GDPAllocationsServer:
         """Filter and process data based on user selections."""
         # Filter data
         result = self.df.copy()
-        allocation_cols = ["total_bilateral_allocations", "refugee_cost_estimation"]
+        allocation_cols = [
+            "total_bilateral_allocations",
+            "refugee_cost_estimation",
+            "share_in_total_eu_allocations__2021_gdp"
+        ]
 
         # Calculate total for sorting
         result["total"] = result[allocation_cols].sum(axis=1)
@@ -88,6 +105,7 @@ class GDPAllocationsServer:
         countries = data["country"].tolist()
         bilateral_values = data["total_bilateral_allocations"].tolist()
         refugee_values = data["refugee_cost_estimation"].tolist()
+        eu_share_values = data["share_in_total_eu_allocations__2021_gdp"].tolist()
 
         # Add bilateral allocations trace
         fig.add_trace(
@@ -96,7 +114,7 @@ class GDPAllocationsServer:
                 x=bilateral_values,
                 name="Total bilateral allocations",
                 orientation="h",
-                marker_color=COLOR_PALETTE.get("base_color", "#1f77b4"),
+                marker_color=COLOR_PALETTE.get("total_bilateral",),
                 hovertemplate="%{y}<br>Value: %{x:.2f}% of GDP<extra></extra>",
             )
         )
@@ -108,12 +126,24 @@ class GDPAllocationsServer:
                 x=refugee_values,
                 name="Refugee cost estimation",
                 orientation="h",
-                marker_color=COLOR_PALETTE.get("refugee", "#ff7f0e"),
+                marker_color=COLOR_PALETTE.get("refugee"),
                 hovertemplate="%{y}<br>Value: %{x:.2f}% of GDP<extra></extra>",
             )
         )
 
-        title = "Bilateral Aid and Refugee cost estimation"
+        # Add EU share trace
+        fig.add_trace(
+            go.Bar(
+                y=countries,
+                x=eu_share_values,
+                name="Share in total EU allocations",
+                orientation="h",
+                marker_color=COLOR_PALETTE.get("europe"), 
+                hovertemplate="%{y}<br>Value: %{x:.2f}% of GDP<extra></extra>",
+            )
+        )
+
+        title = "Bilateral Aid, Refugee Costs, and EU Share"
         fig.update_layout(
             title=dict(
                 text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
@@ -145,7 +175,7 @@ class GDPAllocationsServer:
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
                 tickfont=dict(size=12),
-                categoryorder="total ascending",  # Enable dynamic reordering
+                categoryorder="total ascending",
             ),
             xaxis=dict(
                 showgrid=False,

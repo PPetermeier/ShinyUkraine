@@ -45,68 +45,63 @@ class PledgesWeaponTypesServer:
         return load_data_from_table(table_name_or_query=WEAPON_TYPE_PLEDGES_QUERY)
 
     def create_plot(self):
-        """Create the subplot visualization."""
         data = self._filtered_data()
 
         if data.empty:
             return go.Figure()
 
-        fig = make_subplots(
-            rows=3,
-            cols=1,
+        fig = make_subplots(rows=3, cols=1,
             subplot_titles=("<br><br><br>Tanks", "Howitzers (155/152mm)", "Multiple Launch Rocket Systems"),
             vertical_spacing=0.2,
-            shared_yaxes=True,
+            shared_yaxes=False  # Changed to false to allow independent sorting
         )
 
-        # List of weapon types and their data columns
         weapon_types = [
             ("tanks", "tanks_delivered", "tanks_to_deliver"),
             ("howitzers", "howitzers_delivered", "howitzers_to_deliver"),
             ("mlrs", "mlrs_delivered", "mlrs_to_deliver"),
         ]
 
-        # Add traces for each weapon type
         for idx, (weapon_type, delivered_col, to_deliver_col) in enumerate(weapon_types, 1):
-            # Sort data for this specific weapon type
-            plot_data = data.sort_values(by=[delivered_col, to_deliver_col], ascending=[False, False])
+            # Create separate dataframe for each weapon type
+            weapon_data = data[["country", delivered_col, to_deliver_col]].copy()
+            weapon_data = weapon_data[weapon_data[delivered_col].notna() | weapon_data[to_deliver_col].notna()]
+            weapon_data['total'] = weapon_data[delivered_col].fillna(0) + weapon_data[to_deliver_col].fillna(0)
+            weapon_data = weapon_data.sort_values('total', ascending=True)
 
-            # Add delivered weapons bars
             fig.add_trace(
                 go.Bar(
-                    y=plot_data["country"],
-                    x=plot_data[delivered_col].multiply(100),  # Convert to percentage
+                    y=weapon_data["country"],
+                    x=weapon_data[delivered_col].multiply(100),
                     name="Delivered",
                     orientation="h",
-                    marker_color=COLOR_PALETTE["weapon_stocks_delivered"],
+                    marker_color=COLOR_PALETTE["military"],
                     hovertemplate="Delivered: %{x:.1f}%<extra></extra>",
                     legendgroup="delivered",
-                    showlegend=(idx == 1),  # Show legend only for first subplot
+                    showlegend=(idx == 1),
                 ),
                 row=idx,
                 col=1,
             )
 
-            # Add to-be-delivered weapons bars
             fig.add_trace(
                 go.Bar(
-                    y=plot_data["country"],
-                    x=plot_data[to_deliver_col].multiply(100),  # Convert to percentage
+                    y=weapon_data["country"],
+                    x=weapon_data[to_deliver_col].multiply(100),
                     name="To Be Delivered",
                     orientation="h",
-                    marker_color=COLOR_PALETTE["weapon_stocks_pending"],
+                    marker_color=COLOR_PALETTE["aid_committed"],
                     hovertemplate="To Be Delivered: %{x:.1f}%<extra></extra>",
                     legendgroup="to_be_delivered",
-                    showlegend=(idx == 1),  # Show legend only for first subplot
+                    showlegend=(idx == 1),
                 ),
                 row=idx,
                 col=1,
             )
 
-        # Calculate dynamic height based on number of countries
-        plot_height = max(600, len(data) * 30 * 3)  # 30px per country * 3 plots
+        # Rest of your layout code remains the same
+        plot_height = max(600, len(data) * 30 * 3)
 
-        # Update layout
         fig.update_layout(
             title=dict(
                 text=f"Heavy Weapons Deliveries by Type<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 14</sub>",
@@ -118,12 +113,7 @@ class PledgesWeaponTypesServer:
                 pad=dict(b=20),
             ),
             height=plot_height,
-            margin=dict(
-                t=120,  # Increase top margin
-                b=20,
-                l=20,
-                r=20,
-            ),
+            margin=dict(t=120, b=20, l=20, r=20),
             barmode="stack",
             showlegend=True,
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, traceorder="normal"),
@@ -131,13 +121,24 @@ class PledgesWeaponTypesServer:
             paper_bgcolor="rgba(255,255,255,1)",
         )
 
-        # Update all xaxes
         for i in range(1, 4):
-            fig.update_xaxes(title="Share of National Stock (%)", showgrid=True, gridcolor="rgba(0,0,0,0.1)", ticksuffix="%", row=i, col=1)
-
-        # Update all yaxes
-        for i in range(1, 4):
-            fig.update_yaxes(autorange="reversed", showgrid=False, gridcolor="rgba(0,0,0,0.1)", zerolinecolor="rgba(0,0,0,0.2)", row=i, col=1)
+            fig.update_xaxes(
+                title="Share of National Stock (%)", 
+                showgrid=True, 
+                gridcolor="rgba(0,0,0,0.1)", 
+                ticksuffix="%", 
+                row=i, 
+                col=1
+            )
+            fig.update_yaxes(
+                autorange="reversed",
+                showgrid=False,
+                gridcolor="rgba(0,0,0,0.1)",
+                zerolinecolor="rgba(0,0,0,0.2)",
+                row=i,
+                col=1,
+                categoryorder='total descending'
+            )
 
         return fig
 

@@ -21,12 +21,11 @@ COLOR_PALETTE = {
     "europe": "#003399",  # Reflex blue, from the EU Flag
     "other_countries": "#2ECC71",  # Emerald green for total
     # Timeseries by aid types
-    "military": "#5A189A",  
-    "heavy_weapons_deliveries": "#6932A4" , # Darker purple color for heavy weapons
-    "financial": "#FF6700", 
-    "humanitarian": "#00CED1", 
-    "refugee": "#FFB400",
-    "total_bilateral":"#2ECC71",
+    "military": "#6B8E23",  
+    "financial": "#048BA8", 
+    "humanitarian": "#FFA500", 
+    "refugee": "#0072BC",
+    "total_bilateral":"#2E8B57",
     'EU_institutions': '#FFCC00',
     'base_color':'#003399',      
     # Commmitments vs. 
@@ -72,8 +71,8 @@ COLOR_PALETTE = {
     'China': '#DE2910',          # Red from Chinese flag
     'Taiwan': '#FE0000',         # Red from Taiwanese flag
     # Financial bilateral allocations colors
-    'aid_committed': '#E9C46A',
-    'aid_delivered': '#2A9D8F',
+    'aid_committed': '#D8A769',
+    'aid_delivered': '#7386C1',
     'financial_grant': '#048BA8',      # Darkest - teal blue
     'financial_swap': '#0DB39E',       # Dark - blue green
     'financial_guarantee': '#16DB93',   # Light - mint

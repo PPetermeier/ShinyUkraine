@@ -69,7 +69,7 @@ class MapServer:
             aid_type = "refugee" if selected_types[0] == "refugee_cost_estimation" else selected_types[0]
             base_color = COLOR_PALETTE.get(aid_type, "#003399")
         else:
-            base_color = COLOR_PALETTE.get("base_color")
+            base_color = COLOR_PALETTE.get("total_bilateral")
 
         return [[0, "rgba(255,255,255,1)"], [1, base_color]]
 
@@ -128,7 +128,7 @@ class MapServer:
             z=[1],  # Dummy value, won't be visible
             text=["Ukraine"],
             hovertemplate="Ukraine<extra></extra>",
-            colorscale=[[0, "#006400"], [1, "#006400"]],  # Deep green
+            colorscale=[[0, "#B22222"], [1, "#B22222"]],  # Deep green
             showscale=False,
             marker_line_color="white",
             marker_line_width=0.5,
