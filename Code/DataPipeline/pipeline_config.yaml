@@ -14,8 +14,6 @@
     number_header_rows: 2
   transform:
     clean_column_names: true
-    #columnnames: # This always last to not confuse the other commands
-    #EU member: "Nice Club"
   load:
     name: "a_summary_€"
 #Country Summary ($)
@@ -191,25 +189,156 @@
     clean_column_names: true
   load:
     name: "m_share_of_stocks_pledged"
-#This table will work well with your planned Shiny visualizations - you could create:
-#Radar charts comparing countries across weapon types
-#Heatmaps showing commitment intensities
-#Bar charts ranking countries by different weapon systems
-#Correlation analysis between different types of commitments
 # Fig 15. Comparison WW2 (weap.)"
-- read: false
+- read: true
+  extract:
+    name: "Fig 15. Comparison WW2 (weap.)"
+    column_range: "B:E"
+    number_rows: 21
+    skip_rows: 9
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+    replace_values:
+      To be delivered:
+        .: 0
+    datatypes:
+      To be delivered: int
+    forward_fill_column: "Military conflict"
+  load:
+    name: "n_comparison_spain_ww2_equipment"
 # Fig 16. Comparison WW2 % GDP"
-- read: false
+- read: true
+  extract:
+    name: "Fig 16. Comparison WW2 % GDP"
+    column_range: "B:D"
+    number_rows: 7
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "o_comparison_ww2_gdp"
+# Fig 16. Comparison WW2 % GDP"
+- read: true
+  extract:
+    name: "Fig 16. Comparison WW2 % GDP"
+    column_range: "F:H"
+    number_rows: 7
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "p_comparison_ww2_abs"
 #Fig 17. Comp. with US wars"
-- read: false
+- read: true
+  extract:
+    name: "Fig 17. Comp. with US wars"
+    column_range: "B:D"
+    number_rows: 6
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "q_comparison_us_wars_gdp"
+    #Fig 17. Comp. with US wars"
+- read: true
+  extract:
+    name: "Fig 17. Comp. with US wars"
+    column_range: "G:I"
+    number_rows: 6
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "r_comparison_us_wars_abs"
 #Fig 18. Comparison Gulf War"
-- read: false
+- read: true
+  extract:
+    name: "Fig 18. Comparison Gulf War"
+    column_range: "B:D"
+    number_rows: 5
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "s_comparison_gulf_war_gdp"
+#Fig 18. Comparison Gulf War"
+- read: true
+  extract:
+    name: "Fig 18. Comparison Gulf War"
+    column_range: "G:I"
+    number_rows: 5
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "t_comparison_gulf_war_abs"
 #Fig 19. Comp. European Crises"
-- read: false
+- read: true
+  extract:
+    name: "Fig 19. Comp. European Crises"
+    column_range: "B:C"
+    number_rows: 4
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "u_comparison_european_crises"
 #Fig 20. Domestic Priorities"
-- read: false
+- read: true
+  extract:
+    name: "Fig 20. Domestic Priorities"
+    column_range: "B:D"
+    number_rows: 8
+    skip_rows: 11
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "v_comparison_domestic_abs"
+#Fig 20. Domestic Priorities"
+- read: true
+  extract:
+    name: "Fig 20. Domestic Priorities"
+    column_range: "J:L"
+    number_rows: 8
+    skip_rows: 11
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+  load:
+    name: "w_comparison_domestic_gdp"
 #Fig 21. Priorities Germany"
-- read: false
+- read: true
+  extract:
+    name: "Fig 21. Priorities Germany"
+    column_range: "B:F"
+    number_rows: 6
+    skip_rows: 10
+    number_header_rows: 1
+  transform:
+    clean_column_names: true
+    replace_values:
+      Total bilateral aid:
+        .: 0
+      EU aid shares:
+        .: 0
+      Cost:
+        .: 0
+    datatypes:
+      Total bilateral aid: float
+      EU aid shares: float
+      Cost: float
+    entry_correction: true
+  load:
+    name: "x_comparison_germany_abs"
 #Fig A1. Transparency Index"
 - read: false
 #Fig A2. Ranking % GDP + EU"

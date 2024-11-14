@@ -137,6 +137,18 @@ def transform(data: pd.DataFrame, config_transform: dict, database: duckdb.DuckD
     """
     config_transform_keys = config_transform.keys()
 
+    if "replace_values" in config_transform_keys:
+        for column, replace_dict in config_transform['replace_values'].items():
+        # Apply the replacement dictionary to the column
+            data[column] = data[column].apply(lambda x: replace_dict.get(x, x)).astype(float)
+
+    if "forward_fill_column" in config_transform_keys:
+        data[config_transform['forward_fill_column']] = data[config_transform['forward_fill_column']].ffill()
+    
+    if "entry_correction" in config_transform_keys:
+        row_index = data[data.iloc[:,0 ]== 'German aid to Ukraine'].index
+        data.iloc[row_index, 3] = 18.08
+
     if "datatypes" in config_transform_keys:
         data = data.astype(config_transform["datatypes"])
 
@@ -150,6 +162,8 @@ def transform(data: pd.DataFrame, config_transform: dict, database: duckdb.DuckD
 
     if "clean_column_names" in config_transform_keys:
         data.columns = pd.Series(data.columns).str.lower().str.replace("\s+", "_", regex=True).str.replace("[^a-z0-9_]", "", regex=True).str.strip("_")
+
+
 
     # Apply existing transformations
     if "reshape" in config_transform_keys:
