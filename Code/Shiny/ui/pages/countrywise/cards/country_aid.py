@@ -84,31 +84,30 @@ class CountryAidServer:
         if data.empty:
             return go.Figure()
 
-        # Calculate dynamic height based on number of entries
         dynamic_height = max(400, len(data) * 40)
-
         fig = go.Figure()
 
-        # Color mapping for aid types
-        colors = {
-            "financial": COLOR_PALETTE.get("financial"),
-            "humanitarian": COLOR_PALETTE.get("humanitarian"),
-            "military": COLOR_PALETTE.get("military"),
-            "refugee_cost_estimation": COLOR_PALETTE.get("refugee"),
+        # Color and name mapping for aid types
+        aid_types = {
+            "financial": {"color": COLOR_PALETTE.get("financial"), "name": "Financial"},
+            "humanitarian": {"color": COLOR_PALETTE.get("humanitarian"), "name": "Humanitarian"},
+            "military": {"color": COLOR_PALETTE.get("military"), "name": "Military"},
+            "refugee_cost_estimation": {"color": COLOR_PALETTE.get("refugee"), "name": "Refugee Support"},
         }
 
-        # Name mapping for aid types
-        name_map = {"financial": "Financial", "humanitarian": "Humanitarian", "military": "Military", "refugee_cost_estimation": "Refugee Support"}
+        # Get list of countries
+        countries = data["country"].tolist()
 
         # Add bars for each aid type
-        for aid_type, color in colors.items():
+        for aid_type, properties in aid_types.items():
             fig.add_trace(
                 go.Bar(
-                    y=data["country"],
-                    x=data[aid_type],
-                    name=name_map[aid_type],
+                    y=countries,
+                    x=data[aid_type].tolist(),
+                    name=properties["name"],
                     orientation="h",
-                    marker_color=color,
+                    marker_color=properties["color"],
+                    hovertemplate="%{y}<br>" + properties["name"] + ": %{x:.1f} Billion €<extra></extra>",
                 )
             )
 
@@ -125,7 +124,7 @@ class CountryAidServer:
             xaxis_title="Billion €",
             barmode="stack",
             template="plotly_white",
-            height=dynamic_height,  # Use dynamic height
+            height=dynamic_height,
             margin=MARGIN,
             legend=dict(
                 yanchor="bottom",
@@ -143,7 +142,8 @@ class CountryAidServer:
                 showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
-                tickfont=dict(size=12),  # Add font size setting
+                tickfont=dict(size=12),
+                categoryorder="total ascending",  # Enable dynamic reordering
             ),
             xaxis=dict(
                 showgrid=False,

@@ -109,7 +109,7 @@ class PledgesWeaponTypesServer:
         # Update layout
         fig.update_layout(
             title=dict(
-                text=f"Heavy Weapons Deliveries by Type<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                text=f"Heavy Weapons Deliveries by Type<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 14</sub>",
                 font=dict(size=14),
                 y=0.98,
                 x=0.5,

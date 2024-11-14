@@ -128,7 +128,7 @@ class AidAllocationServer:
         fig.update_layout(
             barmode="overlay",
             title=dict(
-                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 5</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,

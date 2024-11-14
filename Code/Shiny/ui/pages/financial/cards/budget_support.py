@@ -110,7 +110,7 @@ class BudgetSupportServer:
         title = "Allocations and Disbursements by country"
         fig.update_layout(
             title=dict(
-                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 11</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,

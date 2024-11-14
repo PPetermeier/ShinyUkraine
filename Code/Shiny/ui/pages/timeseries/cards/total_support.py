@@ -118,7 +118,7 @@ class TotalSupportServer:
             title = "Monthly Support Allocation"
 
         fig.update_layout(
-            title=dict(text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"),
+            title=dict(text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"),
             xaxis_title="Month",
             yaxis_title="Billion $",
             barmode="group",

@@ -238,7 +238,7 @@ class WeaponsStocksServer:
         # Update layout
         fig.update_layout(
             title=dict(
-                text=f"Weapon Stocks Comparison<br><sub>Last updated: {LAST_UPDATE}</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"
+                text=f"Weapon Stocks Comparison<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 12</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"
             ),
             height=plot_height,
             margin=MARGIN,

@@ -108,7 +108,7 @@ class FinancialByTypeServer:
         title = "Financial Bilateral Allocations by Type"
         fig.update_layout(
             title=dict(
-                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 10</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,

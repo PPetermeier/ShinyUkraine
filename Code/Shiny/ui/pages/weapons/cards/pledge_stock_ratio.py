@@ -102,7 +102,7 @@ class PledgeStockServer:
         # Update layout
         fig.update_layout(
             title=dict(
-                text=f"Share of National Stocks Pledged to Ukraine<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                text=f"Share of National Stocks Pledged to Ukraine<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 14</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,

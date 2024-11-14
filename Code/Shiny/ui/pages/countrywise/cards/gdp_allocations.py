@@ -81,47 +81,62 @@ class GDPAllocationsServer:
         if data.empty:
             return go.Figure()
 
-        # Calculate dynamic height based on number of entries
-        # Allow ~40px per entry with a minimum height of 400px
         dynamic_height = max(400, len(data) * 40)
-
         fig = go.Figure()
 
-        # Color mapping
-        colors = {
-            "total_bilateral_allocations": COLOR_PALETTE.get("base_color", "#1f77b4"),
-            "refugee_cost_estimation": COLOR_PALETTE.get("refugee", "#ff7f0e"),
-        }
+        # Create lists for each allocation type
+        countries = data["country"].tolist()
+        bilateral_values = data["total_bilateral_allocations"].tolist()
+        refugee_values = data["refugee_cost_estimation"].tolist()
 
-        # Name mapping
-        name_map = {
-            "total_bilateral_allocations": "Total bilateral allocations",
-            "refugee_cost_estimation": "Refugee cost estimation",
-        }
-
-        # Add bars for each allocation type
-        for alloc_type, color in colors.items():
-            fig.add_trace(
-                go.Bar(
-                    y=data["country"],
-                    x=data[alloc_type],
-                    name=name_map[alloc_type],
-                    orientation="h",
-                    marker_color=color,
-                    hovertemplate="%{y}<br>" + "%{customdata}<br>" + "Value: %{x:.2f}% of GDP<extra></extra>",
-                    customdata=[name_map[alloc_type]] * len(data),
-                )
+        # Add bilateral allocations trace
+        fig.add_trace(
+            go.Bar(
+                y=countries,
+                x=bilateral_values,
+                name="Total bilateral allocations",
+                orientation="h",
+                marker_color=COLOR_PALETTE.get("base_color", "#1f77b4"),
+                hovertemplate="%{y}<br>Value: %{x:.2f}% of GDP<extra></extra>",
             )
+        )
+
+        # Add refugee costs trace
+        fig.add_trace(
+            go.Bar(
+                y=countries,
+                x=refugee_values,
+                name="Refugee cost estimation",
+                orientation="h",
+                marker_color=COLOR_PALETTE.get("refugee", "#ff7f0e"),
+                hovertemplate="%{y}<br>Value: %{x:.2f}% of GDP<extra></extra>",
+            )
+        )
 
         title = "Bilateral Aid and Refugee cost estimation"
         fig.update_layout(
-            title=dict(text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"),
+            title=dict(
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                font=dict(size=14),
+                y=0.95,
+                x=0.5,
+                xanchor="center",
+                yanchor="top",
+            ),
             xaxis_title="Percentage of 2021 GDP",
             barmode="stack",
             template="plotly_white",
-            height=dynamic_height,  # Use dynamic height
+            height=dynamic_height,
             margin=MARGIN,
-            legend=dict(yanchor="bottom", y=0.01, xanchor="right", x=0.99, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.2)", borderwidth=1),
+            legend=dict(
+                yanchor="bottom",
+                y=0.01,
+                xanchor="right",
+                x=0.99,
+                bgcolor="rgba(255, 255, 255, 0.8)",
+                bordercolor="rgba(0, 0, 0, 0.2)",
+                borderwidth=1,
+            ),
             showlegend=True,
             hovermode="y unified",
             autosize=True,
@@ -129,8 +144,8 @@ class GDPAllocationsServer:
                 showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
-                # Add some padding to prevent text cutoff
                 tickfont=dict(size=12),
+                categoryorder="total ascending",  # Enable dynamic reordering
             ),
             xaxis=dict(
                 showgrid=False,
