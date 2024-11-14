@@ -194,7 +194,7 @@
   extract:
     name: "Fig 15. Comparison WW2 (weap.)"
     column_range: "B:E"
-    number_rows: 21
+    number_rows: 22
     skip_rows: 9
     number_header_rows: 1
   transform:

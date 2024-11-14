@@ -102,6 +102,79 @@ WEAPON_TYPE_PLEDGES_QUERY = """
     ORDER BY (m.average_total_delivered + COALESCE(m.average_total_to_be_delivered, 0)) DESC
 """
 
+WW2_WEAPON_CATEGORIES = {
+    'heavy': ['Tanks'],
+    'artillery': ['Artillery', 'Howitzer(155/152mm)', 'MLRS'],
+    'air': ['Combat Aircraft']
+}
+
+WW2_CONFLICTS = [
+    'WW2 lend-lease US total delivered',
+    'US to Great Britain (1941-45)',
+    'US to USSR (1941-45)',
+    'Spain (1936-39) Nationalists',
+    'Spain (1936-39) Republicans',
+    'Total supply to Ukraine'
+]
+
+# Base query for WW2 comparisons
+WW2_EQUIPMENT_BASE_QUERY = """
+    SELECT 
+        military_conflict,
+        weapon_type,
+        delivered,
+        to_be_delivered
+    FROM n_comparison_spain_ww2_equipment
+    WHERE military_conflict IN ({conflicts})
+"""
+
+
+# Query with category grouping
+WW2_EQUIPMENT_CATEGORIZED_QUERY = """
+    WITH base_data AS (
+        SELECT 
+            CASE 
+                WHEN military_conflict LIKE 'WW2 lend-lease US total%' THEN 'WW2 lend-lease US total delivered'
+                WHEN military_conflict LIKE 'US to Great Britain%' THEN 'US to Great Britain (1941-45)'
+                WHEN military_conflict LIKE 'US to USSR%' THEN 'US to USSR (1941-45)'
+                WHEN military_conflict LIKE 'Spain (1936-39) Nationalists%' THEN 'Spain (1936-39) Nationalists'
+                WHEN military_conflict LIKE 'Spain (1936-39) Republicans%' THEN 'Spain (1936-39) Republicans'
+                WHEN military_conflict LIKE 'Total supply to Ukraine%' THEN 'Total supply to Ukraine'
+            END as military_conflict,
+            TRIM(weapon_type) as weapon_type,
+            delivered,
+            COALESCE(to_be_delivered, 0) as to_be_delivered,
+            CASE 
+                WHEN TRIM(weapon_type) = 'Tanks' THEN 'heavy'
+                WHEN TRIM(weapon_type) IN ('Artillery', 'Howitzer(155/152mm)', 'MLRS') THEN 'artillery'
+                WHEN TRIM(weapon_type) = 'Combat Aircraft' THEN 'air'
+            END as category
+        FROM n_comparison_spain_ww2_equipment
+        WHERE military_conflict IS NOT NULL
+    )
+    SELECT 
+        military_conflict,
+        category,
+        weapon_type,
+        SUM(delivered) as delivered,
+        SUM(to_be_delivered) as to_be_delivered
+    FROM base_data
+    WHERE category IS NOT NULL
+        AND military_conflict IS NOT NULL
+    GROUP BY military_conflict, category, weapon_type
+    ORDER BY 
+        CASE military_conflict
+            WHEN 'WW2 lend-lease US total delivered' THEN 1
+            WHEN 'US to Great Britain (1941-45)' THEN 2
+            WHEN 'US to USSR (1941-45)' THEN 3
+            WHEN 'Spain (1936-39) Nationalists' THEN 4
+            WHEN 'Spain (1936-39) Republicans' THEN 5
+            WHEN 'Total supply to Ukraine' THEN 6
+        END,
+        category,
+        weapon_type
+"""
+
 WEAPON_STOCKS_SUPPORT_QUERY = """
     SELECT 
         equipment_type,

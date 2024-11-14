@@ -6,7 +6,8 @@ from ui.pages.countrywise import CountryAidPageServer
 from ui.pages.landing import LandingPageServer
 from ui.pages.timeseries import TimeSeriesPageServer
 from ui.pages.financial import FinancialPageServer
-from ui.pages.weapons import HeavyWeaponsPageServer  # Import the new page server
+from ui.pages.weapons import HeavyWeaponsPageServer  
+from ui.pages.comparisons import ComparisonsPageServer 
 
 def server(input, output, session):
     # Initialize the landing page server
@@ -27,6 +28,9 @@ def server(input, output, session):
 
     # Initialize the weapons page server
     weapons_server = HeavyWeaponsPageServer(input, output, session)
-    weapons_server.initialize()  # Don't forget to initialize the new server
+    weapons_server.initialize() 
+
+    comparisons_serer = ComparisonsPageServer(input, output, session)
+    comparisons_serer.initialize()
 
 app = App(get_main_ui(), server)

@@ -3,29 +3,37 @@ Makes the server directory a Python package and exposes key functionality.
 """
 
 from .database import (
-    load_country_data,
+    get_db_connection,
     load_data_from_table,
     load_time_series_data,
+    load_country_data,
+    load_weapon_stocks_data
 )
 from .queries import (
     HEAVY_WEAPONS_COLUMNS,
-    HEAVY_WEAPONS_DELIVERY_QUERY,
     AID_TYPE_CONFIG,
     AID_TYPES_COLUMNS,
     COUNTRY_AID_COLUMNS,
     WEAPON_STOCKS_COLUMNS,
+    TOTAL_SUPPORT_COLUMNS,
+    AID_TYPES_COLUMNS,
+    COUNTRY_AID_COLUMNS,
     WEAPON_STOCKS_QUERY,
     WEAPON_STOCKS_BASE_TABLE,
     WEAPON_STOCKS_DETAIL_TABLE,
+    HEAVY_WEAPONS_DELIVERY_QUERY,
     WEAPON_STOCK_PLEDGES_QUERY,
     WEAPON_STOCKS_SUPPORT_QUERY,
     WEAPON_STOCKS_PREWAR_QUERY,
     COUNTRY_AID_TABLE,  # Add this
     COUNTRY_GROUPS,
+    WW2_WEAPON_CATEGORIES,
+    WW2_CONFLICTS,
+    WW2_EQUIPMENT_BASE_QUERY,
+    WW2_EQUIPMENT_CATEGORIZED_QUERY,
     COUNTRY_LOOKUP_TABLE,  # Add this
     MAP_SUPPORT_TYPES,  # Add this
     TIME_SERIES_TABLE,  # Add this
-    TOTAL_SUPPORT_COLUMNS,
     BUDGET_SUPPORT_COLUMNS,
     FINANCIAL_AID_COLUMNS,  # Add this
     FINANCIAL_AID_TABLE,  # Add this
@@ -36,13 +44,18 @@ from .queries import (
 
 __all__ = [
     # Functions
-    "load_time_series_data",
-    "load_country_data",
-    "load_data_from_table",
+    'get_db_connection',
+    'load_data_from_table',
+    'load_time_series_data',
+    'load_country_data',
+    'load_weapon_stocks_data',
     "build_group_allocations_query",
     "build_map_support_query",
     "load_weapon_stocks_data",
-    # Column definitions
+    # Column definitions    
+    'TOTAL_SUPPORT_COLUMNS',
+    'AID_TYPES_COLUMNS',
+    'COUNTRY_AID_COLUMNS',
     "HEAVY_WEAPONS_COLUMNS",
     "WEAPON_STOCKS_COLUMNS",
     "BUDGET_SUPPORT_COLUMNS",
@@ -59,6 +72,10 @@ __all__ = [
     "COUNTRY_AID_TABLE",
     "COUNTRY_LOOKUP_TABLE",
     "FINANCIAL_AID_TABLE",
+    'WW2_WEAPON_CATEGORIES',
+    'WW2_CONFLICTS',
+    'WW2_EQUIPMENT_BASE_QUERY',
+    'WW2_EQUIPMENT_CATEGORIZED_QUERY',
     # Queries
     "BUDGET_SUPPORT_QUERY",
     "WEAPON_STOCKS_QUERY",

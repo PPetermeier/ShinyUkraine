@@ -8,6 +8,7 @@ from .pages.landing import landing_page_ui
 from .pages.timeseries import time_series_page_ui
 from .pages.financial import financial_page_ui
 from .pages.weapons import heavy_weapons_page_ui  # Import the new page UI
+from .pages.comparisons import comparisons_page_ui
 
 def get_main_ui():
     return ui.page_navbar(
@@ -15,7 +16,8 @@ def get_main_ui():
         ui.nav_panel("Total Aid over time", time_series_page_ui()),
         ui.nav_panel("Total Aid by country & type", country_aid_page_ui()),
         ui.nav_panel("Financial Aid", financial_page_ui()),
-        ui.nav_panel("Weapons", heavy_weapons_page_ui()),  # Add the new nav panel
+        ui.nav_panel("Weapons", heavy_weapons_page_ui()),
+        ui.nav_panel("Historic Comparisons", comparisons_page_ui()),  # Add this
         title="Ukraine Support Tracker in Shiny",
         id="navigation",
         selected="Overview",
