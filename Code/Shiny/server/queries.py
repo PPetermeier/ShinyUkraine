@@ -322,7 +322,114 @@ FINANCIAL_AID_QUERY = """
              COALESCE("guarantee", 0) + COALESCE("central_bank_swap_line", 0)) DESC
 """
 
+WW2_COMPARISON_QUERY = """
+    SELECT 
+        gdp.military_support,
+        gdp.military_conflict,
+        gdp.military_aid__of_donor_gdp as gdp_share,
+        abs.military_aid_billion_euros as absolute_value
+    FROM o_comparison_ww2_gdp gdp
+    JOIN p_comparison_ww2_abs abs 
+        ON gdp.military_support = abs.military_support 
+        AND gdp.military_conflict = abs.military_conflict
+    ORDER BY 
+        CASE 
+            WHEN gdp.military_support LIKE '%UK%1941%' THEN 1
+            WHEN gdp.military_support LIKE '%USSR%1941%' THEN 2
+            WHEN gdp.military_support LIKE '%France%1941%' THEN 3
+            WHEN gdp.military_support LIKE '%Ukraine%' THEN 4
+        END
+"""
 
+US_WARS_COMPARISON_QUERY = """
+    SELECT 
+        gdp.military_support,
+        gdp.military_conflict,
+        gdp.military_aid__of_donor_gdp as gdp_share,
+        abs.military_aid_billion_euros as absolute_value
+    FROM q_comparison_us_wars_gdp gdp
+    JOIN r_comparison_us_wars_abs abs 
+        ON gdp.military_support = abs.military_support 
+        AND gdp.military_conflict = abs.military_conflict
+    ORDER BY 
+        CASE 
+            WHEN gdp.military_support LIKE '%Korea%' THEN 1
+            WHEN gdp.military_support LIKE '%Vietnam%' THEN 2
+            WHEN gdp.military_support LIKE '%Iraq%' THEN 3
+            WHEN gdp.military_support LIKE '%Afghanistan%' THEN 4
+            WHEN gdp.military_support LIKE '%Ukraine%' THEN 5
+        END
+"""
+GULF_WAR_COMPARISON_QUERY = """
+    SELECT 
+        gdp.countries,
+        gdp.gulf_war_199091 as gulf_war_gdp,
+        gdp.aid_to_ukraine__of_donor_gdp as ukraine_gdp,
+        abs.gulf_war_199091 as gulf_war_abs,
+        abs.aid_to_ukraine_billion_euros as ukraine_abs
+    FROM s_comparison_gulf_war_gdp gdp
+    JOIN t_comparison_gulf_war_abs abs 
+        ON gdp.countries = abs.countries
+    ORDER BY 
+        CASE 
+            WHEN gdp.countries = 'United States' THEN 1
+            WHEN gdp.countries = 'Germany' THEN 2
+            WHEN gdp.countries = 'Japan' THEN 3
+            WHEN gdp.countries = 'South Korea' THEN 4
+        END
+"""
+
+DOMESTIC_COMPARISON_QUERY = """
+    SELECT 
+        gdp.countries,
+        gdp.fiscal_commitments_for_energy_subsidies as fiscal_gdp,
+        gdp.aid_for_ukraine_incl_eu_shares as ukraine_gdp,
+        abs.fiscal_commitments_for_energy_subsidies as fiscal_abs,
+        abs.aid_for_ukraine_incl_eu_share as ukraine_abs
+    FROM w_comparison_domestic_gdp gdp
+    JOIN v_comparison_domestic_abs abs 
+        ON gdp.countries = abs.countries
+    ORDER BY 
+        CASE 
+            WHEN gdp.countries = 'Germany' THEN 1
+            WHEN gdp.countries = 'United Kingdom' THEN 2
+            WHEN gdp.countries = 'Italy' THEN 3
+            WHEN gdp.countries = 'France' THEN 4
+            WHEN gdp.countries = 'Spain' THEN 5
+            WHEN gdp.countries = 'Netherlands' THEN 6
+            WHEN gdp.countries = 'EU average' THEN 7
+        END
+"""
+EUROPEAN_CRISIS_QUERY = """
+    SELECT 
+        commitments,
+        total_support__billion
+    FROM u_comparison_european_crises
+    ORDER BY 
+        CASE 
+            WHEN commitments LIKE '%pandemic%' THEN 1
+            WHEN commitments LIKE '%Eurozone%' THEN 2
+            WHEN commitments LIKE '%Ukraine%' THEN 3
+        END
+"""
+
+GERMAN_COMPARISON_QUERY = """
+    SELECT 
+        commitments,
+        commitments_1 as description,
+        total_bilateral_aid,
+        eu_aid_shares,
+        cost
+    FROM x_comparison_germany_abs
+    ORDER BY 
+        CASE 
+            WHEN commitments LIKE '%Energy%' THEN 1
+            WHEN commitments LIKE '%Special military%' THEN 2
+            WHEN commitments LIKE '%German aid%' THEN 3
+            WHEN commitments LIKE '%Rescue%' THEN 4
+            WHEN commitments LIKE '%Transport%' THEN 5
+        END
+"""
 def build_group_allocations_query(aid_type, selected_groups):
     """Build the complete query for group allocations."""
     group_filter = ", ".join(f"'{group}'" for group in selected_groups)
