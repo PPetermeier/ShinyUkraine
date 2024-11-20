@@ -1,10 +1,10 @@
 from shiny import ui
 
-from .cards.lend_lease import WW2EquipmentComparisonCard, WW2EquipmentComparisonServer
-from .cards.ww2_values import WW2UkraineComparisonCard, WW2UkraineComparisonServer
-from .cards.cold_war_values import ColdWarCard, ColdWarServer
-from .cards.gulf_war_values import GulfWarCard, GulfWarServer
-from .cards.domestic_priorities import DomesticPrioritiesCard, DomesticPrioritiesServer
+from .cards.a_lend_lease import WW2EquipmentComparisonCard, WW2EquipmentComparisonServer
+from .cards.b_ww2_values import WW2UkraineComparisonCard, WW2UkraineComparisonServer
+from .cards.c_cold_war_values import ColdWarCard, ColdWarServer
+from .cards.d_gulf_war_values import GulfWarCard, GulfWarServer
+from .cards.e_domestic_priorities import DomesticPrioritiesCard, DomesticPrioritiesServer
 
 
 def comparisons_page_ui():

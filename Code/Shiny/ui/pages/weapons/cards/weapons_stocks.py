@@ -118,7 +118,7 @@ class WeaponsStocksServer:
             )
 
         return pd.DataFrame(summary)
-
+    
     def create_plot(self):
         """Create the dot plot visualization."""
         data = self._filtered_data()
@@ -132,6 +132,9 @@ class WeaponsStocksServer:
         equipment_types = data["equipment_type"].unique()
         y_positions = list(range(len(equipment_types)))
 
+        # Keep track of the number of points plotted for each equipment type
+        point_counter = {i: 0 for i in y_positions}  # Initialize counter for each y-position
+
         # Add Russian stock markers (only for valid values)
         valid_russian = data[pd.notna(data["russian_stock"])]
         if not valid_russian.empty:
@@ -139,14 +142,17 @@ class WeaponsStocksServer:
                 go.Scatter(
                     x=valid_russian["russian_stock"].astype(float),
                     y=valid_russian.index.tolist(),
-                    mode="markers",
+                    mode="markers+text",
                     name="Russian Pre-war Stock",
                     marker=dict(symbol="diamond", size=20, color=COLOR_PALETTE["weapon_stocks_russia"], line=dict(color="white", width=1)),
+                    text=valid_russian["russian_stock"].apply(lambda x: f"{int(x):,}"),
+                    textposition=[("top center" if point_counter.update({i: point_counter[i] + 1}) or point_counter[i] % 2 == 1 else "bottom center") for i in valid_russian.index],
+                    textfont=dict(size=12),
                     hovertemplate="Russian Pre-war Stock: %{x:,.0f}<extra></extra>",
                 )
             )
 
-            # Add vertical reference lines only for valid Russian stocks
+            # Add vertical reference lines
             for i, row in valid_russian.iterrows():
                 if pd.notna(row["russian_stock"]):
                     fig.add_shape(
@@ -197,9 +203,12 @@ class WeaponsStocksServer:
                 go.Scatter(
                     x=valid_prewar["ukr_prewar"].astype(float),
                     y=valid_prewar.index.tolist(),
-                    mode="markers",
+                    mode="markers+text",
                     name="Ukrainian Pre-war Stock",
                     marker=dict(symbol="circle", size=16, color=COLOR_PALETTE["weapon_stocks_prewar"], line=dict(color="white", width=1)),
+                    text=valid_prewar["ukr_prewar"].apply(lambda x: f"{int(x):,}"),
+                    textposition=[("top center" if point_counter.update({i: point_counter[i] + 1}) or point_counter[i] % 2 == 1 else "bottom center") for i in valid_prewar.index],
+                    textfont=dict(size=12),
                     hovertemplate="Ukrainian Pre-war Stock: %{x:,.0f}<extra></extra>",
                 )
             )
@@ -211,9 +220,12 @@ class WeaponsStocksServer:
                 go.Scatter(
                     x=valid_current["current_stock"].astype(float),
                     y=valid_current.index.tolist(),
-                    mode="markers",
+                    mode="markers+text",
                     name="Ukrainian Current Stock (with Delivered)",
                     marker=dict(symbol="circle", size=16, color=COLOR_PALETTE["weapon_stocks_delivered"], line=dict(color="white", width=1)),
+                    text=valid_current["current_stock"].apply(lambda x: f"{int(x):,}"),
+                    textposition=[("top center" if point_counter.update({i: point_counter[i] + 1}) or point_counter[i] % 2 == 1 else "bottom center") for i in valid_current.index],
+                    textfont=dict(size=12),
                     hovertemplate="Current Stock: %{x:,.0f}<extra></extra>",
                 )
             )
@@ -225,25 +237,41 @@ class WeaponsStocksServer:
                 go.Scatter(
                     x=valid_projected["projected_stock"].astype(float),
                     y=valid_projected.index.tolist(),
-                    mode="markers",
+                    mode="markers+text",
                     name="Ukrainian Projected Stock (with Committed)",
                     marker=dict(symbol="circle", size=16, color=COLOR_PALETTE["weapon_stocks_pending"], line=dict(color="white", width=1)),
+                    text=valid_projected["projected_stock"].apply(lambda x: f"{int(x):,}"),
+                    textposition=[("top center" if point_counter.update({i: point_counter[i] + 1}) or point_counter[i] % 2 == 1 else "bottom center") for i in valid_projected.index],
+                    textfont=dict(size=12),
                     hovertemplate="Projected Stock: %{x:,.0f}<extra></extra>",
                 )
             )
 
         # Calculate dynamic height based on number of equipment types
-        plot_height = max(400, len(equipment_types) * 100)
+        plot_height = max(400, len(equipment_types) * 120)  # Increased height to accommodate labels
 
         # Update layout
         fig.update_layout(
             title=dict(
-                text=f"Weapon Stocks Comparison<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 12</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"
+                text=f"Weapon Stocks Comparison<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 12</sub>",
+                font=dict(size=14),
+                y=0.95,
+                x=0.5,
+                xanchor="center",
+                yanchor="top"
             ),
             height=plot_height,
             margin=MARGIN,
             showlegend=True,
-            legend=dict(yanchor="top", y=0.99, xanchor="left", x=1.02, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.2)", borderwidth=1),
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=1.02,
+                bgcolor="rgba(255, 255, 255, 0.8)",
+                bordercolor="rgba(0, 0, 0, 0.2)",
+                borderwidth=1
+            ),
             hovermode="closest",
             xaxis=dict(
                 title="Number of Units",

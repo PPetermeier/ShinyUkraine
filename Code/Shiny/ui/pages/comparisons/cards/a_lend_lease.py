@@ -59,8 +59,7 @@ class WW2EquipmentComparisonServer:
         return df
     
     def create_plot(self):
-        """Create the comparison plot with three subplots."""
-        try:
+            """Create the comparison plot with three subplots."""
             data = self._compute_filtered_data()
             
             if data.empty:
@@ -72,15 +71,7 @@ class WW2EquipmentComparisonServer:
                 horizontal_spacing=0.05
             )
 
-            color_map = {
-                "WW2 lend-lease US total delivered": "#1f77b4",  # Blue
-                "US to Great Britain (1941-45)": "#d62728",      # Red
-                "US to USSR (1941-45)": "#2ca02c",              # Green
-                "Spain (1936-39) Nationalists": "#ff7f0e",      # Orange
-                "Spain (1936-39) Republicans": "#9467bd",       # Purple
-                "Total supply to Ukraine": "#E31A1C"            # Bright red - high contrast color
-            }
-
+        
             # Category to subplot mapping
             category_cols = {
                 'heavy': 1,
@@ -101,13 +92,17 @@ class WW2EquipmentComparisonServer:
                         
                         # Determine values based on view type
                         if self.input.show_absolute():
-                            delivered = conflict_data['delivered']
-                            to_deliver = conflict_data['to_be_delivered']
+                            delivered = conflict_data['delivered'].astype(int)
+                            to_deliver = conflict_data['to_be_delivered'].astype(int)
                             value_suffix = " units"
+                            number_format = ":,d"
+                            value_format = "{:,d}"
                         else:
                             delivered = conflict_data['delivered_pct']
                             to_deliver = conflict_data['to_be_delivered_pct']
                             value_suffix = "%"
+                            number_format = ":.1f"
+                            value_format = "{:.1f}"
 
                         # Add delivered amounts
                         fig.add_trace(
@@ -116,16 +111,19 @@ class WW2EquipmentComparisonServer:
                                 y=[conflict],
                                 x=delivered,
                                 orientation='h',
-                                marker_color=color_map.get(conflict),
+                                marker_color=COLOR_PALETTE[conflict],
                                 legendgroup=conflict,
-                                showlegend=(col == 1),  # Show legend only for first subplot
+                                showlegend=(col == 1),
                                 customdata=conflict_data[['delivered', 'to_be_delivered']],
                                 hovertemplate=(
-                                    f"<b>{conflict}</b><br>" +
-                                    f"Delivered: %{{customdata[0]:,.0f}} units<br>" +
-                                    f"To be delivered: %{{customdata[1]:,.0f}} units<br>" +
-                                    f"Value: %{{x:.1f}}{value_suffix}<extra></extra>"
+                                    "%{y}<br>" +
+                                    f"Delivered: %{{customdata[0]{number_format}}}{value_suffix}<br>" +
+                                    f"To be delivered: %{{customdata[1]{number_format}}}{value_suffix}"
                                 ),
+                                text=[f"{value_format.format(v)}{value_suffix}" if v > 0 else "" for v in delivered],
+                                textposition="inside",
+                                textfont=dict(color="white"),
+                                insidetextanchor="middle",
                             ),
                             row=1, col=col
                         )
@@ -138,22 +136,25 @@ class WW2EquipmentComparisonServer:
                                     y=[conflict],
                                     x=to_deliver,
                                     orientation='h',
-                                    marker_color=desaturate_color(color_map.get(conflict)),
+                                    marker_color=desaturate_color(COLOR_PALETTE[conflict]),
                                     legendgroup=conflict,
                                     showlegend=False,
-                                    base=delivered,  # Stack on top of delivered
+                                    base=delivered,
                                     customdata=conflict_data[['to_be_delivered']],
                                     hovertemplate=(
-                                        f"<b>{conflict}</b><br>" +
-                                        f"To be delivered: %{{customdata[0]:,.0f}} units<br>" +
-                                        f"Value: %{{x:.1f}}{value_suffix}<extra></extra>"
+                                        "%{y}<br>" +
+                                        f"Additional to be delivered: %{{customdata[0]{number_format}}}{value_suffix}"
                                     ),
+                                    text=[f"{value_format.format(v)}{value_suffix}" if v > 0 else "" for v in to_deliver],
+                                    textposition="inside",
+                                    textfont=dict(color="white"),
+                                    insidetextanchor="middle",
                                 ),
                                 row=1, col=col
                             )
 
             # Update layout
-                fig.update_layout(
+            fig.update_layout(
                 height=700,
                 margin=dict(t=180, l=50, r=50, b=50),
                 barmode='stack',
@@ -164,7 +165,7 @@ class WW2EquipmentComparisonServer:
                         f"<span style='font-size: 12px; color: gray;'>"
                         "This figure compares the scale of military equipment support across major historical conflicts. "
                         "Data shows both delivered and planned equipment transfers."
-                        f"<br>Last updated: {LAST_UPDATE}</span>"
+                        f"<br>Last updated: {LAST_UPDATE}, Sheet: Fig 15</span>"
                     ),
                     x=0.5,
                     y=0.98,
@@ -175,7 +176,7 @@ class WW2EquipmentComparisonServer:
                 legend=dict(
                     orientation="h",
                     yanchor="bottom",
-                    y=1.12,  # Moved legend up (closer to title)
+                    y=1.12,
                     xanchor="center",
                     x=0.5,
                     bgcolor="rgba(255, 255, 255, 0.8)",
@@ -183,6 +184,7 @@ class WW2EquipmentComparisonServer:
                     borderwidth=1
                 ),
                 showlegend=True,
+                hovermode="y unified",  # Added unified hover mode
             )
 
             # Add category labels at the top of each subplot
@@ -220,29 +222,22 @@ class WW2EquipmentComparisonServer:
             # Update all subplot axes
             for i in range(1, 4):
                 fig.update_xaxes(
-                    title=("% of greatest value" if not self.input.show_absolute() else "Number of Units"),  # Updated x-axis label
                     showgrid=True,
                     gridcolor="rgba(0,0,0,0.1)",
                     zeroline=True,
                     zerolinecolor="rgba(0,0,0,0.2)",
-                    row=1, col=i
+                    row=1, col=i,
+                    showticklabels=False
                 )
                 fig.update_yaxes(
                     showgrid=False,
                     title="",
-                    showticklabels=False,  # Hide y-axis tick labels
+                    showticklabels=False,
                     row=1, col=i
                 )
 
             return fig
             
-        except Exception as e:
-            print(f"Error in create_plot: {str(e)}")
-            fig = go.Figure()
-            fig.add_annotation(text=f"Error: {str(e)}", 
-                             xref="paper", yref="paper", 
-                             x=0.5, y=0.5, showarrow=False)
-            return fig
         
 
     def register_outputs(self):

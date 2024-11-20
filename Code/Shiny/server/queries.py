@@ -3,7 +3,7 @@ Standardized database query definitions.
 """
 
 # Keep existing column definitions
-TOTAL_SUPPORT_COLUMNS = ["month", "united_states_allocated__billion", "europe_allocated__billion"]
+TOTAL_SUPPORT_COLUMNS = ["month", "united_states_allocated__billion", "europe_allocated__billion", "other_donors_allocated__billion"]
 
 AID_TYPES_COLUMNS = [
     "month",
@@ -52,7 +52,7 @@ MAP_SUPPORT_TYPES = {
     "military": "Military Support",
     "financial": "Financial Support",
     "humanitarian": "Humanitarian Support",
-    "refugee_cost_estimation": "Refugee Support",
+    "refugee_cost_estimation": "Refugee Cost Estimation",
 }
 COUNTRY_GROUPS = {
     "EU_member": "EU Members",

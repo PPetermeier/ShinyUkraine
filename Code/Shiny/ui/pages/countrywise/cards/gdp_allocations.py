@@ -43,9 +43,7 @@ class GDPAllocationsCard:
                 ),
             ),
             output_widget("gdp_allocations_plot"),
-            # Remove fixed height from card
         )
-
 
 
 class GDPAllocationsServer:
@@ -55,19 +53,14 @@ class GDPAllocationsServer:
         self.input = input
         self.output = output
         self.session = session
-        
+
         # Load and join the data from both tables
         df_allocations = load_data_from_table("f_bilateral_allocations_gdp_pct")
         df_summary = load_data_from_table("a_summary_€")
-        
+
         # Merge the dataframes
-        self.df = pd.merge(
-            df_allocations,
-            df_summary[["country", "share_in_total_eu_allocations__2021_gdp"]],
-            on="country",
-            how="left"
-        )
-        
+        self.df = pd.merge(df_allocations, df_summary[["country", "share_in_total_eu_allocations__2021_gdp"]], on="country", how="left")
+
         self._filtered_data = reactive.Calc(self._compute_filtered_data)
         self.register_outputs()
 
@@ -75,11 +68,7 @@ class GDPAllocationsServer:
         """Filter and process data based on user selections."""
         # Filter data
         result = self.df.copy()
-        allocation_cols = [
-            "total_bilateral_allocations",
-            "refugee_cost_estimation",
-            "share_in_total_eu_allocations__2021_gdp"
-        ]
+        allocation_cols = ["total_bilateral_allocations", "refugee_cost_estimation", "share_in_total_eu_allocations__2021_gdp"]
 
         # Calculate total for sorting
         result["total"] = result[allocation_cols].sum(axis=1)
@@ -114,8 +103,15 @@ class GDPAllocationsServer:
                 x=bilateral_values,
                 name="Total bilateral allocations",
                 orientation="h",
-                marker_color=COLOR_PALETTE.get("total_bilateral",),
-                hovertemplate="%{y}<br>Value: %{x:.2f}% of GDP<extra></extra>",
+                marker_color=COLOR_PALETTE.get(
+                    "Total Bilateral",
+                ),
+                hovertemplate="%{y}<br>" +
+                             "Total bilateral allocations: %{x:.2f}% of GDP<extra></extra>",
+                text=[f"{v:.1f}" if v > 0 else "" for v in bilateral_values],
+                textposition="inside",
+                textfont=dict(color="white"),
+                insidetextanchor="middle",
             )
         )
 
@@ -127,7 +123,12 @@ class GDPAllocationsServer:
                 name="Refugee cost estimation",
                 orientation="h",
                 marker_color=COLOR_PALETTE.get("refugee"),
-                hovertemplate="%{y}<br>Value: %{x:.2f}% of GDP<extra></extra>",
+                hovertemplate="%{y}<br>" +
+                             "Refugee cost estimation:%{x:.2f}% of GDP<extra></extra>",
+                text=[f"{v:.1f}" if v > 0 else "" for v in refugee_values],
+                textposition="inside",
+                textfont=dict(color="white"),
+                insidetextanchor="middle",
             )
         )
 
@@ -138,15 +139,20 @@ class GDPAllocationsServer:
                 x=eu_share_values,
                 name="Share in total EU allocations",
                 orientation="h",
-                marker_color=COLOR_PALETTE.get("europe"), 
-                hovertemplate="%{y}<br>Value: %{x:.2f}% of GDP<extra></extra>",
+                marker_color=COLOR_PALETTE.get("europe"),
+                hovertemplate="%{y}<br>" +
+                             "Share in total EU allocations: %{x:.2f}% of GDP<extra></extra>",
+                text=[f"{v:.1f}" if v > 0 else "" for v in eu_share_values],
+                textposition="inside",
+                textfont=dict(color="white"),
+                insidetextanchor="middle",
             )
         )
 
         title = "Bilateral Aid, Refugee Costs, and EU Share"
         fig.update_layout(
             title=dict(
-                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Summary(€)</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,

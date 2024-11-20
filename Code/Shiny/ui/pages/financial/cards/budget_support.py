@@ -47,7 +47,7 @@ class BudgetSupportCard:
                 ),
             ),
             output_widget("budget_support_plot"),
-            height="800px",
+            height="1000px",
         )
 
 
@@ -83,19 +83,7 @@ class BudgetSupportServer:
 
         fig = go.Figure()
 
-        # Add bars for allocations
-        fig.add_trace(
-            go.Bar(
-                name="Allocations",
-                y=data["country"],
-                x=data["allocations"],
-                orientation="h",
-                marker_color=COLOR_PALETTE.get("financial_allocations", "#2A9D8F"),
-                hovertemplate="%{y}<br>" + "Allocations: %{x:.1f}B €<extra></extra>",
-            )
-        )
-
-        # Add bars for disbursements
+        # Add bars for disbursements first (typically smaller values)
         fig.add_trace(
             go.Bar(
                 name="Disbursements",
@@ -104,7 +92,27 @@ class BudgetSupportServer:
                 orientation="h",
                 marker_color=COLOR_PALETTE.get("financial_disbursements", "#264653"),
                 hovertemplate="%{y}<br>" + "Disbursements: %{x:.1f}B €<extra></extra>",
+                text=[f"{v:.1f}" if v > 0 else "" for v in data["disbursements"]],
+                textposition="inside",
+                textfont=dict(color="white"),
+                insidetextanchor="middle",
             )
+        )
+
+        # Add bars for allocations second (typically larger values)
+        fig.add_trace(
+            go.Bar(
+                name="Allocations",
+                y=data["country"],
+                x=data["allocations"],
+                orientation="h",
+                marker_color=COLOR_PALETTE.get("financial_allocations"),
+                hovertemplate="%{y}<br>" + "Allocations: %{x:.1f}B €<extra></extra>",
+                text=[f"{v:.1f}" if v > 0 else "" for v in data["allocations"]],
+                textposition="inside",
+                textfont=dict(color="white"),
+                insidetextanchor="middle",
+            ),
         )
 
         title = "Allocations and Disbursements by country"
@@ -114,16 +122,24 @@ class BudgetSupportServer:
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
-                xanchor='center',
-                yanchor='top'
+                xanchor="center",
+                yanchor="top"
             ),
             xaxis_title="Billion €",
             yaxis_title="",
-            barmode="overlay",
+            barmode="group",  # Changed from "overlay" to "group"
             template="plotly_white",
-            height=600,
-            margin=MARGIN, 
-            legend=dict(yanchor="bottom", y=0.01, xanchor="right", x=0.99, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.2)", borderwidth=1),
+            height=800,
+            margin=MARGIN,
+            legend=dict(
+                yanchor="bottom",
+                y=0.01,
+                xanchor="right",
+                x=0.99,
+                bgcolor="rgba(255, 255, 255, 0.8)",
+                bordercolor="rgba(0,0,0,0.2)",
+                borderwidth=1
+            ),
             showlegend=True,
             hovermode="y unified",
             autosize=True,

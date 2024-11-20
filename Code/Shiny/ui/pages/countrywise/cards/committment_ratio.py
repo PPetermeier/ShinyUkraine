@@ -8,8 +8,6 @@ from server import load_data_from_table
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
 
-from ui.colorutilities import desaturate_color
-
 
 class CommittmentRatioCard:
     """UI components for the aid allocation visualization card."""
@@ -159,6 +157,10 @@ class CommittmentRatioServer:
                 orientation="h",
                 marker_color=allocated_color,
                 hovertemplate="%{y}<br>Allocated: %{x:.1f}" + hover_suffix + "<extra></extra>",
+                text=[f"{v:.1f}" if v > 0 else "" for v in allocated_values],  # Add value labels
+                textposition="inside",  # Position labels inside the bars
+                textfont=dict(color="white"),  # Make text white for better visibility
+                insidetextanchor="middle",  # Center text within each segment
             )
         )
 
@@ -171,13 +173,17 @@ class CommittmentRatioServer:
                 orientation="h",
                 marker_color=to_allocate_color,
                 hovertemplate="%{y}<br>To be allocated: %{x:.1f}" + hover_suffix + "<extra></extra>",
+                text=[f"{v:.1f}" if v > 0 else "" for v in to_allocate_values],  # Add value labels
+                textposition="inside",  # Position labels inside the bars
+                textfont=dict(color="white"),  # Make text white for better visibility
+                insidetextanchor="middle",  # Center text within each segment
             )
         )
 
         title = "Committed and allocated aid by country"
         fig.update_layout(
             title=dict(
-                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 5</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,

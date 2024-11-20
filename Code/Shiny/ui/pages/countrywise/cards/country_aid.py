@@ -100,21 +100,26 @@ class CountryAidServer:
 
         # Add bars for each aid type
         for aid_type, properties in aid_types.items():
+            values = data[aid_type].tolist()
             fig.add_trace(
                 go.Bar(
                     y=countries,
-                    x=data[aid_type].tolist(),
+                    x=values,
                     name=properties["name"],
                     orientation="h",
                     marker_color=properties["color"],
                     hovertemplate="%{y}<br>" + properties["name"] + ": %{x:.1f} Billion €<extra></extra>",
+                    text=[f"{v:.1f}" if v > 0 else "" for v in values],  # Add value labels
+                    textposition="inside",  # Position labels inside the bars
+                    textfont=dict(color="white"),  # Make text white for better visibility
+                    insidetextanchor="middle",  # Center text within each segment
                 )
             )
 
         title = "Aid Allocation by Country and Type"
         fig.update_layout(
             title=dict(
-                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>",
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 6</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
@@ -143,7 +148,7 @@ class CountryAidServer:
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
                 tickfont=dict(size=12),
-                categoryorder="total ascending",  # Enable dynamic reordering
+                categoryorder="total ascending",
             ),
             xaxis=dict(
                 showgrid=False,

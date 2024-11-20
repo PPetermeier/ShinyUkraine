@@ -60,57 +60,39 @@ class DomesticPrioritiesServer:
         self.german_data = load_data_from_table(GERMAN_COMPARISON_QUERY)
         
     def create_german_spending_plot(self):
-        # Define display name mapping with exact keys from the database
         display_names = {
             "Energy subsidies for households and firms (\"Doppelwumms\")": "Energy Subsidies HHs & firms",
-            "Special military fund (\"Sondervermögen Bundeswehr\") ": "Special Military Fund",  # Note the extra space
+            "Special military fund (\"Sondervermögen Bundeswehr\") ": "Special Military Fund",
             "German aid to Ukraine": "Aid to Ukraine",
             "Rescue of Uniper (incl. EU shares)": "Rescue Uniper, total",
             "Transport Subsidies (\"Tankrabatt\" & \"9€ Ticket\")": "Transport Subsidies"
         }
         
-        # Define colors mapping with the same exact keys
-        color_mapping = {
-            "Energy subsidies for households and firms (\"Doppelwumms\")": "#FFD700",
-            "Special military fund (\"Sondervermögen Bundeswehr\") ": "#FFA500",  # Note the extra space
-            "German aid to Ukraine": "#4169E1",
-            "Rescue of Uniper (incl. EU shares)": "#DAA520",
-            "Transport Subsidies (\"Tankrabatt\" & \"9€ Ticket\")": "#F4C430"
-        }
-        
-        # Get the data from self.german_data and create programs list
         programs = [
             {
-                "name": display_names[row["commitments"]],  # Use display name
-                "original_name": row["commitments"],  # Keep original name for color mapping
+                "name": display_names[row["commitments"]],
+                "original_name": row["commitments"],
                 "value": row["cost"] if row["cost"] > 0 else row["total_bilateral_aid"],
-                "color": color_mapping[row["commitments"]]
+                "color": COLOR_PALETTE[row["commitments"]]
             }
             for row in self.german_data.to_dict('records')
         ]
         
-        # Sort programs by value in ascending order
-        programs.sort(key=lambda x: x["value"])
-        
-        # Extract sorted program names, values, and colors
-        program_names = [program["name"] for program in programs]
-        values = [program["value"] for program in programs]
-        colors = [program["color"] for program in programs]
-        
         fig = go.Figure()
         
-        # Create separate trace for each program
-        for program_name, value, color in zip(program_names, values, colors):
+        # Create traces (no need to sort the data beforehand)
+        for program in programs:
             fig.add_trace(
                 go.Bar(
-                    y=[program_name],
-                    x=[value],
+                    y=[program["name"]],
+                    x=[program["value"]],
                     orientation="h",
-                    name=program_name,
-                    marker_color=color,
-                    text=f"{value:.1f}B€",
+                    name=program["name"],
+                    marker_color=program["color"],
+                    text=f"{program['value']:.1f}B€",
                     textposition="auto",
-                ),
+                    hovertemplate="%{y}<br>Amount: %{x:.1f}B€",
+                )
             )
 
         fig.update_layout(
@@ -123,7 +105,7 @@ class DomesticPrioritiesServer:
                     "German Support Programs (2022)<br>"
                     f"<span style='font-size: 12px; color: gray;'>"
                     "Comparing domestic spending with Ukraine aid"
-                    f"<br>Last updated: {LAST_UPDATE}</span>"
+                    f"<br>Last updated: {LAST_UPDATE}, Sheet: Fig 21</span>"
                 ),
                 x=0.5,
                 y=0.95,
@@ -141,29 +123,30 @@ class DomesticPrioritiesServer:
             ),
             yaxis=dict(
                 title="",
-                showticklabels=False
+                categoryorder='total ascending',  # This will order bars by their values
+                showticklabels=True
             ),
-            barmode="group"
+            barmode="group",
+            hovermode="y unified",
         )
         return fig
 
     def create_crisis_comparison_plot(self):
-        commitments = self.crisis_data["commitments"].tolist()
-        values = self.crisis_data["total_support__billion"].tolist()
         fig = go.Figure()
         
-        # Create traces using the commitments as trace names
-        for commitment, value in zip(commitments, values):
+        # Create traces
+        for commitment, value in zip(self.crisis_data["commitments"], self.crisis_data["total_support__billion"]):
             fig.add_trace(
                 go.Bar(
-                    y=[commitment],  # Single value as list for each trace
+                    y=[commitment],
                     x=[value],
                     orientation="h",
-                    name=commitment,  # Use commitment as the legend name
-                    marker_color="#FFD700" if commitment != commitments[-1] else "#4169E1",
+                    name=commitment,
+                    marker_color=COLOR_PALETTE[commitment],
                     text=f"{value:.1f}B€",
                     textposition="auto",
-                ),
+                    hovertemplate="%{y}<br>Amount: %{x:.1f}B€",
+                )
             )
 
         fig.update_layout(
@@ -176,7 +159,7 @@ class DomesticPrioritiesServer:
                     "Europe's Response to Major Crises<br>"
                     f"<span style='font-size: 12px; color: gray;'>"
                     "Comparing support across different European crises"
-                    f"<br>Last updated: {LAST_UPDATE}</span>"
+                    f"<br>Last updated: {LAST_UPDATE}, Sheet: Fig 19</span>"
                 ),
                 x=0.5,
                 y=0.95,
@@ -185,23 +168,26 @@ class DomesticPrioritiesServer:
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=1.1,  # Positioned above the plot but below the title
+                y=1.1,
                 xanchor="center",
                 x=0.5,
                 bgcolor="rgba(255, 255, 255, 0.8)",
                 bordercolor="rgba(0, 0, 0, 0.1)",
                 borderwidth=1,
             ),
-            # Remove y-axis title since we're using these values in the legend
             yaxis=dict(
                 title="",
-                showticklabels=False  # Optional: hide y-axis labels if you don't want them duplicated
-            )
+                categoryorder='total ascending',  # This will order bars by their values
+                showticklabels=True
+            ),
+            hovermode="y unified",
         )
         return fig
 
     def create_domestic_support_plot(self):
         show_absolute_values = self.input.show_absolute_domestic_values()
+        value_suffix = 'B€' if show_absolute_values else '%'
+        
         if show_absolute_values:
             fiscal_values = self.domestic_data["fiscal_abs"].tolist()
             ukraine_values = self.domestic_data["ukraine_abs"].tolist()
@@ -212,6 +198,7 @@ class DomesticPrioritiesServer:
             y_axis_title = "percent of GDP"
         
         countries = self.domestic_data["countries"].tolist()
+        
         fig = go.Figure()
         
         fig.add_trace(
@@ -219,11 +206,17 @@ class DomesticPrioritiesServer:
                 y=countries,
                 x=fiscal_values,
                 name="Fiscal commitments for energy subsidies",
-                marker_color="#FFD700",
+                marker_color=COLOR_PALETTE["Fiscal commitments for energy subsidies"],
                 orientation="h",
-                text=[f"{x:.2f}{'B€' if show_absolute_values else '%'}" for x in fiscal_values],
+                text=[f"{x:.2f}{value_suffix}" for x in fiscal_values],
                 textposition="auto",
-            ),
+                customdata=list(zip(fiscal_values, ukraine_values)),
+                hovertemplate=(
+                    "%{y}<br>" +
+                    f"Energy Subsidies: %{{customdata[0]:.2f}}{value_suffix}<br>" +
+                    f"Ukraine Aid: %{{customdata[1]:.2f}}{value_suffix}"
+                ),
+            )
         )
         
         fig.add_trace(
@@ -231,11 +224,17 @@ class DomesticPrioritiesServer:
                 y=countries,
                 x=ukraine_values,
                 name="Aid for Ukraine (incl. EU share)",
-                marker_color="#4169E1",
+                marker_color=COLOR_PALETTE["Aid for Ukraine (incl. EU share)"],
                 orientation="h",
-                text=[f"{x:.2f}{'B€' if show_absolute_values else '%'}" for x in ukraine_values],
+                text=[f"{x:.2f}{value_suffix}" for x in ukraine_values],
                 textposition="auto",
-            ),
+                customdata=list(zip(fiscal_values, ukraine_values)),
+                hovertemplate=(
+                    "%{y}<br>" +
+                    f"Energy Subsidies: %{{customdata[0]:.2f}}{value_suffix}<br>" +
+                    f"Ukraine Aid: %{{customdata[1]:.2f}}{value_suffix}"
+                ),
+            )
         )
         
         fig.update_layout(
@@ -248,7 +247,7 @@ class DomesticPrioritiesServer:
                     "Domestic Energy Support vs Ukraine Aid<br>"
                     f"<span style='font-size: 12px; color: gray;'>"
                     "Comparing support across European countries"
-                    f"<br>Last updated: {LAST_UPDATE}</span>"
+                    f"<br>Last updated: {LAST_UPDATE}, Sheet: Fig 20</span>"
                 ),
                 x=0.5,
                 y=0.95,
@@ -258,20 +257,22 @@ class DomesticPrioritiesServer:
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=1.1,  # Positioned above the plot but below the title
+                y=1.1,
                 xanchor="center",
                 x=0.5,
                 bgcolor="rgba(255, 255, 255, 0.8)",
                 bordercolor="rgba(0, 0, 0, 0.1)",
                 borderwidth=1,
             ),
-            # Since we want to keep country names on y-axis, we'll just update the title
             yaxis=dict(
-                title="",  # Remove y-axis title since it's not needed
-                showticklabels=True  # Keep country labels visible
-            )
+                title="",
+                categoryorder='total ascending',  # This will order bars by the sum of values in each category
+                showticklabels=True
+            ),
+            hovermode="y unified",
         )
         return fig
+
 
     def register_outputs(self):
         @self.output

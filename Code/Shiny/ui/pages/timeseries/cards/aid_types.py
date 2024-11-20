@@ -98,6 +98,7 @@ class AidTypesServer:
 
             for i, col in enumerate(sorted_cols):
                 aid_type = "military" if "military" in col else "financial" if "financial" in col else "humanitarian"
+                display_name = name_mapping.get(col, col) 
                 fig.add_trace(
                     go.Scatter(
                         x=data["month"],
@@ -111,7 +112,7 @@ class AidTypesServer:
                         ),
                         fill='tonexty' if i > 0 else 'tozeroy',
                         fillcolor=desaturate_color(COLOR_PALETTE[aid_type], factor=0.6),
-                        hovertemplate="%{y:.1f}B €<extra></extra>",
+                        hovertemplate=f"{display_name}: %{{y:.1f}}B€<extra></extra>"
                     )
                 )
         else:
@@ -119,20 +120,25 @@ class AidTypesServer:
             for col in data.columns:
                 if col != "month":
                     aid_type = "military" if "military" in col else "financial" if "financial" in col else "humanitarian"
+                    display_name = name_mapping.get(col, col)  # Get the friendly name for the category
                     fig.add_trace(
                         go.Bar(
                             x=data["month"],
                             y=data[col],
-                            name=name_mapping.get(col, col),
+                            name=display_name,  # This sets both the legend and hover name
                             marker_color=COLOR_PALETTE[aid_type],
-                            hovertemplate="%{y:.1f}B €<extra></extra>",
+                            hovertemplate=f"{display_name}: %{{y:.1f}}B€<extra></extra>",  # Shows category name and value
+                            text=[f"{v:.1f}" if v > 0 else "" for v in data[col]],
+                            textposition="inside",
+                            textfont=dict(color="white"),
+                            insidetextanchor="middle",
                         )
                     )
 
 
         fig.update_layout(
             title= dict(
-        text=f"{plot_title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 6</sub>",
+        text=f"{plot_title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
         font=dict(size=14),
         y=0.95,
         x=0.5,

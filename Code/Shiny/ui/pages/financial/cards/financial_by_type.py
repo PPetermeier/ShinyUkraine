@@ -48,7 +48,7 @@ class FinancialByTypeCard:
                 ),
             ),
             output_widget("financial_types_plot"),
-            height="800px",
+            height="1000px",
         )
 
 
@@ -103,6 +103,10 @@ class FinancialByTypeServer:
                     marker_color=color_mapping.get(col, "#000000"),
                     hovertemplate="%{y}<br>" + "%{customdata}<br>" + "Value: %{x:.1f}B €<extra></extra>",
                     customdata=[label_mapping.get(col, col)] * len(data),
+                    text=[f"{v:.1f}" if v > 0 else "" for v in data[col]],  # Add value labels
+                    textposition="inside",  # Position labels inside the bars
+                    textfont=dict(color="white"),  # Make text white for better visibility
+                    insidetextanchor="middle",  # Center text within each segment
                 )
             )
         title = "Financial Bilateral Allocations by Type"
@@ -119,7 +123,7 @@ class FinancialByTypeServer:
             yaxis_title="",
             barmode="stack",
             template="plotly_white",
-            height=600,
+            height=800,
             margin=MARGIN,
             legend=dict(yanchor="bottom", y=0.01, xanchor="right", x=0.99, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.2)", borderwidth=1),
             showlegend=True,

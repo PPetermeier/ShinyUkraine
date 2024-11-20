@@ -67,9 +67,9 @@ class MapServer:
         if len(selected_types) == 1:
             # Fix for refugee_cost_estimation mapping to refugee in COLOR_PALETTE
             aid_type = "refugee" if selected_types[0] == "refugee_cost_estimation" else selected_types[0]
-            base_color = COLOR_PALETTE.get(aid_type, "#003399")
+            base_color = COLOR_PALETTE.get(aid_type)
         else:
-            base_color = COLOR_PALETTE.get("total_bilateral")
+            base_color = COLOR_PALETTE.get("Total Bilateral")
 
         return [[0, "rgba(255,255,255,1)"], [1, base_color]]
 
@@ -101,18 +101,28 @@ class MapServer:
         if display_mode == "gdp":
             z_values = data["pct_gdp"]
             colorbar_title = "% of GDP"
-            hover_template = "%{text}<br>" "Sum of Categories: %{customdata[0]:.1f}B €<br>" "% of GDP: %{z:.2f}%" "<extra></extra>"
+            hover_template = (
+                "%{text}<br>"
+                "Total displayed Support: %{customdata[0]:.1f}B €<br>"
+                "% of GDP: %{z:.2f}%"
+                "<extra></extra>"
+            )
         else:
             z_values = data["total_support"]
             colorbar_title = "Billion €"
-            hover_template = "%{text}<br>" "Sum of Categories: %{z:.1f}B €<br>" "% of GDP: %{customdata[0]:.2f}%" "<extra></extra>"
+            hover_template = (
+                "%{text}<br>"
+                "Total displayed Support: %{z:.1f}B €<br>"
+                "% of GDP: %{customdata[1]:.2f}%"  # Changed from customdata[0] to customdata[1]
+                "<extra></extra>"
+            )
 
         fig = go.Figure(
             data=go.Choropleth(
                 locations=data["iso3_code"],
                 z=z_values,
                 text=data["country"],
-                customdata=data[["total_support", "pct_gdp"]].values,
+                customdata=data[["total_support", "pct_gdp"]].values,  # Order matters here
                 hovertemplate=hover_template,
                 colorscale=colorscale,
                 autocolorscale=False,
@@ -128,7 +138,7 @@ class MapServer:
             z=[1],  # Dummy value, won't be visible
             text=["Ukraine"],
             hovertemplate="Ukraine<extra></extra>",
-            colorscale=[[0, "#B22222"], [1, "#B22222"]],  # Deep green
+            colorscale=[[0, COLOR_PALETTE.get("Ukraine Map")], [1, COLOR_PALETTE.get("Ukraine Map")]],
             showscale=False,
             marker_line_color="white",
             marker_line_width=0.5,
@@ -136,7 +146,7 @@ class MapServer:
 
         title = "Bilateral Support " + ("as Percentage of GDP" if display_mode == "gdp" else "in Billion €")
         fig.update_layout(
-            title=dict(text=f"{title}<br><sub>Last updated: {LAST_UPDATE}</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"),
+            title=dict(text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Country Summary(€)</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"),
             geo=dict(
                 showframe=False,
                 showcoastlines=True,

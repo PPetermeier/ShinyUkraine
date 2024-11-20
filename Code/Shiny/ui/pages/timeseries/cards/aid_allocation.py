@@ -77,10 +77,10 @@ class AidAllocationServer:
 
         # Color mapping using existing COLOR_PALETTE
         color_mapping = {
-            "EU_member": COLOR_PALETTE["europe"],
-            "EU_institutions": COLOR_PALETTE["EU_institutions"],
-            "Anglosaxon_countries": COLOR_PALETTE["united_states"],
-            "Other_donor_countries": COLOR_PALETTE["other_countries"],
+            "EU_member": COLOR_PALETTE["Europe"],
+            "EU_institutions": COLOR_PALETTE["EU Institutions"],
+            "Anglosaxon_countries": COLOR_PALETTE["United States"],
+            "Other_donor_countries": COLOR_PALETTE["Other Countries"],
         }
 
         fig = go.Figure()
@@ -106,7 +106,11 @@ class AidAllocationServer:
                     orientation="h",
                     marker_color=desaturate_color(color),
                     legendgroup=display_name,
-                    hovertemplate=(f"{display_name}<br>" f"Committed: %{{x:.1f}}B €<br>" f"<extra></extra>"),
+                    hovertemplate=f"{display_name}<br>Committed: %{{x:.1f}}B€<extra></extra>",
+                    text=f"{row['committed_aid']:.1f}B €",
+                    textposition="outside",
+                    textfont=dict(color="black"),
+                    showlegend=True,
                 )
             )
 
@@ -119,11 +123,14 @@ class AidAllocationServer:
                     orientation="h",
                     marker_color=color,
                     legendgroup=display_name,
-                    text=f"{percentage:.1f}%",  # Show percentage on the bar
+                    text=f"{percentage:.1f}%",
                     textposition="inside",
-                    hovertemplate=(f"{display_name}<br>" f"Allocated: %{{x:.1f}}B €<br>" f"Progress: {percentage:.1f}%" f"<extra></extra>"),
+                    textfont=dict(color="white"),
+                    hovertemplate=f"{display_name}<br>Allocated: %{{x:.1f}}B€<extra></extra>",
+                    showlegend=True,
                 )
             )
+
         title = "Aid Allocation Progress by Country Groups"
         fig.update_layout(
             barmode="overlay",
@@ -140,8 +147,8 @@ class AidAllocationServer:
             height=600,
             margin=MARGIN,
             legend=dict(
-                yanchor="bottom",  # Changed from top to bottom
-                y=0.01,  # Changed from 0.99 to 0.01
+                yanchor="bottom",
+                y=0.01,
                 xanchor="right",
                 x=0.99,
                 bgcolor="rgba(255, 255, 255, 0.8)",

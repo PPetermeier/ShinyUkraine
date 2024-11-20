@@ -55,7 +55,7 @@ class TotalSupportServer:
 
     def _compute_filtered_data(self):
         """Internal method to compute filtered data."""
-        selected_cols = ["united_states_allocated__billion", "europe_allocated__billion"]
+        selected_cols = ["united_states_allocated__billion", "europe_allocated__billion", "other_donors_allocated__billion"]
 
         # Use all available data
         filtered_df = self.df.copy()
@@ -77,28 +77,34 @@ class TotalSupportServer:
         if data.empty:
             return go.Figure()
 
+        # Define display names mapping
+        name_mapping = {
+            "united_states": "United States",
+            "europe": "Europe",
+            "other_donors": "Rest of World"
+        }
+
         if self.input.total_support_additive():
             fig = go.Figure()
 
-            regions = ["united_states", "europe"]
+            regions = ["united_states", "europe", "other_donors"]
             # Sort regions based on maximum values
             regions = sorted(regions, key=lambda x: data[f"{x}_allocated__billion"].max())
 
-            # Plot the smaller value first
-            for i, region in enumerate(regions):
+            # Plot stacked area chart
+            for region in regions:
                 col_name = f"{region}_allocated__billion"
-                name = "United States" if region == "united_states" else "Europe"
+                display_name = name_mapping[region]
 
                 fig.add_trace(
                     go.Scatter(
                         x=data["month"],
                         y=data[col_name],
-                        name=name,
-                        fill="tonexty" if i > 0 else "tozeroy",
-                        mode="lines",
+                        name=display_name,
+                        stackgroup='one',  # Enable stacking
+                        mode='lines',
                         line=dict(color=COLOR_PALETTE[region], width=2),
-                        stackgroup="one",
-                        hovertemplate="%{y:.1f}B $<extra></extra>",
+                        hovertemplate=f"{display_name}: %{{y:.1f}}B$<extra></extra>",
                     )
                 )
 
@@ -107,25 +113,50 @@ class TotalSupportServer:
         else:
             fig = go.Figure()
 
-            for region in ["united_states", "europe"]:
+            for region in ["united_states", "europe", "other_donors"]:
                 col_name = f"{region}_allocated__billion"
+                display_name = name_mapping[region]
+                
                 fig.add_trace(
                     go.Bar(
-                        x=data["month"], y=data[col_name], name="United States" if region == "united_states" else "Europe", marker_color=COLOR_PALETTE[region]
+                        x=data["month"],
+                        y=data[col_name],
+                        name=display_name,
+                        marker_color=COLOR_PALETTE[region],
+                        text=[f"{v:.1f}" if v > 0 else "" for v in data[col_name]],
+                        textposition="inside",
+                        textfont=dict(color="white"),
+                        insidetextanchor="middle",
+                        hovertemplate=f"{display_name}: %{{y:.1f}}B$<extra></extra>",
                     )
                 )
 
             title = "Monthly Support Allocation"
 
         fig.update_layout(
-            title=dict(text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"),
+            title=dict(
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>", 
+                font=dict(size=14), 
+                y=0.95, 
+                x=0.5, 
+                xanchor="center", 
+                yanchor="top"
+            ),
             xaxis_title="Month",
             yaxis_title="Billion $",
-            barmode="group",
+            barmode="group" if not self.input.total_support_additive() else None,  # Only set barmode for non-additive
             template="plotly_white",
             height=600,
             margin=MARGIN,
-            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+            legend=dict(
+                yanchor="top", 
+                y=0.99, 
+                xanchor="left", 
+                x=0.01,
+                bgcolor="rgba(255, 255, 255, 0.8)",
+                bordercolor="rgba(0, 0, 0, 0.2)",
+                borderwidth=1,
+            ),
             showlegend=True,
             hovermode="x unified",
             autosize=True,
@@ -142,7 +173,7 @@ class TotalSupportServer:
             plot_bgcolor="rgba(255,255,255,1)",
             paper_bgcolor="rgba(255,255,255,1)",
         )
-        fig.data = list(fig.data[:-1]) + [fig.data[-1]]
+
         return fig
 
     def register_outputs(self):

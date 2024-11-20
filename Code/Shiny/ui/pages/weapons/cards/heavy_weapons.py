@@ -40,14 +40,16 @@ class HeavyWeaponsCard:
                             max=30,
                             width="80px",
                         ),
-                        ui.span({"class": "ms-2"}, "countries",),
+                        ui.span(
+                            {"class": "ms-2"},
+                            "countries",
+                        ),
                     ),
                 ),
             ),
             output_widget("heavy_weapons_plot"),
             height="800px",
         )
-
 
 
 class HeavyWeaponsServer:
@@ -87,20 +89,19 @@ class HeavyWeaponsServer:
                 orientation="h",
                 marker_color=COLOR_PALETTE.get("military"),
                 hovertemplate="%{y}<br>" + "Value Estimate: %{x:.1f}B €<extra></extra>",
+                text=[f"{v:.1f}" if v > 0 else "" for v in data["value_estimates_heavy_weapons"]],  # Add value labels
+                textposition="inside",  # Position labels inside the bars
+                textfont=dict(color="white"),  # Make text white for better visibility
+                insidetextanchor="middle",  # Center text within each segment
             )
         )
 
         title = "Estimated Value of Heavy Weapons Delivered to Ukraine"
         fig.update_layout(
             title=dict(
-                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 9 </sub>",
-                font=dict(size=14),
-                y=0.95,
-                x=0.5,
-                xanchor='center',
-                yanchor='top'
+                text=f"{title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 9 </sub>", font=dict(size=14), y=0.95, x=0.5, xanchor="center", yanchor="top"
             ),
-            xaxis_title="Estimated Value Billion €",
+            xaxis_title="Billion €",
             yaxis_title="",
             barmode="stack",
             template="plotly_white",
