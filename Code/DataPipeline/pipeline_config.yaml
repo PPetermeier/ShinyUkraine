@@ -1,10 +1,10 @@
-#ReadMe
+# ReadMe
 - read: false
-#Updates and Corrections
+# Updates and Corrections
 - read: false
-#Bilateral Assistance, MAIN DATA
+# Bilateral Assistance, MAIN DATA
 - read: false
-#Country Summary (€)
+# Country Summary (€)
 - read: true
   extract:
     name: "Country Summary (€)" # Name of the sheet. This is case and empty string sensitive
@@ -16,7 +16,7 @@
     clean_column_names: true
   load:
     name: "a_summary_€"
-#Country Summary ($)
+# Country Summary ($)
 - read: true
   extract:
     name: "Country Summary ($)" # Name of the sheet. This is case and empty string sensitive
@@ -28,14 +28,14 @@
     clean_column_names: true
   load:
     name: "b_summary_$"
-#Aggregates by Country Group
+# Aggregates by Country Group
 - read: false
-#Fig 1. Allocated over time
+# Fig 1. Allocated over time
 - read: true
   extract:
     name: "Fig 1. Allocated over time" # Name of the sheet. This is case and empty string sensitive
     column_range: "B:L" # Range specifies which part of the sheet to extract
-    number_rows: 33 #40-7 = 33
+    number_rows: 33 # 40-7 = 33
     skip_rows: 6
     number_header_rows: 1
   transform:
@@ -46,13 +46,13 @@
       Month: "%b-%Y"
   load:
     name: "c_allocated_over_time"
-#Fig 2. Country Groups (stacked)
+# Fig 2. Country Groups (stacked)
 - read: false # can be done by querying a_summary_€ or b_summary_$ with a group by statement
-#Fig 3. Ranking (€)
+# Fig 3. Ranking (€)
 - read: false # can be done by querying e_allocations_refugees_€ without refugee cost estimation
-#Fig 4. Ranking, %
+# Fig 4. Ranking, %
 - read: false # Can be done by excluding refugee cost estimations of f_bilateral_allocations_gdp_pct
-#Fig 5. Rank. Alloc vs Comm (€)
+# Fig 5. Rank. Alloc vs Comm (€)
 - read: true
   extract:
     name: "Fig 5. Rank. Alloc vs Comm (€)"
@@ -64,7 +64,7 @@
     clean_column_names: true
   load:
     name: "d_allocations_vs_commitments"
-#Fig 6. With Refugee Support, €"
+# Fig 6. With Refugee Support, €"
 - read: true
   extract:
     name: "Fig 6. With Refugee Support, €"
@@ -86,7 +86,7 @@
           ON r.country = s.country
   load:
     name: "e_allocations_refugees_€"
-#Fig 7. With Refugee Support, %"
+# Fig 7. With Refugee Support, %"
 - read: true
   extract:
     name: "Fig 7. With Refugee Support, %"
@@ -98,9 +98,9 @@
     clean_column_names: true
   load:
     name: "f_bilateral_allocations_gdp_pct"
-#Fig 8. Military Aid
+# Fig 8. Military Aid
 - read: false # can be done by querying "e_allocations_refugees_€"
-#Fig 9. Heavy Weapon Ranking"
+# Fig 9. Heavy Weapon Ranking"
 - read: true
   extract:
     name: "Fig 9. Heavy Weapon Ranking"
@@ -112,7 +112,7 @@
     clean_column_names: true
   load:
     name: "g_heavy_weapon_ranking"
-#Fig 10. Financial Aid by type"
+# Fig 10. Financial Aid by type"
 - read: true
   extract:
     name: "Fig 10. Financial Aid by type"
@@ -124,7 +124,7 @@
     clean_column_names: true
   load:
     name: "h_financial_aid_by_type"
-#Fig 11. Budget Support by Donor"
+# Fig 11. Budget Support by Donor"
 - read: true
   extract:
     name: "Fig 11. Budget Support by Donor"
@@ -136,7 +136,7 @@
     clean_column_names: true
   load:
     name: "i_budget_support_by_donor"
-#Fig 12. Weapon Stocks UKR RU / We will need two reading instructions here to handle both tables individually
+# Fig 12. Weapon Stocks UKR RU / We will need two reading instructions here to handle both tables individually
 - read: true
   extract:
     name: "Fig 12. Weapon Stocks UKR RU"
@@ -165,8 +165,8 @@
     clean_column_names: true
   load:
     name: "k_weapon_stocks_detail"
-#Fig 13. NATO Stocks"
-- read: true #TODO: This is not working rn
+# Fig 13. NATO Stocks"
+- read: true # TODO: This is not working rn
   extract:
     name: "Fig 13. NATO Stocks"
     column_range: "B:R" # From Country through Total % Committed
@@ -177,7 +177,7 @@
     clean_column_names: true
   load:
     name: "l_nato_weapon_stocks"
-#Fig 14. Share of stocks pledged"
+# Fig 14. Share of stocks pledged"
 - read: true
   extract:
     name: "Fig 14. Share of stocks pledged"
@@ -231,7 +231,7 @@
     clean_column_names: true
   load:
     name: "p_comparison_ww2_abs"
-#Fig 17. Comp. with US wars"
+# Fig 17. Comp. with US wars"
 - read: true
   extract:
     name: "Fig 17. Comp. with US wars"
@@ -243,7 +243,7 @@
     clean_column_names: true
   load:
     name: "q_comparison_us_wars_gdp"
-    #Fig 17. Comp. with US wars"
+    # Fig 17. Comp. with US wars"
 - read: true
   extract:
     name: "Fig 17. Comp. with US wars"
@@ -255,7 +255,7 @@
     clean_column_names: true
   load:
     name: "r_comparison_us_wars_abs"
-#Fig 18. Comparison Gulf War"
+# Fig 18. Comparison Gulf War"
 - read: true
   extract:
     name: "Fig 18. Comparison Gulf War"
@@ -267,7 +267,7 @@
     clean_column_names: true
   load:
     name: "s_comparison_gulf_war_gdp"
-#Fig 18. Comparison Gulf War"
+# Fig 18. Comparison Gulf War"
 - read: true
   extract:
     name: "Fig 18. Comparison Gulf War"
@@ -279,7 +279,7 @@
     clean_column_names: true
   load:
     name: "t_comparison_gulf_war_abs"
-#Fig 19. Comp. European Crises"
+# Fig 19. Comp. European Crises"
 - read: true
   extract:
     name: "Fig 19. Comp. European Crises"
@@ -291,7 +291,7 @@
     clean_column_names: true
   load:
     name: "u_comparison_european_crises"
-#Fig 20. Domestic Priorities"
+# Fig 20. Domestic Priorities"
 - read: true
   extract:
     name: "Fig 20. Domestic Priorities"
@@ -303,7 +303,7 @@
     clean_column_names: true
   load:
     name: "v_comparison_domestic_abs"
-#Fig 20. Domestic Priorities"
+# Fig 20. Domestic Priorities"
 - read: true
   extract:
     name: "Fig 20. Domestic Priorities"
@@ -315,7 +315,7 @@
     clean_column_names: true
   load:
     name: "w_comparison_domestic_gdp"
-#Fig 21. Priorities Germany"
+# Fig 21. Priorities Germany"
 - read: true
   extract:
     name: "Fig 21. Priorities Germany"
@@ -339,51 +339,51 @@
     entry_correction: true
   load:
     name: "x_comparison_germany_abs"
-#Fig A1. Transparency Index"
+# Fig A1. Transparency Index"
 - read: false
-#Fig A2. Ranking % GDP + EU"
+# Fig A2. Ranking % GDP + EU"
 - read: false
-#Fig A3. Units over Time"
+# Fig A3. Units over Time"
 - read: false
-#Fig A4. Weapon Delivery"
+# Fig A4. Weapon Delivery"
 - read: false
-#Fig A5. Tank Unit Ranking"
+# Fig A5. Tank Unit Ranking"
 - read: false
-#Fig A6. East vs West Deliver"
+# Fig A6. East vs West Deliver"
 - read: false
-#Fig A7. Delivery Transparency"
+# Fig A7. Delivery Transparency"
 - read: false
-#Fig A8. Comm over Time"
+# Fig A8. Comm over Time"
 - read: false
-#Fig A9. Cumu Heavy per Month"
+# Fig A9. Cumu Heavy per Month"
 - read: false
-#Fig A10. Mult. year over time"
+# Fig A10. Mult. year over time"
 - read: false
-#Fig A11. US Mil Alloc over time"
+# Fig A11. US Mil Alloc over time"
 - read: false
-#Fig A12. EU Fin Alloc over time"
+# Fig A12. EU Fin Alloc over time"
 - read: false
-#Fig A13. EU vs US Comm & Alloc"
+# Fig A13. EU vs US Comm & Alloc"
 - read: false
-#Fig A14. Alloc Mil Eur vs US"
+# Fig A14. Alloc Mil Eur vs US"
 - read: false
-#Fig A15. Alloc Tot Eur vs US"
+# Fig A15. Alloc Tot Eur vs US"
 - read: false
-#Fig A16. Alloc top donors"
+# Fig A16. Alloc top donors"
 - read: false
-#Fig A17. Ranking (€ bn.+ EU)"
+# Fig A17. Ranking (€ bn.+ EU)"
 - read: false
-#Fig A18. Ranking (€) (comm)"
+# Fig A18. Ranking (€) (comm)"
 - read: false
-#Fig A19. Refugee Number"
+# Fig A19. Refugee Number"
 - read: false
-#Fig A20. Budget supp. over time"
+# Fig A20. Budget supp. over time"
 - read: false
-#Fig A21. Eur vs US Weapon Alloc"
+# Fig A21. Eur vs US Weapon Alloc"
 - read: false
-#Fig A22. Aid composition"
+# Fig A22. Aid composition"
 - read: false
-#Fig A23. Patriot-like stock
+# Fig A23. Patriot-like stock
 - read: false
 # Fig A24 Scenario Analysis
 - read: false
