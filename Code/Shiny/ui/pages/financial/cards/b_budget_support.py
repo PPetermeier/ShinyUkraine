@@ -1,28 +1,26 @@
-"""Module for visualizing heavy weapons deliveries to Ukraine.
+"""Module for visualizing budget support allocations and disbursements.
 
 This module provides components for creating and managing an interactive visualization
-that shows the delivery of heavy weapons to Ukraine by country, measured in estimated
-value (billion euros). It includes both UI components and server-side logic for data
-processing and visualization.
+that compares allocated budget support against actual disbursements for different
+donor countries supporting Ukraine.
 """
 
-from typing import Any, Dict, Any
+from typing import Dict, List
 
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
 from server.database import load_data_from_table
-from server.queries import HEAVY_WEAPONS_DELIVERY_QUERY
+from server.queries import BUDGET_SUPPORT_QUERY
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
 
 
-class HeavyWeaponsCard:
-    """UI components for the heavy weapons delivery visualization card.
+class BudgetSupportCard:
+    """UI components for the budget support visualization card.
     
     This class handles the user interface elements for displaying and controlling
-    the heavy weapons delivery visualization, including country selection and
-    filtering options.
+    the budget support visualization, including donor country selection.
     """
 
     @staticmethod
@@ -38,18 +36,19 @@ class HeavyWeaponsCard:
                     {"class": "d-flex justify-content-between align-items-center"},
                     ui.div(
                         {"class": "flex-grow-1"},
-                        ui.h3("Heavy Weapons Deliveries"),
+                        ui.h3("Foreign Budgetary Support: Allocations vs. Disbursements"),
                         ui.div(
                             {"class": "card-subtitle text-muted"},
-                            "This figure shows the delivery of heavy weapons to Ukraine "
-                            "by country over time (measured in billion euros).",
+                            "This figure shows financial donors measured by the nominal value of external grants, loans, "
+                            "and guarantees given for budgetary support to the government of Ukraine (in billion Euros). "
+                            "Information on disbursement is disclosed by the Ministry of Finance of Ukraine.",
                         ),
                     ),
                     ui.div(
                         {"class": "ms-3 d-flex align-items-center"},
-                        ui.span({"class": "me-2"}, "Top"),
+                        ui.span({"class": "me-2"}, "First"),
                         ui.input_numeric(
-                            "top_n_countries_heavy_weapons",
+                            "top_n_donors",
                             None,
                             value=15,
                             min=5,
@@ -60,16 +59,16 @@ class HeavyWeaponsCard:
                     ),
                 ),
             ),
-            output_widget("heavy_weapons_plot"),
-            height="800px",
+            output_widget("budget_support_plot"),
+            height="1000px",
         )
 
 
-class HeavyWeaponsServer:
-    """Server logic for the heavy weapons delivery visualization.
+class BudgetSupportServer:
+    """Server logic for the budget support visualization.
 
     This class handles data processing, filtering, and plot generation for the
-    heavy weapons delivery visualization comparing different countries' contributions.
+    budget support visualization comparing allocations and disbursements.
 
     Attributes:
         input: Shiny input object containing user interface values.
@@ -77,15 +76,23 @@ class HeavyWeaponsServer:
         session: Shiny session object.
     """
 
-    # Define visualization properties
-    PLOT_CONFIG: Dict[str, Dict] = {
-        "marker_color": COLOR_PALETTE.get("military", "#264653"),
-        "hover_template": "%{y}<br>Value Estimate: %{x:.1f}B €<extra></extra>",
-        "title": "Estimated Value of Heavy Weapons Delivered to Ukraine",
-        "height": 600
+    # Define support types and their properties
+    SUPPORT_TYPES: Dict[str, Dict[str, str]] = {
+        "disbursements": {
+            "name": "Disbursements",
+            "color": "financial_disbursements",
+            "default_color": "#264653",
+            "hover_template": "Disbursements: %{x:.1f}B €"
+        },
+        "allocations": {
+            "name": "Allocations",
+            "color": "financial_allocations",
+            "default_color": "#2a9d8f",
+            "hover_template": "Allocations: %{x:.1f}B €"
+        }
     }
 
-    def __init__(self, input: Any, output: Any, session: Any):
+    def __init__(self, input, output, session):
         """Initialize the server component.
 
         Args:
@@ -102,63 +109,88 @@ class HeavyWeaponsServer:
         """Compute filtered data based on user inputs.
 
         Returns:
-            pd.DataFrame: Filtered and sorted DataFrame containing top N countries.
+            pd.DataFrame: Filtered and sorted DataFrame containing top N donors.
         """
-        df = load_data_from_table(table_name_or_query=HEAVY_WEAPONS_DELIVERY_QUERY)
+        df = load_data_from_table(table_name_or_query=BUDGET_SUPPORT_QUERY)
         
-        # Sort by total deliveries and get top N countries
-        df = df.nlargest(
-            self.input.top_n_countries_heavy_weapons(),
-            "value_estimates_heavy_weapons"
-        )
-        return df.sort_values("value_estimates_heavy_weapons", ascending=True)
+        # Rename columns for consistency
+        df = df.rename(columns={
+            "allocations_loans_grants_and_guarantees": "allocations"
+        })
+
+        # Sort by allocations and get top N
+        df = df.nlargest(self.input.top_n_donors(), "allocations")
+        df = df.sort_values("allocations", ascending=True)
+
+        return df
 
     def create_plot(self) -> go.Figure:
-        """Generate the heavy weapons delivery visualization plot.
+        """Generate the budget support visualization plot.
 
         Returns:
-            go.Figure: Plotly figure object containing the bar chart.
+            go.Figure: Plotly figure object containing the grouped bar chart.
         """
         data = self._filtered_data()
         if data.empty:
             return go.Figure()
 
-        fig = self._create_bar_chart(data)
-        self._update_figure_layout(fig)
+        fig = self._create_grouped_bar_chart(data)
         return fig
 
-    def _create_bar_chart(self, data: pd.DataFrame) -> go.Figure:
-        """Create a horizontal bar chart visualization.
+    def _create_grouped_bar_chart(self, data: pd.DataFrame) -> go.Figure:
+        """Create a grouped bar chart visualization.
 
         Args:
-            data: DataFrame containing filtered heavy weapons delivery data.
+            data: DataFrame containing filtered budget support data.
 
         Returns:
             go.Figure: Configured Plotly figure object.
         """
         fig = go.Figure()
-        fig.add_trace(self._create_bar_trace(data))
+
+        # Add traces for each support type
+        for support_type, properties in self.SUPPORT_TYPES.items():
+            fig.add_trace(self._create_bar_trace(
+                countries=data["country"].tolist(),
+                values=data[support_type].tolist(),
+                name=properties["name"],
+                color=COLOR_PALETTE.get(properties["color"], properties["default_color"]),
+                hover_template=properties["hover_template"]
+            ))
+
+        # Update layout
+        self._update_figure_layout(fig)
+        
         return fig
 
-    def _create_bar_trace(self, data: pd.DataFrame) -> go.Bar:
-        """Create a bar trace for the horizontal bar chart.
+    def _create_bar_trace(
+        self,
+        countries: List[str],
+        values: List[float],
+        name: str,
+        color: str,
+        hover_template: str
+    ) -> go.Bar:
+        """Create a bar trace for the grouped bar chart.
 
         Args:
-            data: DataFrame containing the visualization data.
+            countries: List of country names.
+            values: List of values for the bars.
+            name: Name of the support type.
+            color: Color for the bars.
+            hover_template: Template for hover text.
 
         Returns:
             go.Bar: Configured bar trace.
         """
         return go.Bar(
-            x=data["value_estimates_heavy_weapons"],
-            y=data["country"],
+            name=name,
+            y=countries,
+            x=values,
             orientation="h",
-            marker_color=self.PLOT_CONFIG["marker_color"],
-            hovertemplate=self.PLOT_CONFIG["hover_template"],
-            text=[
-                f"{v:.1f}" if v > 0 else ""
-                for v in data["value_estimates_heavy_weapons"]
-            ],
+            marker_color=color,
+            hovertemplate=f"%{{y}}<br>{hover_template}<extra></extra>",
+            text=[f"{v:.1f}" if v > 0 else "" for v in values],
             textposition="inside",
             textfont=dict(color="white"),
             insidetextanchor="middle",
@@ -172,8 +204,7 @@ class HeavyWeaponsServer:
         """
         fig.update_layout(
             title=dict(
-                text=f"{self.PLOT_CONFIG['title']}<br>"
-                     f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 9</sub>",
+                text=f"Allocations and Disbursements by country<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 11</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
@@ -182,8 +213,9 @@ class HeavyWeaponsServer:
             ),
             xaxis_title="Billion €",
             yaxis_title="",
+            barmode="group",
             template="plotly_white",
-            height=self.PLOT_CONFIG["height"],
+            height=800,
             margin=MARGIN,
             legend=dict(
                 yanchor="bottom",
@@ -194,7 +226,7 @@ class HeavyWeaponsServer:
                 bordercolor="rgba(0,0,0,0.2)",
                 borderwidth=1
             ),
-            showlegend=False,
+            showlegend=True,
             hovermode="y unified",
             autosize=True,
             yaxis=dict(
@@ -216,5 +248,5 @@ class HeavyWeaponsServer:
         """Register the plot output with Shiny."""
         @self.output
         @render_widget
-        def heavy_weapons_plot() -> go.Figure:
+        def budget_support_plot():
             return self.create_plot()

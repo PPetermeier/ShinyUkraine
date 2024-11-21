@@ -1,0 +1,58 @@
+Migration Status Report
+====================
+
+Old imports found:
+- BUDGET_SUPPORT_QUERY
+- DOMESTIC_COMPARISON_QUERY
+- EUROPEAN_CRISIS_QUERY
+- FINANCIAL_AID_QUERY
+- GERMAN_COMPARISON_QUERY
+- GULF_WAR_COMPARISON_QUERY
+- HEAVY_WEAPONS_DELIVERY_QUERY
+- MAP_SUPPORT_TYPES
+- US_WARS_COMPARISON_QUERY
+- WEAPON_STOCKS_PREWAR_QUERY
+- WEAPON_STOCKS_SUPPORT_QUERY
+- WEAPON_STOCK_PLEDGES_QUERY
+- WEAPON_TYPE_PLEDGES_QUERY
+- WW2_COMPARISON_QUERY
+- build_map_support_query
+
+Files requiring migration:
+
+.\ui\pages\comparisons\cards\b_ww2_values.py:
+  - WW2_COMPARISON_QUERY
+
+.\ui\pages\comparisons\cards\c_cold_war_values.py:
+  - US_WARS_COMPARISON_QUERY
+
+.\ui\pages\comparisons\cards\d_gulf_war_values.py:
+  - GULF_WAR_COMPARISON_QUERY
+
+.\ui\pages\comparisons\cards\e_domestic_priorities.py:
+  - DOMESTIC_COMPARISON_QUERY
+  - EUROPEAN_CRISIS_QUERY
+  - GERMAN_COMPARISON_QUERY
+
+.\ui\pages\financial\cards\a_financial_by_type.py:
+  - FINANCIAL_AID_QUERY
+
+.\ui\pages\financial\cards\b_budget_support.py:
+  - BUDGET_SUPPORT_QUERY
+
+.\ui\pages\landing\map_card.py:
+  - MAP_SUPPORT_TYPES
+  - build_map_support_query
+
+.\ui\pages\weapons\cards\heavy_weapons.py:
+  - HEAVY_WEAPONS_DELIVERY_QUERY
+
+.\ui\pages\weapons\cards\pledges_weapon_types.py:
+  - WEAPON_TYPE_PLEDGES_QUERY
+
+.\ui\pages\weapons\cards\pledge_stock_ratio.py:
+  - WEAPON_STOCK_PLEDGES_QUERY
+
+.\ui\pages\weapons\cards\weapons_stocks.py:
+  - WEAPON_STOCKS_PREWAR_QUERY
+  - WEAPON_STOCKS_SUPPORT_QUERY

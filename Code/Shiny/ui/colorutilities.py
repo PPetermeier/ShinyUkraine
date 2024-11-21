@@ -1,19 +1,41 @@
-import colorsys
+"""Module for color manipulation utilities.
 
-def desaturate_color(hex_color, factor=0.75):
-    """Convert hex color to a desaturated version for 'To be Allocated' bars"""
-    # Convert hex to RGB
-    hex_color = hex_color.lstrip('#')
-    rgb = tuple(int(hex_color[i:i+2], 16) / 255.0 for i in (0, 2, 4))
-   
-    # Convert RGB to HSL, reduce lightness, convert back to RGB
-    r, g, b = rgb
-    h, l, s = colorsys.rgb_to_hls(r, g, b)
+This module provides utilities for manipulating colors, particularly for
+creating visual variations of existing colors in visualizations.
+"""
+
+import colorsys
+from typing import Tuple
+
+
+def desaturate_color(hex_color: str, factor: float = 0.75) -> str:
+    """Create a desaturated version of a hex color.
+
+    This function takes a hex color and creates a lighter version by adjusting
+    its HSL (Hue, Saturation, Lightness) values. Commonly used for creating
+    secondary or background variations of primary colors in visualizations.
+
+    Args:
+        hex_color: Hex color string (e.g., '#FF0000' or 'FF0000')
+        factor: Lightness adjustment factor. Values > 1 increase lightness.
+            Default is 0.75.
+
+    Returns:
+        str: Desaturated color in hex format (e.g., '#FF8888')
+
+    Example:
+        >>> desaturate_color('#FF0000', 0.75)
+        '#FF8888'
+    """
+    # Normalize hex color by removing '#' if present
+    hex_color = hex_color.lstrip("#")
+
+    # Convert hex to RGB (0-1 range)
+    rgb: Tuple[float, float, float] = tuple(int(hex_color[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
+
+    # Convert RGB to HSL, adjust lightness, convert back to RGB
+    h, l, s = colorsys.rgb_to_hls(*rgb)
     rgb_desat = colorsys.hls_to_rgb(h, min(1, l * (1 + factor)), s)
-   
-    # Convert back to hex
-    return '#{:02x}{:02x}{:02x}'.format(
-        int(rgb_desat[0] * 255),
-        int(rgb_desat[1] * 255),
-        int(rgb_desat[2] * 255)
-    )
+
+    # Convert back to hex format
+    return "#{:02x}{:02x}{:02x}".format(int(rgb_desat[0] * 255), int(rgb_desat[1] * 255), int(rgb_desat[2] * 255))

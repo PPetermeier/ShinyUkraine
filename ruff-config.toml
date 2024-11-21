@@ -1,7 +1,7 @@
 [tool.ruff]
 # Added PD (flake8-pydantic) to the selected rules
 select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "PD"]
-ignore = []
+ignore = ["F841"]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

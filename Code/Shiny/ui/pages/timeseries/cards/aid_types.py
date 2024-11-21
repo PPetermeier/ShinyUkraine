@@ -1,6 +1,11 @@
+"""Module for visualizing aid allocation trends by type.
+
+This module provides components for creating and managing an interactive visualization
+that shows either monthly or cumulative aid allocations across different aid types
+(military, financial, humanitarian) over time.
 """
-Aid types visualization card.
-"""
+
+from typing import Dict
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -12,18 +17,26 @@ from ....colorutilities import desaturate_color
 
 
 class AidTypesCard:
-    """UI components for the aid types visualization card."""
+    """UI components for the aid types visualization card.
+    
+    This class handles the user interface elements for displaying and controlling
+    the aid types visualization, including the cumulative toggle.
+    """
 
     @staticmethod
-    def ui():
-        """Return the card UI elements."""
+    def ui() -> ui.card:
+        """Create the user interface elements for the visualization card.
+
+        Returns:
+            ui.card: A Shiny card containing the visualization and controls.
+        """
         return ui.card(
             ui.card_header(
                 ui.h3("Monthly and cumulative bilateral aid allocation by type"),
                 ui.div(
-                    {"class": "d-flex flex-row justify-content-between"},  # Changed to flex-row and justify-content-between
+                    {"class": "d-flex flex-row justify-content-between"},
                     ui.div(
-                        {"class": "flex-grow-1 me-4"},  # Added margin-end to create space before toggle
+                        {"class": "flex-grow-1 me-4"},
                         "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been "
                         "delivered or specified for delivery. Does not include private donations, support for refugees "
                         "outside of Ukraine, and aid by international organizations. Data on European Union aid include "
@@ -31,8 +44,8 @@ class AidTypesCard:
                         "please see our data transparency index.",
                     ),
                     ui.div(
-                        {"class": "flex-shrink-0 d-flex align-items-center"},  # Made toggle container non-shrinkable
-                        ui.span({"class": "me-2"}, "Cumulative"),  # Added explicit spacing
+                        {"class": "flex-shrink-0 d-flex align-items-center"},
+                        ui.span({"class": "me-2"}, "Cumulative"),
                         ui.input_switch("aid_types_cumulative", None, value=False),
                     ),
                 ),
@@ -43,9 +56,61 @@ class AidTypesCard:
 
 
 class AidTypesServer:
-    """Server logic for the aid types visualization card."""
+    """Server logic for the aid types visualization.
+
+    This class handles data processing and plot generation for both monthly and
+    cumulative aid type visualizations.
+
+    Attributes:
+        input: Shiny input object containing user interface values.
+        output: Shiny output object for rendering visualizations.
+        session: Shiny session object.
+        df (pd.DataFrame): DataFrame containing aid type time series data.
+    """
+
+    # Define aid type configurations
+    AID_TYPES: Dict[str, Dict[str, str]] = {
+        "military_aid_allocated__billion": {
+            "display_name": "Military Aid",
+            "color_key": "military",
+            "sort_priority": 1
+        },
+        "financial_aid_allocated__billion": {
+            "display_name": "Financial Aid",
+            "color_key": "financial",
+            "sort_priority": 2
+        },
+        "humanitarian_aid_allocated__billion": {
+            "display_name": "Humanitarian Aid",
+            "color_key": "humanitarian",
+            "sort_priority": 3
+        }
+    }
+
+    # Define visualization modes
+    VIZ_CONFIGS: Dict[str, Dict[str, object]] = {
+        "cumulative": {
+            "title": "Cumulative Support Allocation Over Time",
+            "mode": "lines",
+            "line_width": 2,
+            "desaturation_factor": 0.6
+        },
+        "monthly": {
+            "title": "Monthly Support Allocation",
+            "text_position": "inside",
+            "text_color": "white",
+            "text_anchor": "middle"
+        }
+    }
 
     def __init__(self, input, output, session):
+        """Initialize the server component.
+
+        Args:
+            input: Shiny input object.
+            output: Shiny output object.
+            session: Shiny session object.
+        """
         self.input = input
         self.output = output
         self.session = session
@@ -53,98 +118,133 @@ class AidTypesServer:
         self._filtered_data = reactive.Calc(self._compute_filtered_data)
         self.register_outputs()
 
-    def _compute_filtered_data(self):
-        """Internal method to compute filtered data."""
-        # Use all aid types and include US data by default
-        result = self.df.copy()
-        
-        # Select all aid types columns
-        aid_columns = ["military_aid_allocated__billion", 
-                      "financial_aid_allocated__billion",
-                      "humanitarian_aid_allocated__billion"]
+    def _compute_filtered_data(self) -> pd.DataFrame:
+        """Compute filtered data based on user selections.
 
+        Returns:
+            pd.DataFrame: Filtered and processed DataFrame containing aid type data.
+        """
+        result = self.df.copy()
+        aid_columns = list(self.AID_TYPES.keys())
         result = result[["month"] + aid_columns]
 
-        # Calculate cumulative sums if needed
         if self.input.aid_types_cumulative():
             for col in aid_columns:
                 result[col] = result[col].cumsum()
 
         return result
 
+    def create_plot(self) -> go.Figure:
+        """Generate the aid types visualization plot.
 
-    def create_plot(self):
-        """Create and return the plot figure."""
+        Returns:
+            go.Figure: Plotly figure object containing either monthly bars or cumulative area chart.
+        """
         data = self._filtered_data()
         if data.empty:
             return go.Figure()
 
+        fig = self._create_visualization(data)
+        self._update_figure_layout(fig)
+        return fig
+
+    def _create_visualization(self, data: pd.DataFrame) -> go.Figure:
+        """Create the appropriate visualization based on user selection.
+
+        Args:
+            data: DataFrame containing filtered aid type data.
+
+        Returns:
+            go.Figure: Configured visualization figure.
+        """
         fig = go.Figure()
+        is_cumulative = self.input.aid_types_cumulative()
 
-        # Define consistent naming for the legend
-        name_mapping = {
-            "military_aid_allocated__billion": "Military Aid",
-            "financial_aid_allocated__billion": "Financial Aid",
-            "humanitarian_aid_allocated__billion": "Humanitarian Aid",
-        }
-
-        # Set the title based on the view type
-        plot_title = "Cumulative Support Allocation Over Time" if self.input.aid_types_cumulative() else "Monthly Support Allocation"
-
-        if self.input.aid_types_cumulative():
-            # Your existing cumulative view code...
-            data_cols = [col for col in data.columns if col != "month"]
-            sorted_cols = sorted(data_cols, key=lambda x: data[x].max())
-
-            for i, col in enumerate(sorted_cols):
-                aid_type = "military" if "military" in col else "financial" if "financial" in col else "humanitarian"
-                display_name = name_mapping.get(col, col) 
-                fig.add_trace(
-                    go.Scatter(
-                        x=data["month"],
-                        y=data[col],
-                        name=name_mapping.get(col, col),
-                        stackgroup="one",
-                        mode="lines",
-                        line=dict(
-                            color=COLOR_PALETTE[aid_type],
-                            width=2
-                        ),
-                        fill='tonexty' if i > 0 else 'tozeroy',
-                        fillcolor=desaturate_color(COLOR_PALETTE[aid_type], factor=0.6),
-                        hovertemplate=f"{display_name}: %{{y:.1f}}B€<extra></extra>"
-                    )
-                )
+        if is_cumulative:
+            self._add_cumulative_traces(fig, data)
         else:
-            # Your existing monthly view code...
-            for col in data.columns:
-                if col != "month":
-                    aid_type = "military" if "military" in col else "financial" if "financial" in col else "humanitarian"
-                    display_name = name_mapping.get(col, col)  # Get the friendly name for the category
-                    fig.add_trace(
-                        go.Bar(
-                            x=data["month"],
-                            y=data[col],
-                            name=display_name,  # This sets both the legend and hover name
-                            marker_color=COLOR_PALETTE[aid_type],
-                            hovertemplate=f"{display_name}: %{{y:.1f}}B€<extra></extra>",  # Shows category name and value
-                            text=[f"{v:.1f}" if v > 0 else "" for v in data[col]],
-                            textposition="inside",
-                            textfont=dict(color="white"),
-                            insidetextanchor="middle",
-                        )
-                    )
+            self._add_monthly_traces(fig, data)
 
+        return fig
 
+    def _add_cumulative_traces(self, fig: go.Figure, data: pd.DataFrame) -> None:
+        """Add cumulative area traces to the figure.
+
+        Args:
+            fig: Plotly figure to add traces to.
+            data: DataFrame containing aid data.
+        """
+        data_cols = [col for col in data.columns if col != "month"]
+        sorted_cols = sorted(
+            data_cols,
+            key=lambda x: (self.AID_TYPES[x]["sort_priority"], data[x].max())
+        )
+
+        for i, col in enumerate(sorted_cols):
+            config = self.AID_TYPES[col]
+            color = COLOR_PALETTE[config["color_key"]]
+            
+            fig.add_trace(
+                go.Scatter(
+                    x=data["month"],
+                    y=data[col],
+                    name=config["display_name"],
+                    stackgroup="one",
+                    mode=self.VIZ_CONFIGS["cumulative"]["mode"],
+                    line=dict(
+                        color=color,
+                        width=self.VIZ_CONFIGS["cumulative"]["line_width"]
+                    ),
+                    fill='tonexty' if i > 0 else 'tozeroy',
+                    fillcolor=desaturate_color(
+                        color,
+                        factor=self.VIZ_CONFIGS["cumulative"]["desaturation_factor"]
+                    ),
+                    hovertemplate=f"{config['display_name']}: %{{y:.1f}}B€<extra></extra>"
+                )
+            )
+
+    def _add_monthly_traces(self, fig: go.Figure, data: pd.DataFrame) -> None:
+        """Add monthly bar traces to the figure.
+
+        Args:
+            fig: Plotly figure to add traces to.
+            data: DataFrame containing aid data.
+        """
+        for col, config in self.AID_TYPES.items():
+            fig.add_trace(
+                go.Bar(
+                    x=data["month"],
+                    y=data[col],
+                    name=config["display_name"],
+                    marker_color=COLOR_PALETTE[config["color_key"]],
+                    hovertemplate=f"{config['display_name']}: %{{y:.1f}}B€<extra></extra>",
+                    text=[f"{v:.1f}" if v > 0 else "" for v in data[col]],
+                    textposition=self.VIZ_CONFIGS["monthly"]["text_position"],
+                    textfont=dict(color=self.VIZ_CONFIGS["monthly"]["text_color"]),
+                    insidetextanchor=self.VIZ_CONFIGS["monthly"]["text_anchor"],
+                )
+            )
+
+    def _update_figure_layout(self, fig: go.Figure) -> None:
+        """Update the layout of the figure.
+
+        Args:
+            fig: Plotly figure object to update.
+        """
+        is_cumulative = self.input.aid_types_cumulative()
+        mode = "cumulative" if is_cumulative else "monthly"
+        
         fig.update_layout(
-            title= dict(
-        text=f"{plot_title}<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
-        font=dict(size=14),
-        y=0.95,
-        x=0.5,
-        xanchor='center',
-        yanchor='top'
-    ),  # Using the title we defined above
+            title=dict(
+                text=f"{self.VIZ_CONFIGS[mode]['title']}<br>"
+                     f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
+                font=dict(size=14),
+                y=0.95,
+                x=0.5,
+                xanchor='center',
+                yanchor='top'
+            ),
             xaxis_title="Month",
             yaxis_title="Billion €",
             template="plotly_white",
@@ -177,14 +277,11 @@ class AidTypesServer:
             ),
             plot_bgcolor="rgba(255,255,255,1)",
             paper_bgcolor="rgba(255,255,255,1)",
-            barmode="stack" if not self.input.aid_types_cumulative() else None,
+            barmode="stack" if not is_cumulative else None,
         )
 
-        return fig
-
-    def register_outputs(self):
-        """Register all outputs for the module."""
-
+    def register_outputs(self) -> None:
+        """Register the plot output with Shiny."""
         @self.output
         @render_widget
         def aid_types_plot():

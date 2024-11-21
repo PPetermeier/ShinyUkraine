@@ -1,6 +1,6 @@
 import os
 
-from shiny import ui, render, reactive
+from shiny import ui
 
 
 def about_page_ui():

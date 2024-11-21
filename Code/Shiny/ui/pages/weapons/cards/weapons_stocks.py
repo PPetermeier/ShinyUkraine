@@ -1,22 +1,37 @@
+"""Module for visualizing weapons stocks comparisons between Ukraine and Russia.
+
+This module provides components for creating and managing an interactive visualization
+that compares Ukrainian weapon stocks (pre-war, current, and projected) with Russian
+pre-war levels. It includes both UI components and server-side logic for data
+processing and visualization using a dot plot with connecting lines.
 """
-Weapons stocks comparison visualization card with dot plot visualization.
-"""
+
+from typing import Any, Dict, Optional
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
 from server.database import load_data_from_table
-from server.queries import WEAPON_STOCKS_SUPPORT_QUERY, WEAPON_STOCKS_PREWAR_QUERY
+from server.queries import WEAPON_STOCKS_PREWAR_QUERY, WEAPON_STOCKS_SUPPORT_QUERY
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
 
 
 class WeaponsStocksCard:
-    """UI components for the weapons stocks comparison visualization card."""
+    """UI components for the weapons stocks comparison visualization card.
+    
+    This class handles the user interface elements for displaying the weapons
+    stocks comparison visualization.
+    """
 
     @staticmethod
-    def ui():
+    def ui() -> ui.card:
+        """Create the user interface elements for the visualization card.
+
+        Returns:
+            ui.card: A Shiny card containing the visualization.
+        """
         return ui.card(
             ui.card_header(
                 ui.div(
@@ -26,234 +41,333 @@ class WeaponsStocksCard:
                         ui.h3("Ukrainian Weapon Stocks and Support vs. Pre-war Russian Stocks"),
                         ui.div(
                             {"class": "card-subtitle text-muted"},
-                            "Evolution of Ukrainian weapon stocks through Western support compared to Russian pre-war levels.",
+                            "Evolution of Ukrainian weapon stocks through Western support "
+                            "compared to Russian pre-war levels.",
                         ),
                     ),
                 ),
             ),
             output_widget("weapons_stocks_plot"),
-            # Remove fixed height to allow dynamic sizing
         )
 
 
 class WeaponsStocksServer:
-    """Server logic for the weapons stocks comparison visualization card."""
+    """Server logic for the weapons stocks comparison visualization.
 
-    def __init__(self, input, output, session):
+    This class handles data processing, filtering, and plot generation for the
+    weapons stocks comparison visualization.
+
+    Attributes:
+        input: Shiny input object containing user interface values.
+        output: Shiny output object for rendering visualizations.
+        session: Shiny session object.
+    """
+
+    # Define visualization properties
+    PLOT_CONFIG: Dict[str, Any] = {
+        "min_height": 400,
+        "height_per_equipment": 120,
+        "marker_sizes": {
+            "russian": 20,
+            "ukrainian": 16
+        },
+        "text_size": 12,
+        "line_width": 2
+    }
+
+    # Equipment type mapping
+    EQUIPMENT_MAPPING: Dict[str, str] = {
+        "mlrs": "Multiple Launch Rocket Systems",
+        "ifvs": "IFVs",
+        "howitzer155mm": "Howitzer (155/152mm)",
+        "tanks": "Tanks"
+    }
+
+    def __init__(self, input: Any, output: Any, session: Any):
+        """Initialize the server component.
+
+        Args:
+            input: Shiny input object.
+            output: Shiny output object.
+            session: Shiny session object.
+        """
         self.input = input
         self.output = output
         self.session = session
         self._filtered_data = reactive.Calc(self._compute_filtered_data)
 
-    def _compute_filtered_data(self):
-        """Process data for visualization."""
-        # Get pre-war stocks
-        prewar_df = load_data_from_table(table_name_or_query=WEAPON_STOCKS_PREWAR_QUERY)
+    def _get_safe_value(self, data: pd.DataFrame, condition: pd.Series, column: str) -> Optional[float]:
+        """Safely extract a numeric value from a DataFrame.
 
-        # Get support data
+        Args:
+            data: Source DataFrame.
+            condition: Boolean mask for filtering the DataFrame.
+            column: Name of the column containing the value.
+
+        Returns:
+            Optional[float]: The extracted value or None if invalid.
+        """
+        filtered_data = data[condition]
+        if (filtered_data.empty or 
+            pd.isna(filtered_data[column].iloc[0]) or 
+            not np.isfinite(filtered_data[column].iloc[0])):
+            return None
+        return float(filtered_data[column].iloc[0])
+
+    def _compute_filtered_data(self) -> pd.DataFrame:
+        """Process and filter data for visualization.
+
+        Returns:
+            pd.DataFrame: Processed DataFrame containing weapon stocks data.
+        """
+        prewar_df = load_data_from_table(table_name_or_query=WEAPON_STOCKS_PREWAR_QUERY)
         support_df = load_data_from_table(table_name_or_query=WEAPON_STOCKS_SUPPORT_QUERY)
 
-        # This also controls the ordering of the plot
-        equipment_name_mapping = {"mlrs": "Multiple Launch Rocket Systems", "ifvs": "IFVs", "howitzer155mm": "Howitzer (155/152mm)", "tanks": "Tanks"}
-
         summary = []
-        for equipment in equipment_name_mapping.keys():
-            # Get Russian pre-war stock
-            russian_data = prewar_df[(prewar_df["equipment_type"] == equipment) & (prewar_df["country"] == "Russia")]
-            russian_stock = (
-                russian_data["quantity"].iloc[0]
-                if not russian_data.empty and pd.notna(russian_data["quantity"].iloc[0]) and np.isfinite(russian_data["quantity"].iloc[0])
-                else None
+        for equipment, display_name in self.EQUIPMENT_MAPPING.items():
+            # Get stock values
+            russian_stock = self._get_safe_value(
+                prewar_df,
+                (prewar_df["equipment_type"] == equipment) & 
+                (prewar_df["country"] == "Russia"),
+                "quantity"
             )
-
-            # Get Ukrainian pre-war stock
-            ukr_prewar_data = prewar_df[(prewar_df["equipment_type"] == equipment) & (prewar_df["country"] == "Ukraine")]
-            ukr_prewar = (
-                ukr_prewar_data["quantity"].iloc[0]
-                if not ukr_prewar_data.empty and pd.notna(ukr_prewar_data["quantity"].iloc[0]) and np.isfinite(ukr_prewar_data["quantity"].iloc[0])
-                else None
+            
+            ukr_prewar = self._get_safe_value(
+                prewar_df,
+                (prewar_df["equipment_type"] == equipment) & 
+                (prewar_df["country"] == "Ukraine"),
+                "quantity"
             )
+            
+            delivered = self._get_safe_value(
+                support_df,
+                (support_df["equipment_type"] == equipment) & 
+                (support_df["status"] == "delivered"),
+                "quantity"
+            ) or 0.0
+            
+            to_deliver = self._get_safe_value(
+                support_df,
+                (support_df["equipment_type"] == equipment) & 
+                (support_df["status"] == "to_be_delivered"),
+                "quantity"
+            ) or 0.0
 
-            # Get delivered support with safe conversion to float
-            delivered_data = support_df[(support_df["equipment_type"] == equipment) & (support_df["status"] == "delivered")]
-            delivered = (
-                float(delivered_data["quantity"].iloc[0])
-                if not delivered_data.empty and pd.notna(delivered_data["quantity"].iloc[0]) and np.isfinite(delivered_data["quantity"].iloc[0])
-                else 0.0
-            )
+            # Calculate current and projected stocks
+            current_stock = (float(ukr_prewar) + delivered if ukr_prewar is not None 
+                           else delivered if delivered > 0 else None)
+            
+            projected_stock = (current_stock + to_deliver if current_stock is not None
+                             else (delivered + to_deliver) if (delivered > 0 or to_deliver > 0)
+                             else None)
 
-            # Get to-be-delivered support with safe conversion to float
-            to_deliver_data = support_df[(support_df["equipment_type"] == equipment) & (support_df["status"] == "to_be_delivered")]
-            to_deliver = (
-                float(to_deliver_data["quantity"].iloc[0])
-                if not to_deliver_data.empty and pd.notna(to_deliver_data["quantity"].iloc[0]) and np.isfinite(to_deliver_data["quantity"].iloc[0])
-                else 0.0
-            )
-
-            # Calculate current and projected stocks only if pre-war stock exists
-            if ukr_prewar is not None:
-                current_stock = float(ukr_prewar) + delivered
-                projected_stock = current_stock + to_deliver
-            else:
-                current_stock = delivered if delivered > 0 else None
-                projected_stock = (delivered + to_deliver) if (delivered > 0 or to_deliver > 0) else None
-
-            # Ensure all values are finite
-            if (
-                (russian_stock is not None and not np.isfinite(russian_stock))
-                or (current_stock is not None and not np.isfinite(current_stock))
-                or (projected_stock is not None and not np.isfinite(projected_stock))
-            ):
+            # Skip if any values are non-finite
+            if any(v is not None and not np.isfinite(v) for v in 
+                  [russian_stock, current_stock, projected_stock]):
                 continue
 
-            summary.append(
-                {
-                    "equipment_type": equipment_name_mapping.get(equipment, equipment.upper()),
-                    "raw_equipment_type": equipment,
-                    "russian_stock": russian_stock,
-                    "ukr_prewar": ukr_prewar,
-                    "current_stock": current_stock,
-                    "projected_stock": projected_stock,
-                }
-            )
+            summary.append({
+                "equipment_type": display_name,
+                "raw_equipment_type": equipment,
+                "russian_stock": russian_stock,
+                "ukr_prewar": ukr_prewar,
+                "current_stock": current_stock,
+                "projected_stock": projected_stock,
+            })
 
         return pd.DataFrame(summary)
-    
-    def create_plot(self):
-        """Create the dot plot visualization."""
-        data = self._filtered_data()
 
+    def create_plot(self) -> go.Figure:
+        """Generate the weapons stocks comparison visualization plot.
+
+        Returns:
+            go.Figure: Plotly figure object containing the dot plot.
+        """
+        data = self._filtered_data()
         if data.empty:
             return go.Figure()
 
-        fig = go.Figure()
+        fig = self._create_base_plot(data)
+        self._add_russian_stocks(fig, data)
+        self._add_ukrainian_stocks(fig, data)
+        self._update_figure_layout(fig, data)
+        
+        return fig
 
-        # Calculate y-positions for each equipment type
-        equipment_types = data["equipment_type"].unique()
-        y_positions = list(range(len(equipment_types)))
+    def _create_base_plot(self, data: pd.DataFrame) -> go.Figure:
+        """Create the base plot figure.
 
-        # Keep track of the number of points plotted for each equipment type
-        point_counter = {i: 0 for i in y_positions}  # Initialize counter for each y-position
+        Args:
+            data: DataFrame containing weapon stocks data.
 
-        # Add Russian stock markers (only for valid values)
+        Returns:
+            go.Figure: Base Plotly figure.
+        """
+        return go.Figure()
+
+    def _add_russian_stocks(self, fig: go.Figure, data: pd.DataFrame) -> None:
+        """Add Russian stocks to the plot.
+
+        Args:
+            fig: Plotly figure to update.
+            data: DataFrame containing weapon stocks data.
+        """
         valid_russian = data[pd.notna(data["russian_stock"])]
-        if not valid_russian.empty:
-            fig.add_trace(
-                go.Scatter(
-                    x=valid_russian["russian_stock"].astype(float),
-                    y=valid_russian.index.tolist(),
-                    mode="markers+text",
-                    name="Russian Pre-war Stock",
-                    marker=dict(symbol="diamond", size=20, color=COLOR_PALETTE["weapon_stocks_russia"], line=dict(color="white", width=1)),
-                    text=valid_russian["russian_stock"].apply(lambda x: f"{int(x):,}"),
-                    textposition=[("top center" if point_counter.update({i: point_counter[i] + 1}) or point_counter[i] % 2 == 1 else "bottom center") for i in valid_russian.index],
-                    textfont=dict(size=12),
-                    hovertemplate="Russian Pre-war Stock: %{x:,.0f}<extra></extra>",
-                )
+        if valid_russian.empty:
+            return
+
+        # Add points
+        fig.add_trace(
+            go.Scatter(
+                x=valid_russian["russian_stock"].astype(float),
+                y=valid_russian.index.tolist(),
+                mode="markers+text",
+                name="Russian Pre-war Stock",
+                marker=dict(
+                    symbol="diamond",
+                    size=self.PLOT_CONFIG["marker_sizes"]["russian"],
+                    color=COLOR_PALETTE["weapon_stocks_russia"],
+                    line=dict(color="white", width=1)
+                ),
+                text=valid_russian["russian_stock"].apply(lambda x: f"{int(x):,}"),
+                textposition="top center",
+                textfont=dict(size=self.PLOT_CONFIG["text_size"]),
+                hovertemplate="Russian Pre-war Stock: %{x:,.0f}<extra></extra>",
+            )
+        )
+
+        # Add reference lines
+        for i, row in valid_russian.iterrows():
+            fig.add_shape(
+                type="line",
+                x0=0,
+                x1=float(row["russian_stock"]),
+                y0=i,
+                y1=i,
+                line=dict(
+                    color=COLOR_PALETTE["weapon_stocks_russia"],
+                    width=1,
+                    dash="dot",
+                ),
             )
 
-            # Add vertical reference lines
-            for i, row in valid_russian.iterrows():
-                if pd.notna(row["russian_stock"]):
-                    fig.add_shape(
-                        type="line",
-                        x0=0,
-                        x1=float(row["russian_stock"]),
-                        y0=i,
-                        y1=i,
-                        line=dict(
-                            color=COLOR_PALETTE["weapon_stocks_russia"],
-                            width=1,
-                            dash="dot",
-                        ),
-                    )
+    def _add_ukrainian_stocks(self, fig: go.Figure, data: pd.DataFrame) -> None:
+        """Add Ukrainian stocks to the plot.
 
-        # Add Ukrainian data points and lines only where values exist
+        Args:
+            fig: Plotly figure to update.
+            data: DataFrame containing weapon stocks data.
+        """
+        # Add connecting lines
         for i, row in data.iterrows():
-            # Pre-war to current line
-            if pd.notna(row["ukr_prewar"]) and pd.notna(row["current_stock"]):
-                fig.add_trace(
-                    go.Scatter(
-                        x=[float(row["ukr_prewar"]), float(row["current_stock"])],
-                        y=[i, i],
-                        mode="lines",
-                        line=dict(color=COLOR_PALETTE["weapon_stocks_delivered"], width=2),
-                        showlegend=False,
-                        hoverinfo="skip",
-                    )
-                )
+            self._add_stock_lines(fig, row, i)
 
-            # Current to projected line
-            if pd.notna(row["current_stock"]) and pd.notna(row["projected_stock"]):
-                fig.add_trace(
-                    go.Scatter(
-                        x=[float(row["current_stock"]), float(row["projected_stock"])],
-                        y=[i, i],
-                        mode="lines",
-                        line=dict(color=COLOR_PALETTE["weapon_stocks_pending"], width=2),
-                        showlegend=False,
-                        hoverinfo="skip",
-                    )
-                )
+        # Add points for each stock type
+        self._add_stock_points(fig, data, "ukr_prewar", "Ukrainian Pre-war Stock",
+                             COLOR_PALETTE["weapon_stocks_prewar"])
+        self._add_stock_points(fig, data, "current_stock",
+                             "Ukrainian Current Stock (with Delivered)",
+                             COLOR_PALETTE["weapon_stocks_delivered"])
+        self._add_stock_points(fig, data, "projected_stock",
+                             "Ukrainian Projected Stock (with Committed)",
+                             COLOR_PALETTE["weapon_stocks_pending"])
 
-        # Add Ukrainian pre-war points
-        valid_prewar = data[pd.notna(data["ukr_prewar"])]
-        if not valid_prewar.empty:
+    def _add_stock_lines(self, fig: go.Figure, row: pd.Series, index: int) -> None:
+        """Add connecting lines between stock points.
+
+        Args:
+            fig: Plotly figure to update.
+            row: Data row containing stock values.
+            index: Y-axis position index.
+        """
+        # Pre-war to current line
+        if pd.notna(row["ukr_prewar"]) and pd.notna(row["current_stock"]):
             fig.add_trace(
                 go.Scatter(
-                    x=valid_prewar["ukr_prewar"].astype(float),
-                    y=valid_prewar.index.tolist(),
-                    mode="markers+text",
-                    name="Ukrainian Pre-war Stock",
-                    marker=dict(symbol="circle", size=16, color=COLOR_PALETTE["weapon_stocks_prewar"], line=dict(color="white", width=1)),
-                    text=valid_prewar["ukr_prewar"].apply(lambda x: f"{int(x):,}"),
-                    textposition=[("top center" if point_counter.update({i: point_counter[i] + 1}) or point_counter[i] % 2 == 1 else "bottom center") for i in valid_prewar.index],
-                    textfont=dict(size=12),
-                    hovertemplate="Ukrainian Pre-war Stock: %{x:,.0f}<extra></extra>",
+                    x=[float(row["ukr_prewar"]), float(row["current_stock"])],
+                    y=[index, index],
+                    mode="lines",
+                    line=dict(
+                        color=COLOR_PALETTE["weapon_stocks_delivered"],
+                        width=self.PLOT_CONFIG["line_width"]
+                    ),
+                    showlegend=False,
+                    hoverinfo="skip",
                 )
             )
 
-        # Add current stock points
-        valid_current = data[pd.notna(data["current_stock"])]
-        if not valid_current.empty:
+        # Current to projected line
+        if pd.notna(row["current_stock"]) and pd.notna(row["projected_stock"]):
             fig.add_trace(
                 go.Scatter(
-                    x=valid_current["current_stock"].astype(float),
-                    y=valid_current.index.tolist(),
-                    mode="markers+text",
-                    name="Ukrainian Current Stock (with Delivered)",
-                    marker=dict(symbol="circle", size=16, color=COLOR_PALETTE["weapon_stocks_delivered"], line=dict(color="white", width=1)),
-                    text=valid_current["current_stock"].apply(lambda x: f"{int(x):,}"),
-                    textposition=[("top center" if point_counter.update({i: point_counter[i] + 1}) or point_counter[i] % 2 == 1 else "bottom center") for i in valid_current.index],
-                    textfont=dict(size=12),
-                    hovertemplate="Current Stock: %{x:,.0f}<extra></extra>",
+                    x=[float(row["current_stock"]), float(row["projected_stock"])],
+                    y=[index, index],
+                    mode="lines",
+                    line=dict(
+                        color=COLOR_PALETTE["weapon_stocks_pending"],
+                        width=self.PLOT_CONFIG["line_width"]
+                    ),
+                    showlegend=False,
+                    hoverinfo="skip",
                 )
             )
 
-        # Add projected stock points
-        valid_projected = data[pd.notna(data["projected_stock"])]
-        if not valid_projected.empty:
+    def _add_stock_points(
+        self,
+        fig: go.Figure,
+        data: pd.DataFrame,
+        column: str,
+        name: str,
+        color: str
+    ) -> None:
+        """Add stock points to the plot.
+
+        Args:
+            fig: Plotly figure to update.
+            data: DataFrame containing weapon stocks data.
+            column: Name of the column containing stock values.
+            name: Name for the legend.
+            color: Color for the points.
+        """
+        valid_data = data[pd.notna(data[column])]
+        if not valid_data.empty:
             fig.add_trace(
                 go.Scatter(
-                    x=valid_projected["projected_stock"].astype(float),
-                    y=valid_projected.index.tolist(),
+                    x=valid_data[column].astype(float),
+                    y=valid_data.index.tolist(),
                     mode="markers+text",
-                    name="Ukrainian Projected Stock (with Committed)",
-                    marker=dict(symbol="circle", size=16, color=COLOR_PALETTE["weapon_stocks_pending"], line=dict(color="white", width=1)),
-                    text=valid_projected["projected_stock"].apply(lambda x: f"{int(x):,}"),
-                    textposition=[("top center" if point_counter.update({i: point_counter[i] + 1}) or point_counter[i] % 2 == 1 else "bottom center") for i in valid_projected.index],
-                    textfont=dict(size=12),
-                    hovertemplate="Projected Stock: %{x:,.0f}<extra></extra>",
+                    name=name,
+                    marker=dict(
+                        symbol="circle",
+                        size=self.PLOT_CONFIG["marker_sizes"]["ukrainian"],
+                        color=color,
+                        line=dict(color="white", width=1)
+                    ),
+                    text=valid_data[column].apply(lambda x: f"{int(x):,}"),
+                    textposition="top center",
+                    textfont=dict(size=self.PLOT_CONFIG["text_size"]),
+                    hovertemplate=f"{name}: %{{x:,.0f}}<extra></extra>",
                 )
             )
 
-        # Calculate dynamic height based on number of equipment types
-        plot_height = max(400, len(equipment_types) * 120)  # Increased height to accommodate labels
+    def _update_figure_layout(self, fig: go.Figure, data: pd.DataFrame) -> None:
+        """Update the layout of the figure.
 
-        # Update layout
+        Args:
+            fig: Plotly figure to update.
+            data: DataFrame containing weapon stocks data.
+        """
+        equipment_types = data["equipment_type"].unique()
+        plot_height = max(
+            self.PLOT_CONFIG["min_height"],
+            len(equipment_types) * self.PLOT_CONFIG["height_per_equipment"]
+        )
+
         fig.update_layout(
             title=dict(
-                text=f"Weapon Stocks Comparison<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 12</sub>",
+                text=f"Weapon Stocks Comparison<br>"
+                     f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 12</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
@@ -282,19 +396,16 @@ class WeaponsStocksServer:
             ),
             yaxis=dict(
                 ticktext=list(equipment_types),
-                tickvals=y_positions,
+                tickvals=list(range(len(equipment_types))),
                 showgrid=False,
             ),
             plot_bgcolor="rgba(255,255,255,1)",
             paper_bgcolor="rgba(255,255,255,1)",
         )
 
-        return fig
-
-    def register_outputs(self):
-        """Register all outputs for the module."""
-
+    def register_outputs(self) -> None:
+        """Register the plot output with Shiny."""
         @self.output
         @render_widget
-        def weapons_stocks_plot():
+        def weapons_stocks_plot() -> go.Figure:
             return self.create_plot()

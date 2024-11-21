@@ -1,14 +1,36 @@
-import plotly.graph_objects as go
-from shiny import reactive, ui
-from shinywidgets import output_widget, render_widget
+"""Module for visualizing US military support value comparisons.
 
+This module provides components for creating and managing an interactive visualization
+that compares historical US military expenditure across major conflicts with current
+Ukraine support, showing both absolute values and GDP share comparisons.
+"""
+
+from typing import Any, Dict
+
+import pandas as pd
+import plotly.graph_objects as go
+from config import COLOR_PALETTE, COMPARISONS_MARGIN, LAST_UPDATE
 from server import load_data_from_table
 from server.queries import US_WARS_COMPARISON_QUERY
-from config import LAST_UPDATE, COMPARISONS_MARGIN, COLOR_PALETTE 
+from shiny import ui
+from shinywidgets import output_widget, render_widget
+
 
 class ColdWarCard:
+    """UI components for the US military support comparison visualization card.
+    
+    This class handles the user interface elements for displaying the historical
+    US military expenditure comparison visualization, including controls for
+    switching between absolute values and GDP share views.
+    """
+
     @staticmethod
-    def ui():
+    def ui() -> ui.card:
+        """Create the user interface elements for the visualization card.
+
+        Returns:
+            ui.card: A Shiny card containing the visualization and controls.
+        """
         return ui.card(
             ui.card_header(
                 ui.div(
@@ -23,65 +45,152 @@ class ColdWarCard:
                     ),
                     ui.div(
                         {"class": "ms-3"},
-                        ui.input_switch("show_absolute_values", "Show Absolute Values", value=False)
+                        ui.input_switch(
+                            "show_absolute_values",
+                            "Show Absolute Values",
+                            value=False
+                        )
                     ),
                 ),
             ),
-            output_widget("military_expenditure_plot", height="auto") 
+            output_widget("military_expenditure_plot", height="auto")
         )
 
+
 class ColdWarServer:
-    def __init__(self, input, output, session):
+    """Server logic for the US military support comparison visualization.
+
+    This class handles data processing, filtering, and plot generation for the
+    historical US military support comparison visualization.
+
+    Attributes:
+        input: Shiny input object containing user interface values.
+        output: Shiny output object for rendering visualizations.
+        session: Shiny session object.
+        expenditure_data: DataFrame containing the support comparison data.
+    """
+
+    # Define visualization properties
+    PLOT_CONFIG: Dict[str, Any] = {
+        "height": 700,
+        "title_font_size": 16,
+        "subtitle_font_size": 12,
+        "value_format": {
+            "absolute": "{:,.2f} €B",
+            "relative": "{:,.2f}%"
+        }
+    }
+
+    def __init__(self, input: Any, output: Any, session: Any):
+        """Initialize the server component.
+
+        Args:
+            input: Shiny input object.
+            output: Shiny output object.
+            session: Shiny session object.
+        """
         self.input = input
         self.output = output
         self.session = session
         self.expenditure_data = load_data_from_table(US_WARS_COMPARISON_QUERY)
+
+    def _prepare_data(self) -> pd.DataFrame:
+        """Process and prepare data for visualization.
+
+        Returns:
+            pd.DataFrame: Processed DataFrame containing support comparison data.
+        """
+        show_absolute = self.input.show_absolute_values()
+        sort_column = 'absolute_value' if show_absolute else 'gdp_share'
         
-    def create_plot(self):
-        show_absolute_values = self.input.show_absolute_values()
-        df = self.expenditure_data.sort_values(
-            by='gdp_share' if not show_absolute_values else 'absolute_value',
+        return self.expenditure_data.sort_values(
+            by=sort_column,
             ascending=True
         )
-        
+
+    def create_plot(self) -> go.Figure:
+        """Generate the support comparison visualization plot.
+
+        Returns:
+            go.Figure: Plotly figure object containing the comparison visualization.
+        """
+        df = self._prepare_data()
+        fig = self._create_bar_chart(df)
+        self._update_figure_layout(fig)
+        return fig
+
+    def _create_bar_chart(self, data: pd.DataFrame) -> go.Figure:
+        """Create the bar chart visualization.
+
+        Args:
+            data: DataFrame containing the visualization data.
+
+        Returns:
+            go.Figure: Configured Plotly figure.
+        """
         fig = go.Figure()
+        show_absolute = self.input.show_absolute_values()
+
+        for _, row in data.iterrows():
+            fig.add_trace(self._create_bar_trace(row, show_absolute))
+
+        return fig
+
+    def _create_bar_trace(self, row: pd.Series, show_absolute: bool) -> go.Bar:
+        """Create a bar trace for a single conflict.
+
+        Args:
+            row: DataFrame row containing conflict data.
+            show_absolute: Whether to show absolute values.
+
+        Returns:
+            go.Bar: Configured bar trace.
+        """
+        conflict_name = row['military_support']
+        legend_name = conflict_name.split('(')[0].strip()
+        value = row['absolute_value'] if show_absolute else row['gdp_share']
         
-        # Create one trace per conflict for interactive legend
-        for _, row in df.iterrows():
-            conflict_name = row['military_support']
-            legend_name = conflict_name.split('(')[0].strip()
-            
-            fig.add_trace(
-                go.Bar(
-                    x=[row['absolute_value'] if show_absolute_values else row['gdp_share']],
-                    y=[conflict_name],
-                    orientation='h',
-                    name=legend_name,
-                    marker_color=COLOR_PALETTE[conflict_name],
-                    text=[f"{row['absolute_value']:,.2f} €B" if show_absolute_values 
-                          else f"{row['gdp_share']:,.2f}%"],
-                    textposition='auto',
-                    customdata=[[
-                        row['gdp_share'],
-                        row['absolute_value']
-                    ]],
-                    hovertemplate=(
-                        "%{y}<br>" +
-                        "GDP Share: %{customdata[0]:.2f}%<br>" +
-                        "Amount: %{customdata[1]:.2f}€B"
-                    ),
-                )
+        return go.Bar(
+            x=[value],
+            y=[conflict_name],
+            orientation='h',
+            name=legend_name,
+            marker_color=COLOR_PALETTE[conflict_name],
+            text=[
+                self.PLOT_CONFIG["value_format"]["absolute"].format(value)
+                if show_absolute else
+                self.PLOT_CONFIG["value_format"]["relative"].format(value)
+            ],
+            textposition='auto',
+            customdata=[[
+                row['gdp_share'],
+                row['absolute_value']
+            ]],
+            hovertemplate=(
+                "%{y}<br>"
+                "GDP Share: %{customdata[0]:.2f}%<br>"
+                "Amount: %{customdata[1]:.2f}€B"
             )
-                
+        )
+
+    def _update_figure_layout(self, fig: go.Figure) -> None:
+        """Update the layout of the figure.
+
+        Args:
+            fig: Plotly figure to update.
+        """
+        show_absolute = self.input.show_absolute_values()
+
         fig.update_layout(
-            height=700,
+            height=self.PLOT_CONFIG["height"],
             margin=COMPARISONS_MARGIN,
-            xaxis_title="Billion 2021 Euros" if show_absolute_values else "% of US GDP",
+            xaxis_title="Billion 2021 Euros" if show_absolute else "% of US GDP",
             template="plotly_white",
             title=dict(
                 text=(
                     "US Military Support Comparison<br>"
-                    f"<span style='font-size: 12px; color: gray;'>"
+                    f"<span style='font-size: {self.PLOT_CONFIG['subtitle_font_size']}px; "
+                    "color: gray;'>"
                     "This figure compares US military expenditure across major conflicts "
                     "with current Ukraine support."
                     f"<br>Last updated: {LAST_UPDATE}, Sheet: Fig 17</span>"
@@ -90,7 +199,7 @@ class ColdWarServer:
                 y=0.95,
                 yanchor='top',
                 xanchor='center',
-                font=dict(size=16),
+                font=dict(size=self.PLOT_CONFIG["title_font_size"]),
                 pad=dict(b=20)
             ),
             legend=dict(
@@ -117,13 +226,12 @@ class ColdWarServer:
             ),
             barmode='overlay',
             autosize=True,
-            hovermode="y unified",  # Added unified hover mode
+            hovermode="y unified"
         )
-        
-        return fig
-    
-    def register_outputs(self):
+
+    def register_outputs(self) -> None:
+        """Register the plot output with Shiny."""
         @self.output
         @render_widget
-        def military_expenditure_plot():
+        def military_expenditure_plot() -> go.Figure:
             return self.create_plot()

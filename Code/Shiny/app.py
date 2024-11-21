@@ -1,36 +1,47 @@
-# app.py
+"""Main application module for the Ukraine Support Tracker.
 
-from shiny import App
+This module initializes and configures the main Shiny application, setting up
+all page servers and connecting them to the UI components.
+"""
+
+from typing import Any
+
+from shiny import App, Session
 from ui import get_main_ui
 from ui.pages.countrywise import CountryAidPageServer
 from ui.pages.landing import LandingPageServer
 from ui.pages.timeseries import TimeSeriesPageServer
 from ui.pages.financial import FinancialPageServer
-from ui.pages.weapons import HeavyWeaponsPageServer  
-from ui.pages.comparisons import ComparisonsPageServer 
+from ui.pages.weapons import WeaponsPageServer
+from ui.pages.comparisons import ComparisonsPageServer
 
-def server(input, output, session):
-    # Initialize the landing page server
-    landing_server = LandingPageServer(input, output, session)
-    landing_server.initialize()
 
-    # Initialize the time series page server
-    ts_server = TimeSeriesPageServer(input, output, session)
-    ts_server.initialize()
+def server(input: Any, output: Any, session: Session) -> None:
+    """Initialize and configure all page servers for the application.
+    
+    This function sets up server-side logic for each page in the application,
+    connecting data processing and visualization components to their respective
+    UI elements.
 
-    # Initialize the country aid page server
-    ca_server = CountryAidPageServer(input, output, session)
-    ca_server.initialize()
+    Args:
+        input: Shiny input object containing user interface values.
+        output: Shiny output object for rendering visualizations.
+        session: Shiny session object for managing application state.
+    """
+    # Initialize page servers
+    servers = [
+        LandingPageServer(input, output, session),
+        TimeSeriesPageServer(input, output, session),
+        CountryAidPageServer(input, output, session),
+        FinancialPageServer(input, output, session),
+        WeaponsPageServer(input, output, session),
+        ComparisonsPageServer(input, output, session)
+    ]
 
-    # Initialize the financial aid page server
-    financial_server = FinancialPageServer(input, output, session)
-    financial_server.initialize()
+    # Initialize all servers
+    for server in servers:
+        server.initialize()
 
-    # Initialize the weapons page server
-    weapons_server = HeavyWeaponsPageServer(input, output, session)
-    weapons_server.initialize() 
 
-    comparisons_serer = ComparisonsPageServer(input, output, session)
-    comparisons_serer.initialize()
-
+# Create the Shiny application instance
 app = App(get_main_ui(), server)

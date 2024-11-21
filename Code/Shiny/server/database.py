@@ -5,49 +5,38 @@ Database connection and query functions.
 import duckdb
 from config import DB_PATH
 
-from .queries import AID_TYPES_COLUMNS, COUNTRY_AID_COLUMNS, COUNTRY_AID_TABLE, TIME_SERIES_TABLE, TOTAL_SUPPORT_COLUMNS, WEAPON_STOCKS_PREWAR_QUERY, WEAPON_STOCKS_SUPPORT_QUERY, WEAPON_STOCKS_QUERY
+from .queries import AID_TYPES_COLUMNS, COUNTRY_AID_COLUMNS, COUNTRY_AID_TABLE, TIME_SERIES_TABLE, TOTAL_SUPPORT_COLUMNS, WEAPON_STOCKS_QUERY
+
+import duckdb
+from .queries import *  # Keep existing imports
 
 def get_db_connection():
     """Create and return a database connection."""
-    return duckdb.connect(str(DB_PATH))  # DuckDB needs string path
-
+    return duckdb.connect(str(DB_PATH), read_only=True)
 
 def load_data_from_table(table_name_or_query: str, columns=None, where_clause=None, order_by=None):
-    """
-    Generic function to load data from a specified table or execute a complex query.
-
-    Args:
-        table_name_or_query (str): Name of the table or a complete SQL query
-        columns (list, optional): List of column names to fetch. Ignored if table_name_or_query is a query.
-        where_clause (str, optional): WHERE clause for the query. Ignored if table_name_or_query is a query.
-        order_by (str, optional): ORDER BY clause for the query. Ignored if table_name_or_query is a query.
-
-    Returns:
-        pandas.DataFrame: The requested data
-    """
+    """Load data from table or execute query."""
     conn = get_db_connection()
-
-    # Check if input is a query (starts with SELECT or WITH)
-    is_query = table_name_or_query.strip().upper().startswith(("SELECT", "WITH"))
-
-    if is_query:
-        # If it's a query, execute it directly
-        df = conn.execute(table_name_or_query).fetchdf()
-    else:
-        # Build query for table
-        columns_str = ", ".join(columns) if columns else "*"
-        query = f'SELECT {columns_str} FROM "{table_name_or_query}"'
-
-        if where_clause:
-            query += f" WHERE {where_clause}"
-
-        if order_by:
-            query += f" ORDER BY {order_by}"
-
-        df = conn.execute(query).fetchdf()
-    conn.close()
-    return df
-
+    try:
+        is_query = table_name_or_query.strip().upper().startswith(("SELECT", "WITH"))
+        
+        if is_query:
+            df = conn.execute(table_name_or_query).fetchdf()
+        else:
+            columns_str = ", ".join(columns) if columns else "*"
+            query = f'SELECT {columns_str} FROM "{table_name_or_query}"'
+            
+            if where_clause:
+                query += f" WHERE {where_clause}"
+                
+            if order_by:
+                query += f" ORDER BY {order_by}"
+                
+            df = conn.execute(query).fetchdf()
+            
+        return df
+    finally:
+        conn.close()
 
 def load_time_series_data(columns=None):
     """
