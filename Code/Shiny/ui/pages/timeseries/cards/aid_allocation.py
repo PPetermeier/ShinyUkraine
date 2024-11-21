@@ -22,7 +22,7 @@ from ....colorutilities import desaturate_color
 
 class AidAllocationCard:
     """UI components for the aid allocation by country groups card.
-    
+
     This class handles the user interface elements for displaying the aid
     allocation comparison across country groups.
     """
@@ -39,8 +39,7 @@ class AidAllocationCard:
                 ui.h3("Aid Allocation by Country Groups, committed vs allocated"),
                 ui.div(
                     {"class": "card-subtitle text-muted"},
-                    "Visualization of aid commitments and allocations grouped by country categories. "
-                    "Click legend items to show/hide groups. Double-click to isolate a group.",
+                    "This figure shows total allocations and the remaining amount of total bilateral aid commitments to Ukraine, in billion Euros, across different donor groups between January 24, 2022 and August 31, 2024. Allocations are defined as aid which has been delivered or specified for delivery. Aid remaining to be allocated is calculated as the difference between committed aid and realized allocations. Exchange rate fluctuations, accounting approximations by the donor, or variation in prices and evaluations of specific items within previously committed amounts may lead to allocated aid being smaller than previously committed amounts.",
                 ),
             ),
             output_widget("allocation_plot"),
@@ -62,22 +61,10 @@ class AidAllocationServer:
 
     # Define country group configurations
     COUNTRY_GROUP_CONFIG: Dict[str, Dict[str, str]] = {
-        "EU_member": {
-            "display_name": "EU Members",
-            "color_key": "Europe"
-        },
-        "EU_institutions": {
-            "display_name": "EU Institutions",
-            "color_key": "EU Institutions"
-        },
-        "Anglosaxon_countries": {
-            "display_name": "Anglo-Saxon Countries",
-            "color_key": "United States"
-        },
-        "Other_donor_countries": {
-            "display_name": "Other Donors",
-            "color_key": "Other Countries"
-        }
+        "EU_member": {"display_name": "EU Members", "color_key": "Europe"},
+        "EU_institutions": {"display_name": "EU Institutions", "color_key": "EU Institutions"},
+        "Anglosaxon_countries": {"display_name": "Anglo-Saxon Countries", "color_key": "United States"},
+        "Other_donor_countries": {"display_name": "Other Donors", "color_key": "Other Countries"},
     }
 
     # Define trace configurations
@@ -88,7 +75,7 @@ class AidAllocationServer:
             "text_position": "outside",
             "text_color": "black",
             "hover_template": "<br>Committed: %{x:.1f}B€<extra></extra>",
-            "text_format": lambda x: f"{x:.1f}B €"
+            "text_format": lambda x: f"{x:.1f}B €",
         },
         "allocated": {
             "name_suffix": "(Allocated)",
@@ -96,8 +83,8 @@ class AidAllocationServer:
             "text_position": "inside",
             "text_color": "white",
             "hover_template": "<br>Allocated: %{x:.1f}B€<extra></extra>",
-            "text_format": lambda x: f"{x:.1f}%"
-        }
+            "text_format": lambda x: f"{x:.1f}%",
+        },
     }
 
     def __init__(self, input, output, session):
@@ -143,10 +130,10 @@ class AidAllocationServer:
 
         # Sort data by committed aid for consistent ordering
         data = data.sort_values("committed_aid", ascending=True)
-        
+
         fig = self._create_bar_chart(data)
         self._update_figure_layout(fig)
-        
+
         return fig
 
     def _create_bar_chart(self, data: pd.DataFrame) -> go.Figure:
@@ -164,10 +151,10 @@ class AidAllocationServer:
             group_config = self.COUNTRY_GROUP_CONFIG[row["group_name"]]
             display_name = group_config["display_name"]
             base_color = COLOR_PALETTE[group_config["color_key"]]
-            
+
             # Calculate percentage for allocated aid text
             percentage = (row["allocated_aid"] / row["committed_aid"] * 100) if row["committed_aid"] > 0 else 0
-            
+
             # Add traces for committed and allocated aid
             self._add_aid_traces(
                 fig=fig,
@@ -175,20 +162,12 @@ class AidAllocationServer:
                 committed_aid=row["committed_aid"],
                 allocated_aid=row["allocated_aid"],
                 percentage=percentage,
-                base_color=base_color
+                base_color=base_color,
             )
 
         return fig
 
-    def _add_aid_traces(
-        self,
-        fig: go.Figure,
-        display_name: str,
-        committed_aid: float,
-        allocated_aid: float,
-        percentage: float,
-        base_color: str
-    ) -> None:
+    def _add_aid_traces(self, fig: go.Figure, display_name: str, committed_aid: float, allocated_aid: float, percentage: float, base_color: str) -> None:
         """Add committed and allocated aid traces to the figure.
 
         Args:
@@ -200,39 +179,35 @@ class AidAllocationServer:
             base_color: Base color for the traces.
         """
         # Add committed aid trace
-        fig.add_trace(self._create_bar_trace(
-            name=f"{display_name} {self.TRACE_TYPES['committed']['name_suffix']}",
-            value=committed_aid,
-            display_name=display_name,
-            color=desaturate_color(base_color) if self.TRACE_TYPES['committed']['use_desaturated_color'] else base_color,
-            text=self.TRACE_TYPES['committed']['text_format'](committed_aid),
-            text_position=self.TRACE_TYPES['committed']['text_position'],
-            text_color=self.TRACE_TYPES['committed']['text_color'],
-            hover_template=f"{display_name}{self.TRACE_TYPES['committed']['hover_template']}"
-        ))
+        fig.add_trace(
+            self._create_bar_trace(
+                name=f"{display_name} {self.TRACE_TYPES['committed']['name_suffix']}",
+                value=committed_aid,
+                display_name=display_name,
+                color=desaturate_color(base_color) if self.TRACE_TYPES["committed"]["use_desaturated_color"] else base_color,
+                text=self.TRACE_TYPES["committed"]["text_format"](committed_aid),
+                text_position=self.TRACE_TYPES["committed"]["text_position"],
+                text_color=self.TRACE_TYPES["committed"]["text_color"],
+                hover_template=f"{display_name}{self.TRACE_TYPES['committed']['hover_template']}",
+            )
+        )
 
         # Add allocated aid trace
-        fig.add_trace(self._create_bar_trace(
-            name=f"{display_name} {self.TRACE_TYPES['allocated']['name_suffix']}",
-            value=allocated_aid,
-            display_name=display_name,
-            color=base_color,
-            text=self.TRACE_TYPES['allocated']['text_format'](percentage),
-            text_position=self.TRACE_TYPES['allocated']['text_position'],
-            text_color=self.TRACE_TYPES['allocated']['text_color'],
-            hover_template=f"{display_name}{self.TRACE_TYPES['allocated']['hover_template']}"
-        ))
+        fig.add_trace(
+            self._create_bar_trace(
+                name=f"{display_name} {self.TRACE_TYPES['allocated']['name_suffix']}",
+                value=allocated_aid,
+                display_name=display_name,
+                color=base_color,
+                text=self.TRACE_TYPES["allocated"]["text_format"](percentage),
+                text_position=self.TRACE_TYPES["allocated"]["text_position"],
+                text_color=self.TRACE_TYPES["allocated"]["text_color"],
+                hover_template=f"{display_name}{self.TRACE_TYPES['allocated']['hover_template']}",
+            )
+        )
 
     def _create_bar_trace(
-        self,
-        name: str,
-        value: float,
-        display_name: str,
-        color: str,
-        text: str,
-        text_position: str,
-        text_color: str,
-        hover_template: str
+        self, name: str, value: float, display_name: str, color: str, text: str, text_position: str, text_color: str, hover_template: str
     ) -> go.Bar:
         """Create a bar trace for the visualization.
 
@@ -272,8 +247,7 @@ class AidAllocationServer:
         fig.update_layout(
             barmode="overlay",
             title=dict(
-                text=f"Aid Allocation Progress by Country Groups<br>"
-                     f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 5</sub>",
+                text=f"Aid Allocation Progress by Country Groups<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 5</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
@@ -313,6 +287,7 @@ class AidAllocationServer:
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def allocation_plot():

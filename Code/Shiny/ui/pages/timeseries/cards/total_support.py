@@ -17,7 +17,7 @@ from shinywidgets import output_widget, render_widget
 
 class TotalSupportCard:
     """UI components for the total support visualization card.
-    
+
     This class handles the user interface elements for displaying and controlling
     the total support visualization, including the cumulative toggle.
     """
@@ -38,11 +38,13 @@ class TotalSupportCard:
                         ui.h3("Monthly and cumulative bilateral aid allocation by donor"),
                         ui.div(
                             {"class": "card-subtitle text-muted"},
+                            "This figure shows total bilateral aid allocations to Ukraine in € billion with traceable months between February 1, 2022 and August 31, 2024. Allocations are defined as aid which has been delivered or specified for delivery."
                             "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been "
                             "delivered or specified for delivery. Does not include private donations, support for refugees "
                             "outside of Ukraine, and aid by international organizations. Data on European Union aid include "
                             "the EU Commission and Council, EPF, and EIB. For information on data quality and transparency "
-                            "please see our data transparency index.",
+                            "please see our data transparency index."
+                            "",
                         ),
                     ),
                     ui.div(
@@ -72,38 +74,15 @@ class TotalSupportServer:
 
     # Define region configurations
     REGIONS: Dict[str, Dict[str, str]] = {
-        "united_states": {
-            "column": "united_states_allocated__billion",
-            "display_name": "United States",
-            "color_key": "united_states"
-        },
-        "europe": {
-            "column": "europe_allocated__billion",
-            "display_name": "Europe",
-            "color_key": "europe"
-        },
-        "other_donors": {
-            "column": "other_donors_allocated__billion",
-            "display_name": "Rest of World",
-            "color_key": "other_donors"
-        }
+        "united_states": {"column": "united_states_allocated__billion", "display_name": "United States", "color_key": "united_states"},
+        "europe": {"column": "europe_allocated__billion", "display_name": "Europe", "color_key": "europe"},
+        "other_donors": {"column": "other_donors_allocated__billion", "display_name": "Rest of World", "color_key": "other_donors"},
     }
 
     # Define visualization modes
     VIZ_CONFIGS: Dict[str, Dict[str, object]] = {
-        "cumulative": {
-            "title": "Cumulative Support Allocation Over Time",
-            "mode": "lines",
-            "line_width": 2,
-            "bar_mode": None
-        },
-        "monthly": {
-            "title": "Monthly Support Allocation",
-            "text_position": "inside",
-            "text_color": "white",
-            "text_anchor": "middle",
-            "bar_mode": "group"
-        }
+        "cumulative": {"title": "Cumulative Support Allocation Over Time", "mode": "lines", "line_width": 2, "bar_mode": None},
+        "monthly": {"title": "Monthly Support Allocation", "text_position": "inside", "text_color": "white", "text_anchor": "middle", "bar_mode": "group"},
     }
 
     def __init__(self, input, output, session):
@@ -178,10 +157,7 @@ class TotalSupportServer:
             data: DataFrame containing support data.
         """
         # Sort regions based on maximum values
-        regions = sorted(
-            self.REGIONS.keys(),
-            key=lambda x: data[self.REGIONS[x]["column"]].max()
-        )
+        regions = sorted(self.REGIONS.keys(), key=lambda x: data[self.REGIONS[x]["column"]].max())
 
         for region in regions:
             config = self.REGIONS[region]
@@ -192,11 +168,8 @@ class TotalSupportServer:
                     name=config["display_name"],
                     stackgroup="one",
                     mode=self.VIZ_CONFIGS["cumulative"]["mode"],
-                    line=dict(
-                        color=COLOR_PALETTE[config["color_key"]],
-                        width=self.VIZ_CONFIGS["cumulative"]["line_width"]
-                    ),
-                    hovertemplate=f"{config['display_name']}: %{{y:.1f}}B$<extra></extra>"
+                    line=dict(color=COLOR_PALETTE[config["color_key"]], width=self.VIZ_CONFIGS["cumulative"]["line_width"]),
+                    hovertemplate=f"{config['display_name']}: %{{y:.1f}}B$<extra></extra>",
                 )
             )
 
@@ -218,7 +191,7 @@ class TotalSupportServer:
                     textposition=self.VIZ_CONFIGS["monthly"]["text_position"],
                     textfont=dict(color=self.VIZ_CONFIGS["monthly"]["text_color"]),
                     insidetextanchor=self.VIZ_CONFIGS["monthly"]["text_anchor"],
-                    hovertemplate=f"{config['display_name']}: %{{y:.1f}}B$<extra></extra>"
+                    hovertemplate=f"{config['display_name']}: %{{y:.1f}}B$<extra></extra>",
                 )
             )
 
@@ -230,16 +203,15 @@ class TotalSupportServer:
         """
         is_cumulative = self.input.total_support_additive()
         mode = "cumulative" if is_cumulative else "monthly"
-        
+
         fig.update_layout(
             title=dict(
-                text=f"{self.VIZ_CONFIGS[mode]['title']}<br>"
-                     f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
+                text=f"{self.VIZ_CONFIGS[mode]['title']}<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
                 xanchor="center",
-                yanchor="top"
+                yanchor="top",
             ),
             xaxis_title="Month",
             yaxis_title="Billion $",
@@ -275,6 +247,7 @@ class TotalSupportServer:
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def support_plot():

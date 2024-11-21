@@ -39,6 +39,7 @@ class BudgetSupportCard:
                         ui.h3("Foreign Budgetary Support: Allocations vs. Disbursements"),
                         ui.div(
                             {"class": "card-subtitle text-muted"},
+                            "This figure shows a ranking of financial donors, measured by the nominal value of external grants, loans, and guarantees given for budgetary support to the government of Ukraine (in billion Euros). Light blue bars indicate allocations (Ukraine Support Tracker data), while the darker blue bars show disbursements (Ministry of Finance of Ukraine data)."
                             "This figure shows financial donors measured by the nominal value of external grants, loans, "
                             "and guarantees given for budgetary support to the government of Ukraine (in billion Euros). "
                             "Information on disbursement is disclosed by the Ministry of Finance of Ukraine.",

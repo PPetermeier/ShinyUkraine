@@ -18,7 +18,7 @@ from shinywidgets import output_widget, render_widget
 
 class ColdWarCard:
     """UI components for the US military support comparison visualization card.
-    
+
     This class handles the user interface elements for displaying the historical
     US military expenditure comparison visualization, including controls for
     switching between absolute values and GDP share views.
@@ -40,20 +40,13 @@ class ColdWarCard:
                         ui.h3("US Military Support Comparison"),
                         ui.div(
                             {"class": "card-subtitle text-muted mb-4"},
-                            "Historical US Military Expenditure vs Ukraine Support"
+                            "This figure compares average annual US military expenditures in US wars to total US military aid to Ukraine between February 24, 2022 and August 31, 2024. Estimates on US military spending are from the US Congressional Research Service (Daggett 2010). US GDP Data is from the U.S. Bureau of Economic Analysis (2017) and IMF-WEO (2017). US military aid to Ukraine is from our database. For the sake of comparison, we only include aid to Ukraine from January 2022 to February 2023. See Working Paper for relevant citations.",
                         ),
                     ),
-                    ui.div(
-                        {"class": "ms-3"},
-                        ui.input_switch(
-                            "show_absolute_values",
-                            "Show Absolute Values",
-                            value=False
-                        )
-                    ),
+                    ui.div({"class": "ms-3"}, ui.input_switch("show_absolute_values", "Show Absolute Values", value=False)),
                 ),
             ),
-            output_widget("military_expenditure_plot", height="auto")
+            output_widget("military_expenditure_plot", height="auto"),
         )
 
 
@@ -75,10 +68,7 @@ class ColdWarServer:
         "height": 700,
         "title_font_size": 16,
         "subtitle_font_size": 12,
-        "value_format": {
-            "absolute": "{:,.2f} €B",
-            "relative": "{:,.2f}%"
-        }
+        "value_format": {"absolute": "{:,.2f} €B", "relative": "{:,.2f}%"},
     }
 
     def __init__(self, input: Any, output: Any, session: Any):
@@ -101,12 +91,9 @@ class ColdWarServer:
             pd.DataFrame: Processed DataFrame containing support comparison data.
         """
         show_absolute = self.input.show_absolute_values()
-        sort_column = 'absolute_value' if show_absolute else 'gdp_share'
-        
-        return self.expenditure_data.sort_values(
-            by=sort_column,
-            ascending=True
-        )
+        sort_column = "absolute_value" if show_absolute else "gdp_share"
+
+        return self.expenditure_data.sort_values(by=sort_column, ascending=True)
 
     def create_plot(self) -> go.Figure:
         """Generate the support comparison visualization plot.
@@ -146,31 +133,20 @@ class ColdWarServer:
         Returns:
             go.Bar: Configured bar trace.
         """
-        conflict_name = row['military_support']
-        legend_name = conflict_name.split('(')[0].strip()
-        value = row['absolute_value'] if show_absolute else row['gdp_share']
-        
+        conflict_name = row["military_support"]
+        legend_name = conflict_name.split("(")[0].strip()
+        value = row["absolute_value"] if show_absolute else row["gdp_share"]
+
         return go.Bar(
             x=[value],
             y=[conflict_name],
-            orientation='h',
+            orientation="h",
             name=legend_name,
             marker_color=COLOR_PALETTE[conflict_name],
-            text=[
-                self.PLOT_CONFIG["value_format"]["absolute"].format(value)
-                if show_absolute else
-                self.PLOT_CONFIG["value_format"]["relative"].format(value)
-            ],
-            textposition='auto',
-            customdata=[[
-                row['gdp_share'],
-                row['absolute_value']
-            ]],
-            hovertemplate=(
-                "%{y}<br>"
-                "GDP Share: %{customdata[0]:.2f}%<br>"
-                "Amount: %{customdata[1]:.2f}€B"
-            )
+            text=[self.PLOT_CONFIG["value_format"]["absolute"].format(value) if show_absolute else self.PLOT_CONFIG["value_format"]["relative"].format(value)],
+            textposition="auto",
+            customdata=[[row["gdp_share"], row["absolute_value"]]],
+            hovertemplate=("%{y}<br>" "GDP Share: %{customdata[0]:.2f}%<br>" "Amount: %{customdata[1]:.2f}€B"),
         )
 
     def _update_figure_layout(self, fig: go.Figure) -> None:
@@ -197,10 +173,10 @@ class ColdWarServer:
                 ),
                 x=0.5,
                 y=0.95,
-                yanchor='top',
-                xanchor='center',
+                yanchor="top",
+                xanchor="center",
                 font=dict(size=self.PLOT_CONFIG["title_font_size"]),
-                pad=dict(b=20)
+                pad=dict(b=20),
             ),
             legend=dict(
                 orientation="h",
@@ -211,26 +187,19 @@ class ColdWarServer:
                 bgcolor="rgba(255, 255, 255, 0.8)",
                 bordercolor="rgba(0, 0, 0, 0.2)",
                 borderwidth=1,
-                itemsizing='constant'
+                itemsizing="constant",
             ),
             showlegend=True,
-            xaxis=dict(
-                showgrid=True,
-                gridcolor="rgba(0,0,0,0.1)",
-                zeroline=True,
-                zerolinecolor="rgba(0,0,0,0.2)"
-            ),
-            yaxis=dict(
-                showticklabels=False,
-                showgrid=False
-            ),
-            barmode='overlay',
+            xaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.1)", zeroline=True, zerolinecolor="rgba(0,0,0,0.2)"),
+            yaxis=dict(showticklabels=False, showgrid=False),
+            barmode="overlay",
             autosize=True,
-            hovermode="y unified"
+            hovermode="y unified",
         )
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def military_expenditure_plot() -> go.Figure:

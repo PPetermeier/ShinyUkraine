@@ -15,15 +15,15 @@ from typing import Dict, List, Type, Any
 
 from shiny import Session, ui
 
-from .cards.heavy_weapons import HeavyWeaponsCard, HeavyWeaponsServer
-from .cards.pledge_stock_ratio import PledgeStockCard, PledgeStockServer
-from .cards.pledges_weapon_types import WeaponTypesCard, WeaponTypesServer
-from .cards.weapons_stocks import WeaponsStocksCard, WeaponsStocksServer
+from .cards.b_heavy_weapons import HeavyWeaponsCard, HeavyWeaponsServer
+from .cards.c_pledge_stock_ratio import PledgeStockCard, PledgeStockServer
+from .cards.d_pledges_weapon_types import WeaponTypesCard, WeaponTypesServer
+from .cards.a_weapons_stocks import WeaponsStocksCard, WeaponsStocksServer
 
 
 class WeaponsPageLayout:
     """Manages the layout and structure of the weapons page.
-    
+
     This class defines the organization and presentation of visualization cards
     on the weapons support page, maintaining a consistent ordering and layout
     structure for all components.
@@ -33,12 +33,7 @@ class WeaponsPageLayout:
             on the page.
     """
 
-    CARD_COMPONENTS: List[Type[ui.Tag]] = [
-        WeaponsStocksCard,
-        HeavyWeaponsCard,
-        PledgeStockCard,
-        WeaponTypesCard
-    ]
+    CARD_COMPONENTS: List[Type[ui.Tag]] = [WeaponsStocksCard, HeavyWeaponsCard, PledgeStockCard, WeaponTypesCard]
 
     @staticmethod
     def create_ui() -> ui.page_fillable:
@@ -53,30 +48,27 @@ class WeaponsPageLayout:
                 {"class": "container-fluid"},
                 ui.div(
                     {"class": "row g-4"},  # Add consistent spacing between cards
-                    *[_create_card_section(card) for card in WeaponsPageLayout.CARD_COMPONENTS]
-                )
+                    *[_create_card_section(card) for card in WeaponsPageLayout.CARD_COMPONENTS],
+                ),
             )
         )
 
 
 def _create_card_section(card_component: Type[ui.Tag]) -> ui.Tag:
     """Create a section for a single visualization card.
-    
+
     Args:
         card_component: The card component class to create a section for.
-    
+
     Returns:
         ui.Tag: A column containing the specified card component.
     """
-    return ui.div(
-        {"class": "col-12"},
-        card_component.ui()
-    )
+    return ui.div({"class": "col-12"}, card_component.ui())
 
 
 class WeaponsPageServer:
     """Coordinates all visualization cards on the weapons page.
-    
+
     This class manages the server-side components for all weapon-related
     visualizations, handling their initialization and coordination while
     maintaining consistent state management across components.
@@ -107,17 +99,17 @@ class WeaponsPageServer:
 
         # Initialize all card servers with consistent naming
         self.servers: Dict[str, Any] = {
-            'weapons_stocks': WeaponsStocksServer(input, output, session),
-            'heavy_weapons': HeavyWeaponsServer(input, output, session),
-            'pledge_stock': PledgeStockServer(input, output, session),
-            'weapon_types': WeaponTypesServer(input, output, session)
+            "weapons_stocks": WeaponsStocksServer(input, output, session),
+            "heavy_weapons": HeavyWeaponsServer(input, output, session),
+            "pledge_stock": PledgeStockServer(input, output, session),
+            "weapon_types": WeaponTypesServer(input, output, session),
         }
 
         self.initialize()
 
     def initialize(self) -> None:
         """Initialize and register outputs for all card servers.
-        
+
         This method ensures all visualization components are properly initialized
         and their outputs are registered with the Shiny server.
         """

@@ -8,7 +8,6 @@ to Ukraine, showing both absolute values and GDP share comparisons.
 from typing import Any, Dict
 
 
-
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, COMPARISONS_MARGIN, LAST_UPDATE
 from server import load_data_from_table
@@ -19,7 +18,7 @@ from shinywidgets import output_widget, render_widget
 
 class GulfWarCard:
     """UI components for the Gulf War comparison visualization card.
-    
+
     This class handles the user interface elements for displaying the Gulf War
     vs Ukraine aid comparison visualization, including controls for switching
     between absolute values and GDP share views.
@@ -41,20 +40,13 @@ class GulfWarCard:
                         ui.h3("Gulf War vs Ukraine Aid Comparison"),
                         ui.div(
                             {"class": "card-subtitle text-muted mb-4"},
-                            "Gulf War 1990/91 vs. Aid to Ukraine"
+                            "This figure compares the military expenditure of the US, Japan, Germany and South Korea in the Persian Gulf War with bilateral aid to Ukraine. For the sake of comparison, we only include aid to Ukraine from January 2022 to February 2023. See Working Paper for relevant citations.",
                         ),
                     ),
-                    ui.div(
-                        {"class": "ms-3"},
-                        ui.input_switch(
-                            "show_absolute_gulfwar_values",
-                            "Show Absolute Values",
-                            value=False
-                        )
-                    ),
+                    ui.div({"class": "ms-3"}, ui.input_switch("show_absolute_gulfwar_values", "Show Absolute Values", value=False)),
                 ),
             ),
-            output_widget("gulf_war_plot", height="auto")
+            output_widget("gulf_war_plot", height="auto"),
         )
 
 
@@ -80,20 +72,14 @@ class GulfWarServer:
             "gulf_war": {
                 "name": "Gulf War (1990/91)",
                 "color": COLOR_PALETTE.get("Gulf War Percentage"),
-                "columns": {
-                    "absolute": "gulf_war_abs",
-                    "relative": "gulf_war_gdp"
-                }
+                "columns": {"absolute": "gulf_war_abs", "relative": "gulf_war_gdp"},
             },
             "ukraine": {
                 "name": "Aid to Ukraine",
                 "color": COLOR_PALETTE.get("Ukraine Yellow"),
-                "columns": {
-                    "absolute": "ukraine_abs",
-                    "relative": "ukraine_gdp"
-                }
-            }
-        }
+                "columns": {"absolute": "ukraine_abs", "relative": "ukraine_gdp"},
+            },
+        },
     }
 
     def __init__(self, input: Any, output: Any, session: Any):
@@ -116,18 +102,10 @@ class GulfWarServer:
             Dict[str, str]: Configuration for display formatting.
         """
         show_absolute = self.input.show_absolute_gulfwar_values()
-        
+
         if show_absolute:
-            return {
-                "title_suffix": "expenditures in Billion €",
-                "y_axis_title": "Billion Euros (2021, inflation adjusted)",
-                "value_suffix": "B€"
-            }
-        return {
-            "title_suffix": "expenditures in percent of donor GDP",
-            "y_axis_title": "% of donor GDP",
-            "value_suffix": "%"
-        }
+            return {"title_suffix": "expenditures in Billion €", "y_axis_title": "Billion Euros (2021, inflation adjusted)", "value_suffix": "B€"}
+        return {"title_suffix": "expenditures in percent of donor GDP", "y_axis_title": "% of donor GDP", "value_suffix": "%"}
 
     def create_plot(self) -> go.Figure:
         """Generate the comparison visualization plot.
@@ -147,20 +125,13 @@ class GulfWarServer:
         """
         fig = go.Figure()
         display_config = self._get_display_config()
-        
+
         for trace_type, config in self.PLOT_CONFIG["traces"].items():
-            fig.add_trace(self._create_bar_trace(
-                trace_config=config,
-                value_suffix=display_config["value_suffix"]
-            ))
-        
+            fig.add_trace(self._create_bar_trace(trace_config=config, value_suffix=display_config["value_suffix"]))
+
         return fig
 
-    def _create_bar_trace(
-        self,
-        trace_config: Dict[str, Any],
-        value_suffix: str
-    ) -> go.Bar:
+    def _create_bar_trace(self, trace_config: Dict[str, Any], value_suffix: str) -> go.Bar:
         """Create a bar trace for the visualization.
 
         Args:
@@ -171,23 +142,19 @@ class GulfWarServer:
             go.Bar: Configured bar trace.
         """
         show_absolute = self.input.show_absolute_gulfwar_values()
-        column = (trace_config["columns"]["absolute"] 
-                 if show_absolute 
-                 else trace_config["columns"]["relative"])
-        
+        column = trace_config["columns"]["absolute"] if show_absolute else trace_config["columns"]["relative"]
+
         values = self.comparison_data[column].tolist()
-        
+
         return go.Bar(
-            x=self.comparison_data['countries'].tolist(),
+            x=self.comparison_data["countries"].tolist(),
             y=values,
             name=trace_config["name"],
             marker_color=trace_config["color"],
             text=[f"{val:.2f}{value_suffix}" for val in values],
-            textposition='auto',
+            textposition="auto",
             customdata=values,
-            hovertemplate=(
-                f"%{{x}}<br>{trace_config['name']}: %{{y:.2f}}{value_suffix}"
-            )
+            hovertemplate=(f"%{{x}}<br>{trace_config['name']}: %{{y:.2f}}{value_suffix}"),
         )
 
     def _update_figure_layout(self, fig: go.Figure) -> None:
@@ -215,10 +182,10 @@ class GulfWarServer:
                 ),
                 x=0.5,
                 y=0.95,
-                yanchor='top',
-                xanchor='center',
+                yanchor="top",
+                xanchor="center",
                 font=dict(size=self.PLOT_CONFIG["title_font_size"]),
-                pad=dict(b=20)
+                pad=dict(b=20),
             ),
             legend=dict(
                 orientation="h",
@@ -229,28 +196,19 @@ class GulfWarServer:
                 bgcolor="rgba(255, 255, 255, 0.8)",
                 bordercolor="rgba(0, 0, 0, 0.2)",
                 borderwidth=1,
-                itemsizing='constant'
+                itemsizing="constant",
             ),
             showlegend=True,
-            xaxis=dict(
-                showgrid=False,
-                gridcolor="rgba(0,0,0,0.1)",
-                zeroline=True,
-                zerolinecolor="rgba(0,0,0,0.2)"
-            ),
-            yaxis=dict(
-                showgrid=True,
-                gridcolor="rgba(0,0,0,0.1)",
-                zeroline=True,
-                zerolinecolor="rgba(0,0,0,0.2)"
-            ),
-            barmode='group',
+            xaxis=dict(showgrid=False, gridcolor="rgba(0,0,0,0.1)", zeroline=True, zerolinecolor="rgba(0,0,0,0.2)"),
+            yaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.1)", zeroline=True, zerolinecolor="rgba(0,0,0,0.2)"),
+            barmode="group",
             autosize=True,
-            hovermode="x unified"
+            hovermode="x unified",
         )
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def gulf_war_plot() -> go.Figure:

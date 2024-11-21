@@ -18,7 +18,7 @@ from ....colorutilities import desaturate_color
 
 class AidTypesCard:
     """UI components for the aid types visualization card.
-    
+
     This class handles the user interface elements for displaying and controlling
     the aid types visualization, including the cumulative toggle.
     """
@@ -37,6 +37,7 @@ class AidTypesCard:
                     {"class": "d-flex flex-row justify-content-between"},
                     ui.div(
                         {"class": "flex-grow-1 me-4"},
+                        "This figure shows total bilateral aid allocations to Ukraine in € billion with traceable months between February 1, 2022 and August 31, 2024. Allocations are defined as aid which has been delivered or specified for delivery."
                         "Includes bilateral allocations to Ukraine. Allocations are defined as aid which has been "
                         "delivered or specified for delivery. Does not include private donations, support for refugees "
                         "outside of Ukraine, and aid by international organizations. Data on European Union aid include "
@@ -70,37 +71,15 @@ class AidTypesServer:
 
     # Define aid type configurations
     AID_TYPES: Dict[str, Dict[str, str]] = {
-        "military_aid_allocated__billion": {
-            "display_name": "Military Aid",
-            "color_key": "military",
-            "sort_priority": 1
-        },
-        "financial_aid_allocated__billion": {
-            "display_name": "Financial Aid",
-            "color_key": "financial",
-            "sort_priority": 2
-        },
-        "humanitarian_aid_allocated__billion": {
-            "display_name": "Humanitarian Aid",
-            "color_key": "humanitarian",
-            "sort_priority": 3
-        }
+        "military_aid_allocated__billion": {"display_name": "Military Aid", "color_key": "military", "sort_priority": 1},
+        "financial_aid_allocated__billion": {"display_name": "Financial Aid", "color_key": "financial", "sort_priority": 2},
+        "humanitarian_aid_allocated__billion": {"display_name": "Humanitarian Aid", "color_key": "humanitarian", "sort_priority": 3},
     }
 
     # Define visualization modes
     VIZ_CONFIGS: Dict[str, Dict[str, object]] = {
-        "cumulative": {
-            "title": "Cumulative Support Allocation Over Time",
-            "mode": "lines",
-            "line_width": 2,
-            "desaturation_factor": 0.6
-        },
-        "monthly": {
-            "title": "Monthly Support Allocation",
-            "text_position": "inside",
-            "text_color": "white",
-            "text_anchor": "middle"
-        }
+        "cumulative": {"title": "Cumulative Support Allocation Over Time", "mode": "lines", "line_width": 2, "desaturation_factor": 0.6},
+        "monthly": {"title": "Monthly Support Allocation", "text_position": "inside", "text_color": "white", "text_anchor": "middle"},
     }
 
     def __init__(self, input, output, session):
@@ -175,15 +154,12 @@ class AidTypesServer:
             data: DataFrame containing aid data.
         """
         data_cols = [col for col in data.columns if col != "month"]
-        sorted_cols = sorted(
-            data_cols,
-            key=lambda x: (self.AID_TYPES[x]["sort_priority"], data[x].max())
-        )
+        sorted_cols = sorted(data_cols, key=lambda x: (self.AID_TYPES[x]["sort_priority"], data[x].max()))
 
         for i, col in enumerate(sorted_cols):
             config = self.AID_TYPES[col]
             color = COLOR_PALETTE[config["color_key"]]
-            
+
             fig.add_trace(
                 go.Scatter(
                     x=data["month"],
@@ -191,16 +167,10 @@ class AidTypesServer:
                     name=config["display_name"],
                     stackgroup="one",
                     mode=self.VIZ_CONFIGS["cumulative"]["mode"],
-                    line=dict(
-                        color=color,
-                        width=self.VIZ_CONFIGS["cumulative"]["line_width"]
-                    ),
-                    fill='tonexty' if i > 0 else 'tozeroy',
-                    fillcolor=desaturate_color(
-                        color,
-                        factor=self.VIZ_CONFIGS["cumulative"]["desaturation_factor"]
-                    ),
-                    hovertemplate=f"{config['display_name']}: %{{y:.1f}}B€<extra></extra>"
+                    line=dict(color=color, width=self.VIZ_CONFIGS["cumulative"]["line_width"]),
+                    fill="tonexty" if i > 0 else "tozeroy",
+                    fillcolor=desaturate_color(color, factor=self.VIZ_CONFIGS["cumulative"]["desaturation_factor"]),
+                    hovertemplate=f"{config['display_name']}: %{{y:.1f}}B€<extra></extra>",
                 )
             )
 
@@ -234,16 +204,15 @@ class AidTypesServer:
         """
         is_cumulative = self.input.aid_types_cumulative()
         mode = "cumulative" if is_cumulative else "monthly"
-        
+
         fig.update_layout(
             title=dict(
-                text=f"{self.VIZ_CONFIGS[mode]['title']}<br>"
-                     f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
+                text=f"{self.VIZ_CONFIGS[mode]['title']}<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
-                xanchor='center',
-                yanchor='top'
+                xanchor="center",
+                yanchor="top",
             ),
             xaxis_title="Month",
             yaxis_title="Billion €",
@@ -259,7 +228,7 @@ class AidTypesServer:
                 bordercolor="rgba(0, 0, 0, 0.2)",
                 borderwidth=1,
                 itemsizing="constant",
-                tracegroupgap=5
+                tracegroupgap=5,
             ),
             showlegend=True,
             hovermode="x unified",
@@ -282,6 +251,7 @@ class AidTypesServer:
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def aid_types_plot():

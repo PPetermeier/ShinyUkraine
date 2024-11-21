@@ -1,8 +1,8 @@
-"""Module for visualizing financial aid distribution by type.
+"""Module for visualizing aid allocations as a percentage of GDP.
 
 This module provides components for creating and managing an interactive visualization
-that breaks down different types of financial aid (loans, grants, guarantees, swap lines)
-provided by donor countries to Ukraine.
+that compares bilateral aid, refugee costs, and EU share allocations as percentages
+of each donor country's GDP.
 """
 
 from typing import Dict, List
@@ -10,17 +10,16 @@ from typing import Dict, List
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
-from server.database import load_data_from_table
-from server.queries import FINANCIAL_AID_QUERY
+from server import load_data_from_table
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
 
 
-class FinancialByTypeCard:
-    """UI components for the financial aid by type visualization card.
+class GDPAllocationsCard:
+    """UI components for the GDP allocations visualization card.
     
     This class handles the user interface elements for displaying and controlling
-    the financial aid type visualization, including country selection.
+    the GDP-relative aid allocation visualization.
     """
 
     @staticmethod
@@ -32,82 +31,65 @@ class FinancialByTypeCard:
         """
         return ui.card(
             ui.card_header(
+                ui.h3("Support to Ukraine and Refugee Costs as Share of GDP"),
                 ui.div(
-                    {"class": "d-flex justify-content-between align-items-center"},
+                    {"class": "d-flex justify-content-between"},
                     ui.div(
-                        {"class": "flex-grow-1"},
-                        ui.h3("Financial Bilateral Allocations by Type"),
-                        ui.div(
-                            {"class": "card-subtitle text-muted"},
-                            "This figure shows financial aid allocations to Ukraine across the top 20 donors in billion Euros between January 24, 2022 and August 31, 2024. Financial aid includes loans, grants, guarantees, and central bank swap lines. "
-                            "Includes bilateral financial commitments to Ukraine. Does not include private donations, "
-                            "support for refugees outside of Ukraine, and aid by international organisations. "
-                            "Commitments by EU Institutions include Commission and Council and EIB. "
-                            "For information on data quality and transparency please see our data transparency index.",
-                        ),
+                        {"class": "card-subtitle text-muted"},
+                        "Includes bilateral allocations to Ukraine and cost estimates for refugees in donor countries. "
+                        "Allocations are defined as aid which has been delivered or specified for delivery. Does not include "
+                        "private donations, support for refugees outside of Ukraine, and aid by international organizations."
+                        "These costs are based on estimates provided by the OECD Migration Outlook 2022 and scaled up using UNHCR refugee data. For further information, see the 'Refugee Cost Calculation' sheet.",
                     ),
                     ui.div(
-                        {"class": "ms-3 d-flex align-items-center"},
-                        ui.span({"class": "me-2"}, "First"),
+                        {"class": "d-flex align-items-center"},
+                        "First  ",
                         ui.input_numeric(
-                            "top_n_countries",
+                            "top_n_countries_gdp_ratio",
                             None,
                             value=15,
                             min=5,
                             max=50,
                             width="80px",
                         ),
-                        ui.span({"class": "ms-2"}, "countries"),
+                        " countries",
                     ),
                 ),
             ),
-            output_widget("financial_types_plot"),
-            height="1000px",
+            output_widget("gdp_allocations_plot"),
         )
 
 
-class FinancialByTypeServer:
-    """Server logic for the financial aid by type visualization.
+class GDPAllocationsServer:
+    """Server logic for the GDP allocations visualization.
 
     This class handles data processing, filtering, and plot generation for the
-    financial aid type visualization.
+    GDP-relative aid allocation visualization.
 
     Attributes:
         input: Shiny input object containing user interface values.
         output: Shiny output object for rendering visualizations.
         session: Shiny session object.
+        df (pd.DataFrame): DataFrame containing combined allocation and GDP data.
     """
 
-    # Define financial aid types and their properties
-    FINANCIAL_AID_TYPES: Dict[str, Dict[str, str]] = {
-        "loan": {
-            "name": "Loan",
-            "color_key": "financial_loan",
-            "default_color": "#2a9d8f",
-            "column": "loan",
-            "hover_template": "Loan: %{x:.1f}B €"
+    # Define allocation types and their properties
+    ALLOCATION_TYPES: Dict[str, Dict[str, str]] = {
+        "total_bilateral_allocations": {
+            "name": "Total bilateral allocations",
+            "color": "Total Bilateral",
+            "hover_template": "Total bilateral allocations: %{x:.2f}% of GDP",
         },
-        "grant": {
-            "name": "Grant",
-            "color_key": "financial_grant",
-            "default_color": "#264653",
-            "column": "grant",
-            "hover_template": "Grant: %{x:.1f}B €"
+        "refugee_cost_estimation": {
+            "name": "Refugee cost estimation",
+            "color": "refugee",
+            "hover_template": "Refugee cost estimation: %{x:.2f}% of GDP",
         },
-        "guarantee": {
-            "name": "Guarantee",
-            "color_key": "financial_guarantee",
-            "default_color": "#e9c46a",
-            "column": "guarantee",
-            "hover_template": "Guarantee: %{x:.1f}B €"
+        "share_in_total_eu_allocations__2021_gdp": {
+            "name": "Share in total EU allocations",
+            "color": "europe",
+            "hover_template": "Share in total EU allocations: %{x:.2f}% of GDP",
         },
-        "central_bank_swap_line": {
-            "name": "Central Bank Swap Line",
-            "color_key": "financial_swap",
-            "default_color": "#f4a261",
-            "column": "central_bank_swap_line",
-            "hover_template": "Central Bank Swap Line: %{x:.1f}B €"
-        }
     }
 
     def __init__(self, input, output, session):
@@ -121,28 +103,46 @@ class FinancialByTypeServer:
         self.input = input
         self.output = output
         self.session = session
+        self.df = self._load_and_merge_data()
         self._filtered_data = reactive.Calc(self._compute_filtered_data)
+        self.register_outputs()
+
+    def _load_and_merge_data(self) -> pd.DataFrame:
+        """Load and merge allocation and summary data.
+
+        Returns:
+            pd.DataFrame: Merged DataFrame containing allocation and GDP data.
+        """
+        df_allocations = load_data_from_table("f_bilateral_allocations_gdp_pct")
+        df_summary = load_data_from_table("a_summary_€")
+        
+        return pd.merge(
+            df_allocations,
+            df_summary[["country", "share_in_total_eu_allocations__2021_gdp"]],
+            on="country",
+            how="left"
+        )
 
     def _compute_filtered_data(self) -> pd.DataFrame:
-        """Compute filtered data based on user inputs.
+        """Filter and process data based on user selections.
 
         Returns:
             pd.DataFrame: Filtered and sorted DataFrame containing top N countries.
         """
-        df = load_data_from_table(table_name_or_query=FINANCIAL_AID_QUERY)
+        result = self.df.copy()
+        allocation_cols = list(self.ALLOCATION_TYPES.keys())
 
-        # Calculate total aid for sorting
-        aid_columns = [props["column"] for props in self.FINANCIAL_AID_TYPES.values()]
-        df["total_aid"] = df[aid_columns].sum(axis=1)
-        
-        # Filter to top N countries and sort
-        df = df.nlargest(self.input.top_n_countries(), "total_aid")
-        df = df.sort_values("total_aid", ascending=True)
+        # Calculate total for sorting
+        result["total"] = result[allocation_cols].sum(axis=1)
 
-        return df
+        # Get top N countries and sort
+        result = result.nlargest(self.input.top_n_countries_gdp_ratio(), "total")
+        result = result.sort_values("total", ascending=True)
+
+        return result[["country"] + allocation_cols]
 
     def create_plot(self) -> go.Figure:
-        """Generate the financial aid type visualization plot.
+        """Generate the GDP allocations visualization plot.
 
         Returns:
             go.Figure: Plotly figure object containing the stacked bar chart.
@@ -151,14 +151,20 @@ class FinancialByTypeServer:
         if data.empty:
             return go.Figure()
 
-        fig = self._create_stacked_bar_chart(data)
+        # Calculate dynamic height based on number of countries
+        dynamic_height = max(400, len(data) * 40)
+        
+        # Create and configure plot
+        fig = self._create_stacked_bar_chart(data, dynamic_height)
+        
         return fig
 
-    def _create_stacked_bar_chart(self, data: pd.DataFrame) -> go.Figure:
+    def _create_stacked_bar_chart(self, data: pd.DataFrame, height: int) -> go.Figure:
         """Create a stacked bar chart visualization.
 
         Args:
-            data: DataFrame containing filtered financial aid data.
+            data: DataFrame containing filtered allocation data.
+            height: Height of the plot in pixels.
 
         Returns:
             go.Figure: Configured Plotly figure object.
@@ -166,18 +172,19 @@ class FinancialByTypeServer:
         fig = go.Figure()
         countries = data["country"].tolist()
 
-        # Add traces for each financial aid type
-        for aid_type, properties in self.FINANCIAL_AID_TYPES.items():
+        # Add traces for each allocation type
+        for alloc_type, properties in self.ALLOCATION_TYPES.items():
+            values = data[alloc_type].tolist()
             fig.add_trace(self._create_bar_trace(
                 countries=countries,
-                values=data[properties["column"]].tolist(),
+                values=values,
                 name=properties["name"],
-                color=COLOR_PALETTE.get(properties["color_key"], properties["default_color"]),
+                color=COLOR_PALETTE.get(properties["color"]),
                 hover_template=properties["hover_template"]
             ))
 
         # Update layout
-        self._update_figure_layout(fig)
+        self._update_figure_layout(fig, height)
         
         return fig
 
@@ -194,7 +201,7 @@ class FinancialByTypeServer:
         Args:
             countries: List of country names.
             values: List of values for the bars.
-            name: Name of the financial aid type.
+            name: Name of the allocation type.
             color: Color for the bars.
             hover_template: Template for hover text.
 
@@ -202,9 +209,9 @@ class FinancialByTypeServer:
             go.Bar: Configured bar trace.
         """
         return go.Bar(
-            name=name,
             y=countries,
             x=values,
+            name=name,
             orientation="h",
             marker_color=color,
             hovertemplate=f"%{{y}}<br>{hover_template}<extra></extra>",
@@ -214,26 +221,26 @@ class FinancialByTypeServer:
             insidetextanchor="middle",
         )
 
-    def _update_figure_layout(self, fig: go.Figure) -> None:
+    def _update_figure_layout(self, fig: go.Figure, height: int) -> None:
         """Update the layout of the figure.
 
         Args:
             fig: Plotly figure object to update.
+            height: Height of the plot in pixels.
         """
         fig.update_layout(
             title=dict(
-                text=f"Financial Bilateral Allocations by Type<br><sub>Last updated: {LAST_UPDATE}, Sheet: Fig 10</sub>",
+                text=f"Bilateral Aid, Refugee Costs, and EU Share<br><sub>Last updated: {LAST_UPDATE}, Sheet: Summary(€), Fig 6</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
                 xanchor="center",
                 yanchor="top",
             ),
-            xaxis_title="Billion €",
-            yaxis_title="",
+            xaxis_title="Percentage of 2021 GDP",
             barmode="stack",
             template="plotly_white",
-            height=800,
+            height=height,
             margin=MARGIN,
             legend=dict(
                 yanchor="bottom",
@@ -242,7 +249,7 @@ class FinancialByTypeServer:
                 x=0.99,
                 bgcolor="rgba(255, 255, 255, 0.8)",
                 bordercolor="rgba(0, 0, 0, 0.2)",
-                borderwidth=1
+                borderwidth=1,
             ),
             showlegend=True,
             hovermode="y unified",
@@ -251,6 +258,8 @@ class FinancialByTypeServer:
                 showgrid=False,
                 gridcolor="rgba(0,0,0,0.1)",
                 zerolinecolor="rgba(0,0,0,0.2)",
+                tickfont=dict(size=12),
+                categoryorder="total ascending",
             ),
             xaxis=dict(
                 showgrid=False,
@@ -266,5 +275,5 @@ class FinancialByTypeServer:
         """Register the plot output with Shiny."""
         @self.output
         @render_widget
-        def financial_types_plot():
+        def gdp_allocations_plot():
             return self.create_plot()
