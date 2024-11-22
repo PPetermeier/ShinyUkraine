@@ -43,7 +43,14 @@ class GulfWarCard:
                             "This figure compares the military expenditure of the US, Japan, Germany and South Korea in the Persian Gulf War with bilateral aid to Ukraine. For the sake of comparison, we only include aid to Ukraine from January 2022 to February 2023. See Working Paper for relevant citations.",
                         ),
                     ),
-                    ui.div({"class": "ms-3"}, ui.input_switch("show_absolute_gulfwar_values", "Show Absolute Values", value=False)),
+                    ui.div(
+                        {"class": "ms-3"},
+                        ui.input_switch(
+                            "show_absolute_gulfwar_values",
+                            "Show Absolute Values",
+                            value=False,
+                        ),
+                    ),
                 ),
             ),
             output_widget("gulf_war_plot", height="auto"),
@@ -104,8 +111,16 @@ class GulfWarServer:
         show_absolute = self.input.show_absolute_gulfwar_values()
 
         if show_absolute:
-            return {"title_suffix": "expenditures in Billion €", "y_axis_title": "Billion Euros (2021, inflation adjusted)", "value_suffix": "B€"}
-        return {"title_suffix": "expenditures in percent of donor GDP", "y_axis_title": "% of donor GDP", "value_suffix": "%"}
+            return {
+                "title_suffix": "expenditures in Billion €",
+                "y_axis_title": "Billion Euros (2021, inflation adjusted)",
+                "value_suffix": "B€",
+            }
+        return {
+            "title_suffix": "expenditures in percent of donor GDP",
+            "y_axis_title": "% of donor GDP",
+            "value_suffix": "%",
+        }
 
     def create_plot(self) -> go.Figure:
         """Generate the comparison visualization plot.
@@ -127,11 +142,17 @@ class GulfWarServer:
         display_config = self._get_display_config()
 
         for trace_type, config in self.PLOT_CONFIG["traces"].items():
-            fig.add_trace(self._create_bar_trace(trace_config=config, value_suffix=display_config["value_suffix"]))
+            fig.add_trace(
+                self._create_bar_trace(
+                    trace_config=config, value_suffix=display_config["value_suffix"]
+                )
+            )
 
         return fig
 
-    def _create_bar_trace(self, trace_config: Dict[str, Any], value_suffix: str) -> go.Bar:
+    def _create_bar_trace(
+        self, trace_config: Dict[str, Any], value_suffix: str
+    ) -> go.Bar:
         """Create a bar trace for the visualization.
 
         Args:
@@ -142,7 +163,11 @@ class GulfWarServer:
             go.Bar: Configured bar trace.
         """
         show_absolute = self.input.show_absolute_gulfwar_values()
-        column = trace_config["columns"]["absolute"] if show_absolute else trace_config["columns"]["relative"]
+        column = (
+            trace_config["columns"]["absolute"]
+            if show_absolute
+            else trace_config["columns"]["relative"]
+        )
 
         values = self.comparison_data[column].tolist()
 
@@ -154,7 +179,9 @@ class GulfWarServer:
             text=[f"{val:.2f}{value_suffix}" for val in values],
             textposition="auto",
             customdata=values,
-            hovertemplate=(f"%{{x}}<br>{trace_config['name']}: %{{y:.2f}}{value_suffix}"),
+            hovertemplate=(
+                f"%{{x}}<br>{trace_config['name']}: %{{y:.2f}}{value_suffix}"
+            ),
         )
 
     def _update_figure_layout(self, fig: go.Figure) -> None:
@@ -199,8 +226,18 @@ class GulfWarServer:
                 itemsizing="constant",
             ),
             showlegend=True,
-            xaxis=dict(showgrid=False, gridcolor="rgba(0,0,0,0.1)", zeroline=True, zerolinecolor="rgba(0,0,0,0.2)"),
-            yaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.1)", zeroline=True, zerolinecolor="rgba(0,0,0,0.2)"),
+            xaxis=dict(
+                showgrid=False,
+                gridcolor="rgba(0,0,0,0.1)",
+                zeroline=True,
+                zerolinecolor="rgba(0,0,0,0.2)",
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor="rgba(0,0,0,0.1)",
+                zeroline=True,
+                zerolinecolor="rgba(0,0,0,0.2)",
+            ),
             barmode="group",
             autosize=True,
             hovermode="x unified",

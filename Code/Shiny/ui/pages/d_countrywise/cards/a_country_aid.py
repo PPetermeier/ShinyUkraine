@@ -17,7 +17,7 @@ from shinywidgets import output_widget, render_widget
 
 class CountryAidCard:
     """UI components for the country aid visualization card.
-    
+
     This class handles the user interface elements for displaying and controlling
     the country aid visualization, including country selection options.
     """
@@ -130,10 +130,10 @@ class CountryAidServer:
 
         # Calculate dynamic height based on number of countries
         dynamic_height = max(400, len(data) * 40)
-        
+
         # Create and configure plot
         fig = self._create_stacked_bar_chart(data, dynamic_height)
-        
+
         return fig
 
     def _create_stacked_bar_chart(self, data: pd.DataFrame, height: int) -> go.Figure:
@@ -152,24 +152,22 @@ class CountryAidServer:
         # Add bars for each aid type
         for aid_type, properties in self.AID_TYPES.items():
             values = data[aid_type].tolist()
-            fig.add_trace(self._create_bar_trace(
-                countries=countries,
-                values=values,
-                name=properties["name"],
-                color=COLOR_PALETTE.get(properties["color"])
-            ))
+            fig.add_trace(
+                self._create_bar_trace(
+                    countries=countries,
+                    values=values,
+                    name=properties["name"],
+                    color=COLOR_PALETTE.get(properties["color"]),
+                )
+            )
 
         # Update layout
         self._update_figure_layout(fig, height)
-        
+
         return fig
 
     def _create_bar_trace(
-        self,
-        countries: List[str],
-        values: List[float],
-        name: str,
-        color: str
+        self, countries: List[str], values: List[float], name: str, color: str
     ) -> go.Bar:
         """Create a bar trace for the stacked bar chart.
 
@@ -246,6 +244,7 @@ class CountryAidServer:
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def country_aid_plot():

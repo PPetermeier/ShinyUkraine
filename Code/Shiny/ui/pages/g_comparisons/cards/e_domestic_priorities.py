@@ -10,7 +10,11 @@ from typing import Any, Dict, List
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, COMPARISONS_MARGIN, LAST_UPDATE
 from server import load_data_from_table
-from server.queries import DOMESTIC_COMPARISON_QUERY, EUROPEAN_CRISIS_QUERY, GERMAN_COMPARISON_QUERY
+from server.queries import (
+    DOMESTIC_COMPARISON_QUERY,
+    EUROPEAN_CRISIS_QUERY,
+    GERMAN_COMPARISON_QUERY,
+)
 from shiny import ui
 from shinywidgets import output_widget, render_widget
 
@@ -60,8 +64,17 @@ class DomesticPrioritiesCard:
                         {"class": "h-100"},
                         ui.card_header(
                             ui.div(
-                                {"class": "d-flex justify-content-between align-items-center"},
-                                ui.div({"class": "ms-3"}, ui.input_switch("show_absolute_domestic_values", "Show Absolute Values", value=True)),
+                                {
+                                    "class": "d-flex justify-content-between align-items-center"
+                                },
+                                ui.div(
+                                    {"class": "ms-3"},
+                                    ui.input_switch(
+                                        "show_absolute_domestic_values",
+                                        "Show Absolute Values",
+                                        value=True,
+                                    ),
+                                ),
                             ),
                         ),
                         output_widget("domestic_support_plot", height="600px"),
@@ -115,7 +128,11 @@ class DomesticPrioritiesServer:
             "bordercolor": "rgba(0, 0, 0, 0.1)",
             "borderwidth": 1,
         },
-        "axis_config": {"title": "", "categoryorder": "total ascending", "showticklabels": True},
+        "axis_config": {
+            "title": "",
+            "categoryorder": "total ascending",
+            "showticklabels": True,
+        },
     }
 
     def __init__(self, input: Any, output: Any, session: Any):
@@ -172,7 +189,9 @@ class DomesticPrioritiesServer:
         """
         fig = go.Figure()
 
-        for commitment, value in zip(self.crisis_data["commitments"], self.crisis_data["total_support__billion"]):
+        for commitment, value in zip(
+            self.crisis_data["commitments"], self.crisis_data["total_support__billion"]
+        ):
             fig.add_trace(self._create_crisis_trace(commitment, value))
 
         self._update_crisis_layout(fig)
@@ -270,7 +289,9 @@ class DomesticPrioritiesServer:
         Args:
             fig: Plotly figure to update.
         """
-        base_layout = self._create_base_layout("German Support Programs (2022)", "Fig 21")
+        base_layout = self._create_base_layout(
+            "German Support Programs (2022)", "Fig 21"
+        )
         base_layout.update({"xaxis_title": "Billion €", "barmode": "group"})
         fig.update_layout(**base_layout)
 
@@ -301,11 +322,15 @@ class DomesticPrioritiesServer:
         Args:
             fig: Plotly figure to update.
         """
-        base_layout = self._create_base_layout("Europe's Response to Major Crises", "Fig 19")
+        base_layout = self._create_base_layout(
+            "Europe's Response to Major Crises", "Fig 19"
+        )
         base_layout.update({"xaxis_title": "Billion €"})
         fig.update_layout(**base_layout)
 
-    def _add_domestic_traces(self, fig: go.Figure, display_config: Dict[str, Any]) -> None:
+    def _add_domestic_traces(
+        self, fig: go.Figure, display_config: Dict[str, Any]
+    ) -> None:
         """Add traces for domestic support visualization.
 
         Args:
@@ -322,9 +347,17 @@ class DomesticPrioritiesServer:
                 name="Fiscal commitments for energy subsidies",
                 marker_color=COLOR_PALETTE["Fiscal commitments for energy subsidies"],
                 orientation="h",
-                text=[f"{x:.2f}{display_config['value_suffix']}" for x in display_config["fiscal_values"]],
+                text=[
+                    f"{x:.2f}{display_config['value_suffix']}"
+                    for x in display_config["fiscal_values"]
+                ],
                 textposition="auto",
-                customdata=list(zip(display_config["fiscal_values"], display_config["ukraine_values"])),
+                customdata=list(
+                    zip(
+                        display_config["fiscal_values"],
+                        display_config["ukraine_values"],
+                    )
+                ),
                 hovertemplate=(
                     f"%{{y}}<br>"
                     f"Energy Subsidies: %{{customdata[0]:.2f}}{display_config['value_suffix']}<br>"
@@ -341,9 +374,17 @@ class DomesticPrioritiesServer:
                 name="Aid for Ukraine (incl. EU share)",
                 marker_color=COLOR_PALETTE["Aid for Ukraine (incl. EU share)"],
                 orientation="h",
-                text=[f"{x:.2f}{display_config['value_suffix']}" for x in display_config["ukraine_values"]],
+                text=[
+                    f"{x:.2f}{display_config['value_suffix']}"
+                    for x in display_config["ukraine_values"]
+                ],
                 textposition="auto",
-                customdata=list(zip(display_config["fiscal_values"], display_config["ukraine_values"])),
+                customdata=list(
+                    zip(
+                        display_config["fiscal_values"],
+                        display_config["ukraine_values"],
+                    )
+                ),
                 hovertemplate=(
                     f"%{{y}}<br>"
                     f"Energy Subsidies: %{{customdata[0]:.2f}}{display_config['value_suffix']}<br>"
@@ -359,7 +400,9 @@ class DomesticPrioritiesServer:
             fig: Plotly figure to update.
             y_axis_title: Title for the y-axis.
         """
-        base_layout = self._create_base_layout("Domestic Energy Support vs Ukraine Aid", "Fig 20")
+        base_layout = self._create_base_layout(
+            "Domestic Energy Support vs Ukraine Aid", "Fig 20"
+        )
         base_layout.update({"xaxis_title": y_axis_title, "barmode": "group"})
         fig.update_layout(**base_layout)
 

@@ -6,7 +6,7 @@ and color palettes for different types of visualizations.
 """
 
 import os
-from typing import Dict, Union
+from typing import Dict
 
 # Database configuration
 DB_PATH: str = os.path.join(os.getcwd(), "Data", "ukrainesupporttracker.db")
@@ -70,7 +70,6 @@ HISTORICAL_COMPARISON_COLORS: ColorType = {
     "Spain (1936-39) Nationalists": "#00247D",
     "Spain (1936-39) Republicans": "#4682B4",
     "Total supply to Ukraine": "#FFD700",
-    
     # WW2 Values
     "WW2 US to UK": "#601757",
     "WW2 US to USSR": "#551A8B",
@@ -89,7 +88,6 @@ MODERN_CONFLICT_COLORS: ColorType = {
     "US in Iraq (average mil. exp. 2003-2010)": "#ca8993",
     "US in Afghanistan (average mil. exp. 2001-10)": "#dcb0b7",
     "US to Ukraine (total military aid)": "#E89B5D",
-    
     # Gulf War Values
     "Gulf War Percentage": "#9A6FB8",
 }
@@ -99,11 +97,9 @@ CRISIS_COMPARISON_COLORS: ColorType = {
     "Eurozone bailouts \n(2010-2012)": "#00CED1",
     "EU pandemic recover fund\n (Next Generation EU)": "#4B0082",
     "EU support to Ukraine": "#FFD700",
-    
     # Domestic
     "Aid for Ukraine (incl. EU share)": "#FFD700",
     "Fiscal commitments for energy subsidies": "#FF8C59",
-    
     # Germany
     'Energy subsidies for households and firms ("Doppelwumms")': "#FF8C59",
     'Special military fund ("Sondervermögen Bundeswehr") ': "#CB59FF",

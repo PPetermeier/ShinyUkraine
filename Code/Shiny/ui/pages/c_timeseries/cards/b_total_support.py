@@ -35,7 +35,9 @@ class TotalSupportCard:
                     {"class": "d-flex justify-content-between"},
                     ui.div(
                         {"class": "flex-grow-1"},
-                        ui.h3("Monthly and cumulative bilateral aid allocation by donor"),
+                        ui.h3(
+                            "Monthly and cumulative bilateral aid allocation by donor"
+                        ),
                         ui.div(
                             {"class": "card-subtitle text-muted"},
                             "This figure shows total bilateral aid allocations to Ukraine in € billion with traceable months between February 1, 2022 and August 31, 2024. Allocations are defined as aid which has been delivered or specified for delivery."
@@ -74,15 +76,38 @@ class TotalSupportServer:
 
     # Define region configurations
     REGIONS: Dict[str, Dict[str, str]] = {
-        "united_states": {"column": "united_states_allocated__billion", "display_name": "United States", "color_key": "united_states"},
-        "europe": {"column": "europe_allocated__billion", "display_name": "Europe", "color_key": "europe"},
-        "other_donors": {"column": "other_donors_allocated__billion", "display_name": "Rest of World", "color_key": "other_donors"},
+        "united_states": {
+            "column": "united_states_allocated__billion",
+            "display_name": "United States",
+            "color_key": "united_states",
+        },
+        "europe": {
+            "column": "europe_allocated__billion",
+            "display_name": "Europe",
+            "color_key": "europe",
+        },
+        "other_donors": {
+            "column": "other_donors_allocated__billion",
+            "display_name": "Rest of World",
+            "color_key": "other_donors",
+        },
     }
 
     # Define visualization modes
     VIZ_CONFIGS: Dict[str, Dict[str, object]] = {
-        "cumulative": {"title": "Cumulative Support Allocation Over Time", "mode": "lines", "line_width": 2, "bar_mode": None},
-        "monthly": {"title": "Monthly Support Allocation", "text_position": "inside", "text_color": "white", "text_anchor": "middle", "bar_mode": "group"},
+        "cumulative": {
+            "title": "Cumulative Support Allocation Over Time",
+            "mode": "lines",
+            "line_width": 2,
+            "bar_mode": None,
+        },
+        "monthly": {
+            "title": "Monthly Support Allocation",
+            "text_position": "inside",
+            "text_color": "white",
+            "text_anchor": "middle",
+            "bar_mode": "group",
+        },
     }
 
     def __init__(self, input, output, session):
@@ -157,7 +182,9 @@ class TotalSupportServer:
             data: DataFrame containing support data.
         """
         # Sort regions based on maximum values
-        regions = sorted(self.REGIONS.keys(), key=lambda x: data[self.REGIONS[x]["column"]].max())
+        regions = sorted(
+            self.REGIONS.keys(), key=lambda x: data[self.REGIONS[x]["column"]].max()
+        )
 
         for region in regions:
             config = self.REGIONS[region]
@@ -168,7 +195,10 @@ class TotalSupportServer:
                     name=config["display_name"],
                     stackgroup="one",
                     mode=self.VIZ_CONFIGS["cumulative"]["mode"],
-                    line=dict(color=COLOR_PALETTE[config["color_key"]], width=self.VIZ_CONFIGS["cumulative"]["line_width"]),
+                    line=dict(
+                        color=COLOR_PALETTE[config["color_key"]],
+                        width=self.VIZ_CONFIGS["cumulative"]["line_width"],
+                    ),
                     hovertemplate=f"{config['display_name']}: %{{y:.1f}}B$<extra></extra>",
                 )
             )
@@ -206,7 +236,8 @@ class TotalSupportServer:
 
         fig.update_layout(
             title=dict(
-                text=f"{self.VIZ_CONFIGS[mode]['title']}<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
+                text=f"{self.VIZ_CONFIGS[mode]['title']}<br>"
+                f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,

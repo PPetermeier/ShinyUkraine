@@ -17,7 +17,7 @@ from shinywidgets import output_widget, render_widget
 
 class GDPAllocationsCard:
     """UI components for the GDP allocations visualization card.
-    
+
     This class handles the user interface elements for displaying and controlling
     the GDP-relative aid allocation visualization.
     """
@@ -115,12 +115,12 @@ class GDPAllocationsServer:
         """
         df_allocations = load_data_from_table("f_bilateral_allocations_gdp_pct")
         df_summary = load_data_from_table("a_summary_€")
-        
+
         return pd.merge(
             df_allocations,
             df_summary[["country", "share_in_total_eu_allocations__2021_gdp"]],
             on="country",
-            how="left"
+            how="left",
         )
 
     def _compute_filtered_data(self) -> pd.DataFrame:
@@ -153,10 +153,10 @@ class GDPAllocationsServer:
 
         # Calculate dynamic height based on number of countries
         dynamic_height = max(400, len(data) * 40)
-        
+
         # Create and configure plot
         fig = self._create_stacked_bar_chart(data, dynamic_height)
-        
+
         return fig
 
     def _create_stacked_bar_chart(self, data: pd.DataFrame, height: int) -> go.Figure:
@@ -175,17 +175,19 @@ class GDPAllocationsServer:
         # Add traces for each allocation type
         for alloc_type, properties in self.ALLOCATION_TYPES.items():
             values = data[alloc_type].tolist()
-            fig.add_trace(self._create_bar_trace(
-                countries=countries,
-                values=values,
-                name=properties["name"],
-                color=COLOR_PALETTE.get(properties["color"]),
-                hover_template=properties["hover_template"]
-            ))
+            fig.add_trace(
+                self._create_bar_trace(
+                    countries=countries,
+                    values=values,
+                    name=properties["name"],
+                    color=COLOR_PALETTE.get(properties["color"]),
+                    hover_template=properties["hover_template"],
+                )
+            )
 
         # Update layout
         self._update_figure_layout(fig, height)
-        
+
         return fig
 
     def _create_bar_trace(
@@ -194,7 +196,7 @@ class GDPAllocationsServer:
         values: List[float],
         name: str,
         color: str,
-        hover_template: str
+        hover_template: str,
     ) -> go.Bar:
         """Create a bar trace for the stacked bar chart.
 
@@ -273,6 +275,7 @@ class GDPAllocationsServer:
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def gdp_allocations_plot():

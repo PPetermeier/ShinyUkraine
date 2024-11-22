@@ -9,8 +9,6 @@ aid categories (military, financial, humanitarian, and refugee support) since
 Russia's invasion in February 2022.
 """
 
-
-
 from typing import Any
 from shiny import Session, ui
 
@@ -19,7 +17,7 @@ from .map_card import MapCard, MapCardServer
 
 def map_page_ui() -> ui.page_fillable:
     """Create the user interface elements for the landing page.
-    
+
     Returns:
         ui.Page: A Shiny page containing the main layout and map visualization.
     """
@@ -34,7 +32,7 @@ def map_page_ui() -> ui.page_fillable:
 
 def _create_header_section() -> ui.Tag:
     """Create the header section with title and explanatory text.
-    
+
     Returns:
         ui.Tag: A div containing the header content.
     """
@@ -50,7 +48,7 @@ def _create_header_section() -> ui.Tag:
 
 def _create_map_section() -> ui.Tag:
     """Create the section containing the map visualization.
-    
+
     Returns:
         ui.Tag: A div containing the map card.
     """
@@ -62,7 +60,7 @@ def _create_map_section() -> ui.Tag:
 
 def _get_overview_text() -> str:
     """Get the markdown text explaining the tracker's purpose and data coverage.
-    
+
     Returns:
         str: Formatted markdown text describing the visualization.
     """
@@ -86,7 +84,7 @@ This helps provide a clear geographic picture of which countries are contributin
 
 class MapPageServer:
     """Server logic coordinator for the landing page components.
-    
+
     This class manages the initialization and coordination of all server-side
     components on the landing page, particularly the map visualization.
 
@@ -116,13 +114,13 @@ class MapPageServer:
 
         # Initialize visualization components
         self.map_card = MapCardServer(input, output, session)
-        
+
         # Initialize all components
         self.initialize()
 
     def initialize(self) -> None:
         """Initialize all server-side components.
-        
+
         This method ensures all child components are properly initialized
         and their outputs are registered with Shiny.
         """

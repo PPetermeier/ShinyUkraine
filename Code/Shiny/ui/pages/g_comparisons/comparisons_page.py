@@ -15,12 +15,15 @@ from .cards.a_lend_lease import WW2EquipmentComparisonCard, WW2EquipmentComparis
 from .cards.b_ww2_values import WW2UkraineComparisonCard, WW2UkraineComparisonServer
 from .cards.c_cold_war_values import ColdWarCard, ColdWarServer
 from .cards.d_gulf_war_values import GulfWarCard, GulfWarServer
-from .cards.e_domestic_priorities import DomesticPrioritiesCard, DomesticPrioritiesServer
+from .cards.e_domestic_priorities import (
+    DomesticPrioritiesCard,
+    DomesticPrioritiesServer,
+)
 
 
 class ComparisonsPageLayout:
     """Manages the layout and structure of the comparisons page.
-    
+
     This class defines the organization and presentation of visualization cards
     on the historical comparisons page.
     """
@@ -31,7 +34,7 @@ class ComparisonsPageLayout:
         WW2UkraineComparisonCard,
         ColdWarCard,
         GulfWarCard,
-        DomesticPrioritiesCard
+        DomesticPrioritiesCard,
     ]
 
     @staticmethod
@@ -52,7 +55,7 @@ class ComparisonsPageLayout:
 
 class ComparisonsPageServer:
     """Coordinates all visualization cards on the comparisons page.
-    
+
     This class manages the server-side components for all comparison-related
     visualizations, handling their initialization and coordination.
 
@@ -77,11 +80,11 @@ class ComparisonsPageServer:
 
         # Initialize all card servers
         self.servers = {
-            'ww2_equipment': WW2EquipmentComparisonServer(input, output, session),
-            'ww2_values': WW2UkraineComparisonServer(input, output, session),
-            'cold_war': ColdWarServer(input, output, session),
-            'gulf_war': GulfWarServer(input, output, session),
-            'domestic': DomesticPrioritiesServer(input, output, session)
+            "ww2_equipment": WW2EquipmentComparisonServer(input, output, session),
+            "ww2_values": WW2UkraineComparisonServer(input, output, session),
+            "cold_war": ColdWarServer(input, output, session),
+            "gulf_war": GulfWarServer(input, output, session),
+            "domestic": DomesticPrioritiesServer(input, output, session),
         }
 
         self.initialize()

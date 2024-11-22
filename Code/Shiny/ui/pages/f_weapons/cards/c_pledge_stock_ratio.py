@@ -78,8 +78,16 @@ class PledgeStockServer:
     # Define visualization properties
     PLOT_CONFIG: Dict[str, Dict] = {
         "traces": {
-            "delivered": {"name": "Delivered", "color": COLOR_PALETTE.get("military"), "hover_template": "Delivered: %{x:.1f}%"},
-            "to_be_delivered": {"name": "To Be Delivered", "color": COLOR_PALETTE.get("aid_committed"), "hover_template": "To Be Delivered: %{x:.1f}%"},
+            "delivered": {
+                "name": "Delivered",
+                "color": COLOR_PALETTE.get("military"),
+                "hover_template": "Delivered: %{x:.1f}%",
+            },
+            "to_be_delivered": {
+                "name": "To Be Delivered",
+                "color": COLOR_PALETTE.get("aid_committed"),
+                "hover_template": "To Be Delivered: %{x:.1f}%",
+            },
         },
         "title": "Share of National Stocks Pledged to Ukraine",
         "base_height": 600,
@@ -108,7 +116,9 @@ class PledgeStockServer:
         df = load_data_from_table(table_name_or_query=WEAPON_STOCK_PLEDGES_QUERY)
 
         # Calculate total pledges and filter for top N countries
-        df["total_pledged"] = df["delivered"].fillna(0) + df["to_be_delivered"].fillna(0)
+        df["total_pledged"] = df["delivered"].fillna(0) + df["to_be_delivered"].fillna(
+            0
+        )
         return df.nlargest(self.input.numeric_pledge_stocks(), "total_pledged")
 
     def create_plot(self) -> go.Figure:
@@ -138,12 +148,25 @@ class PledgeStockServer:
 
         for trace_type, config in self.PLOT_CONFIG["traces"].items():
             fig.add_trace(
-                self._create_bar_trace(data=data, value_column=trace_type, name=config["name"], color=config["color"], hover_template=config["hover_template"])
+                self._create_bar_trace(
+                    data=data,
+                    value_column=trace_type,
+                    name=config["name"],
+                    color=config["color"],
+                    hover_template=config["hover_template"],
+                )
             )
 
         return fig
 
-    def _create_bar_trace(self, data: pd.DataFrame, value_column: str, name: str, color: str, hover_template: str) -> go.Bar:
+    def _create_bar_trace(
+        self,
+        data: pd.DataFrame,
+        value_column: str,
+        name: str,
+        color: str,
+        hover_template: str,
+    ) -> go.Bar:
         """Create a bar trace for the stacked bar chart.
 
         Args:
@@ -177,11 +200,15 @@ class PledgeStockServer:
             fig: Plotly figure object to update.
             num_countries: Number of countries in the visualization.
         """
-        plot_height = max(self.PLOT_CONFIG["base_height"], num_countries * self.PLOT_CONFIG["height_per_country"])
+        plot_height = max(
+            self.PLOT_CONFIG["base_height"],
+            num_countries * self.PLOT_CONFIG["height_per_country"],
+        )
 
         fig.update_layout(
             title=dict(
-                text=f"{self.PLOT_CONFIG['title']}<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 14</sub>",
+                text=f"{self.PLOT_CONFIG['title']}<br>"
+                f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 14</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
@@ -192,7 +219,9 @@ class PledgeStockServer:
             margin=MARGIN,
             barmode="stack",
             showlegend=True,
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+            ),
             xaxis=dict(
                 title="Percentage of National Stock",
                 ticksuffix="%",
@@ -200,7 +229,12 @@ class PledgeStockServer:
                 gridcolor="rgba(0,0,0,0.1)",
             ),
             yaxis=dict(
-                title=None, autorange="reversed", showgrid=False, gridcolor="rgba(0,0,0,0.1)", zerolinecolor="rgba(0,0,0,0.2)", categoryorder="total descending"
+                title=None,
+                autorange="reversed",
+                showgrid=False,
+                gridcolor="rgba(0,0,0,0.1)",
+                zerolinecolor="rgba(0,0,0,0.2)",
+                categoryorder="total descending",
             ),
             hovermode="y unified",
             plot_bgcolor="rgba(255,255,255,1)",

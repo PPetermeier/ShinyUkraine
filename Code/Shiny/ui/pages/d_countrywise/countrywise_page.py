@@ -17,7 +17,7 @@ from .cards.c_committment_ratio import CommittmentRatioCard, CommittmentRatioSer
 
 class CountryAidPageLayout:
     """Manages the layout and structure of the country aid page.
-    
+
     This class defines the organization and presentation of visualization cards
     on the country-specific aid data page.
     """
@@ -26,7 +26,7 @@ class CountryAidPageLayout:
     CARD_COMPONENTS: List[Type[Any]] = [
         CountryAidCard,
         GDPAllocationsCard,
-        CommittmentRatioCard
+        CommittmentRatioCard,
     ]
 
     @staticmethod
@@ -47,7 +47,7 @@ class CountryAidPageLayout:
 
 class CountryAidPageServer:
     """Coordinates all visualization cards on the country aid page.
-    
+
     This class manages the server-side components for all country aid-related
     visualizations, handling their initialization and coordination.
 
@@ -72,9 +72,9 @@ class CountryAidPageServer:
 
         # Initialize all card servers
         self.servers = {
-            'country_aid': CountryAidServer(input, output, session),
-            'gdp_allocations': GDPAllocationsServer(input, output, session),
-            'commitment_ratio': CommittmentRatioServer(input, output, session)
+            "country_aid": CountryAidServer(input, output, session),
+            "gdp_allocations": GDPAllocationsServer(input, output, session),
+            "commitment_ratio": CommittmentRatioServer(input, output, session),
         }
 
         self.initialize()

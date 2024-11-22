@@ -395,6 +395,10 @@ This little app would not be possible without the wonderful and necessary work o
 
 ## Development Tools
 
+### Claude.ai
+
+- Website: <https://claude.ai>
+
 ### UV
 
 - Website: <https://github.com/astral-sh/uv>

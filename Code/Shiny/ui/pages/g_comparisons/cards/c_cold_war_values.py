@@ -43,7 +43,12 @@ class ColdWarCard:
                             "This figure compares average annual US military expenditures in US wars to total US military aid to Ukraine between February 24, 2022 and August 31, 2024. Estimates on US military spending are from the US Congressional Research Service (Daggett 2010). US GDP Data is from the U.S. Bureau of Economic Analysis (2017) and IMF-WEO (2017). US military aid to Ukraine is from our database. For the sake of comparison, we only include aid to Ukraine from January 2022 to February 2023. See Working Paper for relevant citations.",
                         ),
                     ),
-                    ui.div({"class": "ms-3"}, ui.input_switch("show_absolute_values", "Show Absolute Values", value=False)),
+                    ui.div(
+                        {"class": "ms-3"},
+                        ui.input_switch(
+                            "show_absolute_values", "Show Absolute Values", value=False
+                        ),
+                    ),
                 ),
             ),
             output_widget("military_expenditure_plot", height="auto"),
@@ -143,10 +148,18 @@ class ColdWarServer:
             orientation="h",
             name=legend_name,
             marker_color=COLOR_PALETTE[conflict_name],
-            text=[self.PLOT_CONFIG["value_format"]["absolute"].format(value) if show_absolute else self.PLOT_CONFIG["value_format"]["relative"].format(value)],
+            text=[
+                self.PLOT_CONFIG["value_format"]["absolute"].format(value)
+                if show_absolute
+                else self.PLOT_CONFIG["value_format"]["relative"].format(value)
+            ],
             textposition="auto",
             customdata=[[row["gdp_share"], row["absolute_value"]]],
-            hovertemplate=("%{y}<br>" "GDP Share: %{customdata[0]:.2f}%<br>" "Amount: %{customdata[1]:.2f}€B"),
+            hovertemplate=(
+                "%{y}<br>"
+                "GDP Share: %{customdata[0]:.2f}%<br>"
+                "Amount: %{customdata[1]:.2f}€B"
+            ),
         )
 
     def _update_figure_layout(self, fig: go.Figure) -> None:
@@ -190,7 +203,12 @@ class ColdWarServer:
                 itemsizing="constant",
             ),
             showlegend=True,
-            xaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.1)", zeroline=True, zerolinecolor="rgba(0,0,0,0.2)"),
+            xaxis=dict(
+                showgrid=True,
+                gridcolor="rgba(0,0,0,0.1)",
+                zeroline=True,
+                zerolinecolor="rgba(0,0,0,0.2)",
+            ),
             yaxis=dict(showticklabels=False, showgrid=False),
             barmode="overlay",
             autosize=True,

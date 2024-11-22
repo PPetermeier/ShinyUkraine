@@ -18,7 +18,7 @@ from shinywidgets import output_widget, render_widget
 
 class BudgetSupportCard:
     """UI components for the budget support visualization card.
-    
+
     This class handles the user interface elements for displaying and controlling
     the budget support visualization, including donor country selection.
     """
@@ -36,7 +36,9 @@ class BudgetSupportCard:
                     {"class": "d-flex justify-content-between align-items-center"},
                     ui.div(
                         {"class": "flex-grow-1"},
-                        ui.h3("Foreign Budgetary Support: Allocations vs. Disbursements"),
+                        ui.h3(
+                            "Foreign Budgetary Support: Allocations vs. Disbursements"
+                        ),
                         ui.div(
                             {"class": "card-subtitle text-muted"},
                             "This figure shows a ranking of financial donors, measured by the nominal value of external grants, loans, and guarantees given for budgetary support to the government of Ukraine (in billion Euros). Light blue bars indicate allocations (Ukraine Support Tracker data), while the darker blue bars show disbursements (Ministry of Finance of Ukraine data)."
@@ -83,14 +85,14 @@ class BudgetSupportServer:
             "name": "Disbursements",
             "color": "financial_disbursements",
             "default_color": "#264653",
-            "hover_template": "Disbursements: %{x:.1f}B €"
+            "hover_template": "Disbursements: %{x:.1f}B €",
         },
         "allocations": {
             "name": "Allocations",
             "color": "financial_allocations",
             "default_color": "#2a9d8f",
-            "hover_template": "Allocations: %{x:.1f}B €"
-        }
+            "hover_template": "Allocations: %{x:.1f}B €",
+        },
     }
 
     def __init__(self, input, output, session):
@@ -113,11 +115,11 @@ class BudgetSupportServer:
             pd.DataFrame: Filtered and sorted DataFrame containing top N donors.
         """
         df = load_data_from_table(table_name_or_query=BUDGET_SUPPORT_QUERY)
-        
+
         # Rename columns for consistency
-        df = df.rename(columns={
-            "allocations_loans_grants_and_guarantees": "allocations"
-        })
+        df = df.rename(
+            columns={"allocations_loans_grants_and_guarantees": "allocations"}
+        )
 
         # Sort by allocations and get top N
         df = df.nlargest(self.input.top_n_donors(), "allocations")
@@ -151,17 +153,21 @@ class BudgetSupportServer:
 
         # Add traces for each support type
         for support_type, properties in self.SUPPORT_TYPES.items():
-            fig.add_trace(self._create_bar_trace(
-                countries=data["country"].tolist(),
-                values=data[support_type].tolist(),
-                name=properties["name"],
-                color=COLOR_PALETTE.get(properties["color"], properties["default_color"]),
-                hover_template=properties["hover_template"]
-            ))
+            fig.add_trace(
+                self._create_bar_trace(
+                    countries=data["country"].tolist(),
+                    values=data[support_type].tolist(),
+                    name=properties["name"],
+                    color=COLOR_PALETTE.get(
+                        properties["color"], properties["default_color"]
+                    ),
+                    hover_template=properties["hover_template"],
+                )
+            )
 
         # Update layout
         self._update_figure_layout(fig)
-        
+
         return fig
 
     def _create_bar_trace(
@@ -170,7 +176,7 @@ class BudgetSupportServer:
         values: List[float],
         name: str,
         color: str,
-        hover_template: str
+        hover_template: str,
     ) -> go.Bar:
         """Create a bar trace for the grouped bar chart.
 
@@ -210,7 +216,7 @@ class BudgetSupportServer:
                 y=0.95,
                 x=0.5,
                 xanchor="center",
-                yanchor="top"
+                yanchor="top",
             ),
             xaxis_title="Billion €",
             yaxis_title="",
@@ -225,7 +231,7 @@ class BudgetSupportServer:
                 x=0.99,
                 bgcolor="rgba(255, 255, 255, 0.8)",
                 bordercolor="rgba(0,0,0,0.2)",
-                borderwidth=1
+                borderwidth=1,
             ),
             showlegend=True,
             hovermode="y unified",
@@ -247,6 +253,7 @@ class BudgetSupportServer:
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def budget_support_plot():

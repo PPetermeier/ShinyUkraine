@@ -16,7 +16,7 @@ from shinywidgets import output_widget, render_widget
 
 class CommittmentRatioCard:
     """UI components for the aid allocation visualization card.
-    
+
     This class handles the user interface elements for displaying and controlling
     the aid allocation visualization, including filters and display options.
     """
@@ -45,14 +45,18 @@ class CommittmentRatioCard:
                         ui.div(
                             {"class": "d-flex align-items-center gap-2"},
                             "Percentage",
-                            ui.input_switch("show_percentage_commitment_ratio", None, value=False),
+                            ui.input_switch(
+                                "show_percentage_commitment_ratio", None, value=False
+                            ),
                         ),
                         ui.panel_conditional(
                             "input.show_percentage_commitment_ratio",
                             ui.div(
                                 {"class": "d-flex align-items-center gap-2"},
                                 "Ascending",
-                                ui.input_switch("reverse_sort_commitment_ratio", None, value=False),
+                                ui.input_switch(
+                                    "reverse_sort_commitment_ratio", None, value=False
+                                ),
                             ),
                         ),
                         ui.div(
@@ -126,13 +130,21 @@ class CommittmentRatioServer:
         reverse_sort = self.input.reverse_sort_commitment_ratio()
 
         if show_percentage:
-            result["allocated_pct"] = (result["allocated_aid"] / result["committed_aid"]) * 100
-            result["to_be_allocated_pct"] = (result["to_be_allocated"] / result["committed_aid"]) * 100
+            result["allocated_pct"] = (
+                result["allocated_aid"] / result["committed_aid"]
+            ) * 100
+            result["to_be_allocated_pct"] = (
+                result["to_be_allocated"] / result["committed_aid"]
+            ) * 100
             ascending = not reverse_sort
-            result = result.nlargest(self.input.top_n_countries_committment_ratio(), "committed_aid")
+            result = result.nlargest(
+                self.input.top_n_countries_committment_ratio(), "committed_aid"
+            )
             result = result.sort_values("delivery_ratio", ascending=ascending)
         else:
-            result = result.nlargest(self.input.top_n_countries_committment_ratio(), "committed_aid")
+            result = result.nlargest(
+                self.input.top_n_countries_committment_ratio(), "committed_aid"
+            )
             result = result.sort_values("committed_aid", ascending=True)
 
         return result
@@ -150,18 +162,15 @@ class CommittmentRatioServer:
         show_percentage = self.input.show_percentage_commitment_ratio()
         reverse_sort = self.input.reverse_sort_commitment_ratio()
         country_data = self._prepare_country_data(data, show_percentage)
-        
+
         # Calculate dynamic height based on number of countries
         dynamic_height = max(400, len(data) * 40)
-        
+
         # Create and configure plot
         fig = self._create_stacked_bar_chart(
-            country_data,
-            show_percentage,
-            reverse_sort,
-            dynamic_height
+            country_data, show_percentage, reverse_sort, dynamic_height
         )
-        
+
         return fig
 
     def _prepare_country_data(self, data: pd.DataFrame, show_percentage: bool) -> Dict:
@@ -191,11 +200,7 @@ class CommittmentRatioServer:
         return country_data
 
     def _create_stacked_bar_chart(
-        self,
-        country_data: Dict,
-        show_percentage: bool,
-        reverse_sort: bool,
-        height: int
+        self, country_data: Dict, show_percentage: bool, reverse_sort: bool, height: int
     ) -> go.Figure:
         """Create a stacked bar chart visualization.
 
@@ -211,43 +216,51 @@ class CommittmentRatioServer:
         # Get colors from palette
         allocated_color = COLOR_PALETTE.get("aid_delivered", "#1f77b4")
         to_allocate_color = COLOR_PALETTE.get("aid_committed", "#ff7f0e")
-        
+
         # Sort countries and prepare data
         sorted_countries = sorted(
             country_data.keys(),
             key=lambda x: country_data[x]["total"],
-            reverse=reverse_sort if show_percentage else False
+            reverse=reverse_sort if show_percentage else False,
         )
-        
+
         hover_suffix = "%" if show_percentage else " Billion €"
-        
+
         # Create figure and add traces
         fig = go.Figure()
-        
-        allocated_values = [country_data[country]["allocated"] for country in sorted_countries]
-        to_allocate_values = [country_data[country]["to_allocate"] for country in sorted_countries]
-        
+
+        allocated_values = [
+            country_data[country]["allocated"] for country in sorted_countries
+        ]
+        to_allocate_values = [
+            country_data[country]["to_allocate"] for country in sorted_countries
+        ]
+
         # Add allocated aid trace
-        fig.add_trace(self._create_bar_trace(
-            sorted_countries,
-            allocated_values,
-            "Allocated aid",
-            allocated_color,
-            hover_suffix
-        ))
-        
+        fig.add_trace(
+            self._create_bar_trace(
+                sorted_countries,
+                allocated_values,
+                "Allocated aid",
+                allocated_color,
+                hover_suffix,
+            )
+        )
+
         # Add to-be-allocated aid trace
-        fig.add_trace(self._create_bar_trace(
-            sorted_countries,
-            to_allocate_values,
-            "Aid to be allocated",
-            to_allocate_color,
-            hover_suffix
-        ))
-        
+        fig.add_trace(
+            self._create_bar_trace(
+                sorted_countries,
+                to_allocate_values,
+                "Aid to be allocated",
+                to_allocate_color,
+                hover_suffix,
+            )
+        )
+
         # Update layout
         self._update_figure_layout(fig, show_percentage, height)
-        
+
         return fig
 
     def _create_bar_trace(
@@ -256,7 +269,7 @@ class CommittmentRatioServer:
         values: List[float],
         name: str,
         color: str,
-        hover_suffix: str
+        hover_suffix: str,
     ) -> go.Bar:
         """Create a bar trace for the stacked bar chart.
 
@@ -283,7 +296,9 @@ class CommittmentRatioServer:
             insidetextanchor="middle",
         )
 
-    def _update_figure_layout(self, fig: go.Figure, show_percentage: bool, height: int) -> None:
+    def _update_figure_layout(
+        self, fig: go.Figure, show_percentage: bool, height: int
+    ) -> None:
         """Update the layout of the figure.
 
         Args:
@@ -336,6 +351,7 @@ class CommittmentRatioServer:
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def aid_allocation_plot():

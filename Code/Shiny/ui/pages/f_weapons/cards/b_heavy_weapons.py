@@ -6,7 +6,7 @@ value (billion euros). It includes both UI components and server-side logic for 
 processing and visualization.
 """
 
-from typing import Any, Dict, Any
+from typing import Dict, Any
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -106,7 +106,9 @@ class HeavyWeaponsServer:
         df = load_data_from_table(table_name_or_query=HEAVY_WEAPONS_DELIVERY_QUERY)
 
         # Sort by total deliveries and get top N countries
-        df = df.nlargest(self.input.top_n_countries_heavy_weapons(), "value_estimates_heavy_weapons")
+        df = df.nlargest(
+            self.input.top_n_countries_heavy_weapons(), "value_estimates_heavy_weapons"
+        )
         return df.sort_values("value_estimates_heavy_weapons", ascending=True)
 
     def create_plot(self) -> go.Figure:
@@ -151,7 +153,10 @@ class HeavyWeaponsServer:
             orientation="h",
             marker_color=self.PLOT_CONFIG["marker_color"],
             hovertemplate=self.PLOT_CONFIG["hover_template"],
-            text=[f"{v:.1f}" if v > 0 else "" for v in data["value_estimates_heavy_weapons"]],
+            text=[
+                f"{v:.1f}" if v > 0 else ""
+                for v in data["value_estimates_heavy_weapons"]
+            ],
             textposition="inside",
             textfont=dict(color="white"),
             insidetextanchor="middle",
@@ -165,7 +170,8 @@ class HeavyWeaponsServer:
         """
         fig.update_layout(
             title=dict(
-                text=f"{self.PLOT_CONFIG['title']}<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 9</sub>",
+                text=f"{self.PLOT_CONFIG['title']}<br>"
+                f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 9</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
@@ -177,7 +183,15 @@ class HeavyWeaponsServer:
             template="plotly_white",
             height=self.PLOT_CONFIG["height"],
             margin=MARGIN,
-            legend=dict(yanchor="bottom", y=0.01, xanchor="right", x=0.99, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0,0,0,0.2)", borderwidth=1),
+            legend=dict(
+                yanchor="bottom",
+                y=0.01,
+                xanchor="right",
+                x=0.99,
+                bgcolor="rgba(255, 255, 255, 0.8)",
+                bordercolor="rgba(0,0,0,0.2)",
+                borderwidth=1,
+            ),
             showlegend=False,
             hovermode="y unified",
             autosize=True,

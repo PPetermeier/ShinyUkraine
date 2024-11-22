@@ -62,9 +62,18 @@ class AidAllocationServer:
     # Define country group configurations
     COUNTRY_GROUP_CONFIG: Dict[str, Dict[str, str]] = {
         "EU_member": {"display_name": "EU Members", "color_key": "Europe"},
-        "EU_institutions": {"display_name": "EU Institutions", "color_key": "EU Institutions"},
-        "Anglosaxon_countries": {"display_name": "Anglo-Saxon Countries", "color_key": "United States"},
-        "Other_donor_countries": {"display_name": "Other Donors", "color_key": "Other Countries"},
+        "EU_institutions": {
+            "display_name": "EU Institutions",
+            "color_key": "EU Institutions",
+        },
+        "Anglosaxon_countries": {
+            "display_name": "Anglo-Saxon Countries",
+            "color_key": "United States",
+        },
+        "Other_donor_countries": {
+            "display_name": "Other Donors",
+            "color_key": "Other Countries",
+        },
     }
 
     # Define trace configurations
@@ -116,7 +125,9 @@ class AidAllocationServer:
 
         except Exception as e:
             print(f"Error in _compute_filtered_data: {str(e)}")
-            return pd.DataFrame(columns=["group_name", "allocated_aid", "committed_aid"])
+            return pd.DataFrame(
+                columns=["group_name", "allocated_aid", "committed_aid"]
+            )
 
     def create_plot(self) -> go.Figure:
         """Generate the aid allocation visualization plot.
@@ -153,7 +164,11 @@ class AidAllocationServer:
             base_color = COLOR_PALETTE[group_config["color_key"]]
 
             # Calculate percentage for allocated aid text
-            percentage = (row["allocated_aid"] / row["committed_aid"] * 100) if row["committed_aid"] > 0 else 0
+            percentage = (
+                (row["allocated_aid"] / row["committed_aid"] * 100)
+                if row["committed_aid"] > 0
+                else 0
+            )
 
             # Add traces for committed and allocated aid
             self._add_aid_traces(
@@ -167,7 +182,15 @@ class AidAllocationServer:
 
         return fig
 
-    def _add_aid_traces(self, fig: go.Figure, display_name: str, committed_aid: float, allocated_aid: float, percentage: float, base_color: str) -> None:
+    def _add_aid_traces(
+        self,
+        fig: go.Figure,
+        display_name: str,
+        committed_aid: float,
+        allocated_aid: float,
+        percentage: float,
+        base_color: str,
+    ) -> None:
         """Add committed and allocated aid traces to the figure.
 
         Args:
@@ -184,7 +207,9 @@ class AidAllocationServer:
                 name=f"{display_name} {self.TRACE_TYPES['committed']['name_suffix']}",
                 value=committed_aid,
                 display_name=display_name,
-                color=desaturate_color(base_color) if self.TRACE_TYPES["committed"]["use_desaturated_color"] else base_color,
+                color=desaturate_color(base_color)
+                if self.TRACE_TYPES["committed"]["use_desaturated_color"]
+                else base_color,
                 text=self.TRACE_TYPES["committed"]["text_format"](committed_aid),
                 text_position=self.TRACE_TYPES["committed"]["text_position"],
                 text_color=self.TRACE_TYPES["committed"]["text_color"],
@@ -207,7 +232,15 @@ class AidAllocationServer:
         )
 
     def _create_bar_trace(
-        self, name: str, value: float, display_name: str, color: str, text: str, text_position: str, text_color: str, hover_template: str
+        self,
+        name: str,
+        value: float,
+        display_name: str,
+        color: str,
+        text: str,
+        text_position: str,
+        text_color: str,
+        hover_template: str,
     ) -> go.Bar:
         """Create a bar trace for the visualization.
 
@@ -247,7 +280,8 @@ class AidAllocationServer:
         fig.update_layout(
             barmode="overlay",
             title=dict(
-                text=f"Aid Allocation Progress by Country Groups<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 5</sub>",
+                text=f"Aid Allocation Progress by Country Groups<br>"
+                f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 5</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,

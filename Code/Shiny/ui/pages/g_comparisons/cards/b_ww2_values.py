@@ -43,7 +43,14 @@ class WW2UkraineComparisonCard:
                             "This figure compares the scale of foreign military support by the US and the UK during the Second World War (Lend-Lease program) to their military support to Ukraine between February 2022 and February 2023. We report total aid divided by the number of years during which aid was provided (WW2: 1941 to 1945). US and UK military aid to Ukraine is from our database. See Working Paper for relevant citations.",
                         ),
                     ),
-                    ui.div({"class": "ms-3"}, ui.input_switch("show_absolute_ww2_values", "Show Absolute Values", value=False)),
+                    ui.div(
+                        {"class": "ms-3"},
+                        ui.input_switch(
+                            "show_absolute_ww2_values",
+                            "Show Absolute Values",
+                            value=False,
+                        ),
+                    ),
                 ),
             ),
             output_widget("support_comparison_plot"),
@@ -105,7 +112,11 @@ class WW2UkraineComparisonServer:
         # Map support names to legend names
         df["legend_name"] = df["military_support"].map(
             lambda x: next(
-                (new for old, new in self.PLOT_CONFIG["legend_mapping"].items() if old in x),
+                (
+                    new
+                    for old, new in self.PLOT_CONFIG["legend_mapping"].items()
+                    if old in x
+                ),
                 "US to Ukraine",  # Default fallback
             )
         )
@@ -145,18 +156,31 @@ class WW2UkraineComparisonServer:
                     value = row["absolute_value"] if show_absolute else row["gdp_share"]
                     x_values[idx] = value
                     text_values[idx] = f"{value:,.2f}{' €B' if show_absolute else '%'}"
-                    customdata[idx] = [row["gdp_share"], row["absolute_value"], row["military_conflict"]]
+                    customdata[idx] = [
+                        row["gdp_share"],
+                        row["absolute_value"],
+                        row["military_conflict"],
+                    ]
 
             fig.add_trace(
                 self._create_bar_trace(
-                    x_values=x_values, y_values=data["military_support"], legend_name=legend_name, text_values=text_values, customdata=customdata
+                    x_values=x_values,
+                    y_values=data["military_support"],
+                    legend_name=legend_name,
+                    text_values=text_values,
+                    customdata=customdata,
                 )
             )
 
         return fig
 
     def _create_bar_trace(
-        self, x_values: List[float], y_values: List[str], legend_name: str, text_values: List[str], customdata: List[List[Optional[float]]]
+        self,
+        x_values: List[float],
+        y_values: List[str],
+        legend_name: str,
+        text_values: List[str],
+        customdata: List[List[Optional[float]]],
     ) -> go.Bar:
         """Create a bar trace for the visualization.
 
@@ -179,7 +203,12 @@ class WW2UkraineComparisonServer:
             text=text_values,
             textposition="auto",
             customdata=customdata,
-            hovertemplate=("%{y}<br>" "GDP Share: %{customdata[0]:.2f}%<br>" "Amount: %{customdata[1]:.2f}€B<br>" "Conflict: %{customdata[2]}"),
+            hovertemplate=(
+                "%{y}<br>"
+                "GDP Share: %{customdata[0]:.2f}%<br>"
+                "Amount: %{customdata[1]:.2f}€B<br>"
+                "Conflict: %{customdata[2]}"
+            ),
         )
 
     def _update_figure_layout(self, fig: go.Figure) -> None:
@@ -220,7 +249,12 @@ class WW2UkraineComparisonServer:
                 borderwidth=1,
             ),
             showlegend=True,
-            xaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.1)", zeroline=True, zerolinecolor="rgba(0,0,0,0.2)"),
+            xaxis=dict(
+                showgrid=True,
+                gridcolor="rgba(0,0,0,0.1)",
+                zeroline=True,
+                zerolinecolor="rgba(0,0,0,0.2)",
+            ),
             yaxis=dict(showticklabels=False, showgrid=False),
             barmode="overlay",
             autosize=True,

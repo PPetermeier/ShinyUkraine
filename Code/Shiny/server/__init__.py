@@ -2,7 +2,13 @@
 Makes the server directory a Python package and exposes key functionality.
 """
 
-from .database import get_db_connection, load_data_from_table, load_time_series_data, load_country_data, load_weapon_stocks_data
+from .database import (
+    get_db_connection,
+    load_data_from_table,
+    load_time_series_data,
+    load_country_data,
+    load_weapon_stocks_data,
+)
 from .queries import (
     HEAVY_WEAPONS_COLUMNS,
     AID_TYPE_CONFIG,
@@ -28,7 +34,7 @@ from .queries import (
     FINANCIAL_AID_TABLE,  # Add this
     FINANCIAL_AID_QUERY,
     WW2_COMPARISON_QUERY,
-    US_WARS_COMPARISON_QUERY, 
+    US_WARS_COMPARISON_QUERY,
     GULF_WAR_COMPARISON_QUERY,
     DOMESTIC_COMPARISON_QUERY,
     EUROPEAN_CRISIS_QUERY,
@@ -84,5 +90,5 @@ __all__ = [
     # Other constants
     "COUNTRY_GROUPS",
     "AID_TYPE_CONFIG",
-    "GERMAN_COMPARISON_QUERY"
+    "GERMAN_COMPARISON_QUERY",
 ]

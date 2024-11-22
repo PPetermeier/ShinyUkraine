@@ -1,7 +1,7 @@
 """
 ETL pipeline for the Ukraine Support Tracker application.
 
-This module handles the extraction, transformation and loading of data from Excel 
+This module handles the extraction, transformation and loading of data from Excel
 files into a DuckDB database. It includes functionality for:
 - Loading configuration from YAML files
 - Creating country lookup tables
@@ -15,7 +15,7 @@ transformation rules, and loading destinations for each data sheet.
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import duckdb
 import pandas as pd
@@ -25,6 +25,7 @@ from pandas import DataFrame
 
 class TransformationType(Enum):
     """Enumeration of supported data transformation types."""
+
     MELT = auto()
     CLEAN = auto()
     RENAME = auto()
@@ -39,6 +40,7 @@ class TransformationType(Enum):
 @dataclass
 class ExtractionConfig:
     """Configuration for data extraction from Excel sheets."""
+
     name: str
     column_range: str
     number_rows: int
@@ -49,6 +51,7 @@ class ExtractionConfig:
 @dataclass
 class TransformationConfig:
     """Configuration for data transformations."""
+
     clean_column_names: bool = False
     columnnames: Optional[Dict[str, str]] = None
     datetime: Optional[Dict[str, str]] = None
@@ -63,6 +66,7 @@ class TransformationConfig:
 @dataclass
 class LoadConfig:
     """Configuration for data loading into database."""
+
     name: str
 
 
@@ -70,11 +74,11 @@ class ETLPipeline:
     """Handles ETL operations for Ukraine Support Tracker data."""
 
     def __init__(
-        self, 
+        self,
         database: duckdb.DuckDBPyConnection,
         excel_path: Union[str, Path],
         config_path: Union[str, Path],
-        country_categories_path: Union[str, Path]
+        country_categories_path: Union[str, Path],
     ):
         """
         Initialize ETL pipeline.
@@ -89,14 +93,14 @@ class ETLPipeline:
         self.excel_path = Path(excel_path)
         self.config_path = Path(config_path)
         self.country_categories_path = Path(country_categories_path)
-        
+
         self.config = self._load_config(self.config_path)
         self.country_categories = self._load_config(self.country_categories_path)
 
     def run(self) -> None:
         """Execute the complete ETL pipeline."""
         self._initialize_country_lookup()
-        
+
         for sheet_config in self.config:
             if sheet_config.get("read", False):
                 data = self._extract(sheet_config["extract"])
@@ -114,27 +118,27 @@ class ETLPipeline:
     def _create_country_lookup(self) -> DataFrame:
         """
         Create country lookup DataFrame with categories and ISO codes.
-        
+
         Returns:
             DataFrame with country information and category flags
         """
         category_lists = {
-            k: v for k, v in self.country_categories.items() 
-            if k != "country_codes"
+            k: v for k, v in self.country_categories.items() if k != "country_codes"
         }
-        all_countries = sorted(set(
-            country for category in category_lists.values() 
-            for country in category
-        ))
+        all_countries = sorted(
+            set(country for category in category_lists.values() for country in category)
+        )
 
-        lookup_df = pd.DataFrame({
-            "country_id": range(1, len(all_countries) + 1),
-            "country_name": all_countries,
-            "iso3_code": [
-                self.country_categories["country_codes"].get(country)
-                for country in all_countries
-            ],
-        })
+        lookup_df = pd.DataFrame(
+            {
+                "country_id": range(1, len(all_countries) + 1),
+                "country_name": all_countries,
+                "iso3_code": [
+                    self.country_categories["country_codes"].get(country)
+                    for country in all_countries
+                ],
+            }
+        )
 
         # Add category columns
         for category in category_lists:
@@ -165,7 +169,7 @@ class ETLPipeline:
             DataFrame containing extracted data
         """
         extract_config = ExtractionConfig(**config)
-        
+
         data = pd.read_excel(
             io=self.excel_path,
             sheet_name=extract_config.name,
@@ -176,24 +180,22 @@ class ETLPipeline:
         )
 
         headers = (
-            data.iloc[:extract_config.number_header_rows]
+            data.iloc[: extract_config.number_header_rows]
             .fillna("")
             .astype(str)
             .agg(" ".join, axis=0)
             .str.strip()
             .str.replace(r"\s+", " ")
         )
-        
+
         data.columns = headers
-        data = data.drop(range(extract_config.number_header_rows)).reset_index(drop=True)
-        
+        data = data.drop(range(extract_config.number_header_rows)).reset_index(
+            drop=True
+        )
+
         return data
 
-    def _transform(
-        self, 
-        data: DataFrame, 
-        config: Dict[str, Any]
-    ) -> DataFrame:
+    def _transform(self, data: DataFrame, config: Dict[str, Any]) -> DataFrame:
         """
         Apply transformations to DataFrame according to configuration.
 
@@ -205,7 +207,7 @@ class ETLPipeline:
             Transformed DataFrame
         """
         transform_config = TransformationConfig(**config)
-        
+
         transformers = {
             TransformationType.REPLACE: self._apply_value_replacements,
             TransformationType.FORWARD_FILL: self._apply_forward_fill,
@@ -215,7 +217,7 @@ class ETLPipeline:
             TransformationType.RENAME: self._apply_column_renames,
             TransformationType.CLEAN: self._clean_column_names,
             TransformationType.MELT: self._reshape_data,
-            TransformationType.ADD_COLUMNS: self._add_columns_from_sql
+            TransformationType.ADD_COLUMNS: self._add_columns_from_sql,
         }
 
         # Apply transformations based on config
@@ -224,11 +226,7 @@ class ETLPipeline:
 
         return data
 
-    def _load(
-        self, 
-        data: DataFrame, 
-        config: Dict[str, str]
-    ) -> None:
+    def _load(self, data: DataFrame, config: Dict[str, str]) -> None:
         """
         Load DataFrame into database table.
 
@@ -257,24 +255,18 @@ class ETLPipeline:
             return yaml.safe_load(file)
 
     def _apply_value_replacements(
-        self, 
-        data: DataFrame, 
-        config: TransformationConfig
+        self, data: DataFrame, config: TransformationConfig
     ) -> DataFrame:
         """Apply value replacements to specified columns."""
         if config.replace_values:
             for column, replace_dict in config.replace_values.items():
                 data[column] = (
-                    data[column]
-                    .apply(lambda x: replace_dict.get(x, x))
-                    .astype(float)
+                    data[column].apply(lambda x: replace_dict.get(x, x)).astype(float)
                 )
         return data
 
     def _apply_forward_fill(
-        self, 
-        data: DataFrame, 
-        config: TransformationConfig
+        self, data: DataFrame, config: TransformationConfig
     ) -> DataFrame:
         """Forward fill values in specified column."""
         if config.forward_fill_column:
@@ -282,20 +274,16 @@ class ETLPipeline:
         return data
 
     def _apply_entry_corrections(
-        self, 
-        data: DataFrame, 
-        config: TransformationConfig
+        self, data: DataFrame, config: TransformationConfig
     ) -> DataFrame:
         """Apply specific entry corrections."""
         if config.entry_correction:
-            row_index = data[data.iloc[:, 0] == 'German aid to Ukraine'].index
+            row_index = data[data.iloc[:, 0] == "German aid to Ukraine"].index
             data.iloc[row_index, 3] = 18.08
         return data
 
     def _apply_datatypes(
-        self, 
-        data: DataFrame, 
-        config: TransformationConfig
+        self, data: DataFrame, config: TransformationConfig
     ) -> DataFrame:
         """Convert columns to specified datatypes."""
         if config.datatypes:
@@ -303,9 +291,7 @@ class ETLPipeline:
         return data
 
     def _apply_datetime_conversion(
-        self, 
-        data: DataFrame, 
-        config: TransformationConfig
+        self, data: DataFrame, config: TransformationConfig
     ) -> DataFrame:
         """Convert specified columns to datetime."""
         if config.datetime:
@@ -314,21 +300,15 @@ class ETLPipeline:
         return data
 
     def _apply_column_renames(
-        self, 
-        data: DataFrame, 
-        config: TransformationConfig
+        self, data: DataFrame, config: TransformationConfig
     ) -> DataFrame:
         """Rename columns according to mapping."""
         if config.columnnames:
-            data = data.rename(
-                columns=lambda col: config.columnnames.get(col, col)
-            )
+            data = data.rename(columns=lambda col: config.columnnames.get(col, col))
         return data
 
     def _clean_column_names(
-        self, 
-        data: DataFrame, 
-        config: TransformationConfig
+        self, data: DataFrame, config: TransformationConfig
     ) -> DataFrame:
         """Clean and standardize column names."""
         if config.clean_column_names:
@@ -341,11 +321,7 @@ class ETLPipeline:
             )
         return data
 
-    def _reshape_data(
-        self, 
-        data: DataFrame, 
-        config: TransformationConfig
-    ) -> DataFrame:
+    def _reshape_data(self, data: DataFrame, config: TransformationConfig) -> DataFrame:
         """Reshape data according to configuration."""
         if config.reshape and config.reshape["type"] == "melt":
             data = pd.melt(
@@ -353,14 +329,12 @@ class ETLPipeline:
                 id_vars=config.reshape["id_vars"],
                 value_vars=config.reshape["value_vars"],
                 var_name=config.reshape["var_name"],
-                value_name=config.reshape["value_name"]
+                value_name=config.reshape["value_name"],
             )
         return data
 
     def _add_columns_from_sql(
-        self, 
-        data: DataFrame, 
-        config: TransformationConfig
+        self, data: DataFrame, config: TransformationConfig
     ) -> DataFrame:
         """Add columns using SQL queries."""
         if not config.add_columns:

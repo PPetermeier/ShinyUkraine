@@ -38,7 +38,9 @@ class WeaponsStocksCard:
                     {"class": "d-flex justify-content-between align-items-center"},
                     ui.div(
                         {"class": "flex-grow-1"},
-                        ui.h3("Ukrainian Weapon Stocks and Support vs. Pre-war Russian Stocks"),
+                        ui.h3(
+                            "Ukrainian Weapon Stocks and Support vs. Pre-war Russian Stocks"
+                        ),
                         ui.div(
                             {"class": "card-subtitle text-muted"},
                             "This figure shows the number of items of Ukrainian pre-war stocks and in-kind military aid commitments to Ukraine between January 24, 2022 and August 31, 2024 (from our dataset) in comparison to pre-war Russian and Ukrainian weapon stocks (from the IISS dataset). Heavy weapons are separated in three categories: tanks, howitzers (155mm/152mm), and MLRS. Pre-war stocks of the Russian army are taken from the IISS Military Balance (2022) study.",
@@ -72,7 +74,12 @@ class WeaponsStocksServer:
     }
 
     # Equipment type mapping
-    EQUIPMENT_MAPPING: Dict[str, str] = {"mlrs": "Multiple Launch Rocket Systems", "ifvs": "IFVs", "howitzer155mm": "Howitzer (155/152mm)", "tanks": "Tanks"}
+    EQUIPMENT_MAPPING: Dict[str, str] = {
+        "mlrs": "Multiple Launch Rocket Systems",
+        "ifvs": "IFVs",
+        "howitzer155mm": "Howitzer (155/152mm)",
+        "tanks": "Tanks",
+    }
 
     def __init__(self, input: Any, output: Any, session: Any):
         """Initialize the server component.
@@ -87,7 +94,9 @@ class WeaponsStocksServer:
         self.session = session
         self._filtered_data = reactive.Calc(self._compute_filtered_data)
 
-    def _get_safe_value(self, data: pd.DataFrame, condition: pd.Series, column: str) -> Optional[float]:
+    def _get_safe_value(
+        self, data: pd.DataFrame, condition: pd.Series, column: str
+    ) -> Optional[float]:
         """Safely extract a numeric value from a DataFrame.
 
         Args:
@@ -99,7 +108,11 @@ class WeaponsStocksServer:
             Optional[float]: The extracted value or None if invalid.
         """
         filtered_data = data[condition]
-        if filtered_data.empty or pd.isna(filtered_data[column].iloc[0]) or not np.isfinite(filtered_data[column].iloc[0]):
+        if (
+            filtered_data.empty
+            or pd.isna(filtered_data[column].iloc[0])
+            or not np.isfinite(filtered_data[column].iloc[0])
+        ):
             return None
         return float(filtered_data[column].iloc[0])
 
@@ -110,30 +123,69 @@ class WeaponsStocksServer:
             pd.DataFrame: Processed DataFrame containing weapon stocks data.
         """
         prewar_df = load_data_from_table(table_name_or_query=WEAPON_STOCKS_PREWAR_QUERY)
-        support_df = load_data_from_table(table_name_or_query=WEAPON_STOCKS_SUPPORT_QUERY)
+        support_df = load_data_from_table(
+            table_name_or_query=WEAPON_STOCKS_SUPPORT_QUERY
+        )
 
         summary = []
         for equipment, display_name in self.EQUIPMENT_MAPPING.items():
             # Get stock values
-            russian_stock = self._get_safe_value(prewar_df, (prewar_df["equipment_type"] == equipment) & (prewar_df["country"] == "Russia"), "quantity")
+            russian_stock = self._get_safe_value(
+                prewar_df,
+                (prewar_df["equipment_type"] == equipment)
+                & (prewar_df["country"] == "Russia"),
+                "quantity",
+            )
 
-            ukr_prewar = self._get_safe_value(prewar_df, (prewar_df["equipment_type"] == equipment) & (prewar_df["country"] == "Ukraine"), "quantity")
+            ukr_prewar = self._get_safe_value(
+                prewar_df,
+                (prewar_df["equipment_type"] == equipment)
+                & (prewar_df["country"] == "Ukraine"),
+                "quantity",
+            )
 
-            delivered = self._get_safe_value(support_df, (support_df["equipment_type"] == equipment) & (support_df["status"] == "delivered"), "quantity") or 0.0
+            delivered = (
+                self._get_safe_value(
+                    support_df,
+                    (support_df["equipment_type"] == equipment)
+                    & (support_df["status"] == "delivered"),
+                    "quantity",
+                )
+                or 0.0
+            )
 
             to_deliver = (
-                self._get_safe_value(support_df, (support_df["equipment_type"] == equipment) & (support_df["status"] == "to_be_delivered"), "quantity") or 0.0
+                self._get_safe_value(
+                    support_df,
+                    (support_df["equipment_type"] == equipment)
+                    & (support_df["status"] == "to_be_delivered"),
+                    "quantity",
+                )
+                or 0.0
             )
 
             # Calculate current and projected stocks
-            current_stock = float(ukr_prewar) + delivered if ukr_prewar is not None else delivered if delivered > 0 else None
+            current_stock = (
+                float(ukr_prewar) + delivered
+                if ukr_prewar is not None
+                else delivered
+                if delivered > 0
+                else None
+            )
 
             projected_stock = (
-                current_stock + to_deliver if current_stock is not None else (delivered + to_deliver) if (delivered > 0 or to_deliver > 0) else None
+                current_stock + to_deliver
+                if current_stock is not None
+                else (delivered + to_deliver)
+                if (delivered > 0 or to_deliver > 0)
+                else None
             )
 
             # Skip if any values are non-finite
-            if any(v is not None and not np.isfinite(v) for v in [russian_stock, current_stock, projected_stock]):
+            if any(
+                v is not None and not np.isfinite(v)
+                for v in [russian_stock, current_stock, projected_stock]
+            ):
                 continue
 
             summary.append(
@@ -247,7 +299,9 @@ class WeaponsStocksServer:
                     value=int(row["ukr_prewar"]),
                     name="Ukrainian Pre-war Stock",
                     color=COLOR_PALETTE["weapon_stocks_prewar"],
-                    position="top center" if position_counter % 2 == 0 else "bottom center",
+                    position="top center"
+                    if position_counter % 2 == 0
+                    else "bottom center",
                 )
                 position_counter += 1
 
@@ -260,7 +314,9 @@ class WeaponsStocksServer:
                     value=int(row["current_stock"]),
                     name="Ukrainian Current Stock (with Delivered)",
                     color=COLOR_PALETTE["weapon_stocks_delivered"],
-                    position="top center" if position_counter % 2 == 0 else "bottom center",
+                    position="top center"
+                    if position_counter % 2 == 0
+                    else "bottom center",
                 )
                 position_counter += 1
 
@@ -273,11 +329,22 @@ class WeaponsStocksServer:
                     value=int(row["projected_stock"]),
                     name="Ukrainian Projected Stock (with Committed)",
                     color=COLOR_PALETTE["weapon_stocks_pending"],
-                    position="top center" if position_counter % 2 == 0 else "bottom center",
+                    position="top center"
+                    if position_counter % 2 == 0
+                    else "bottom center",
                 )
                 position_counter += 1
 
-    def _add_single_point(self, fig: go.Figure, x: float, y: int, value: int, name: str, color: str, position: str) -> None:
+    def _add_single_point(
+        self,
+        fig: go.Figure,
+        x: float,
+        y: int,
+        value: int,
+        name: str,
+        color: str,
+        position: str,
+    ) -> None:
         """Add a single point with text to the plot.
 
         Args:
@@ -295,7 +362,12 @@ class WeaponsStocksServer:
                 y=[y],
                 mode="markers+text",
                 name=name,
-                marker=dict(symbol="circle", size=self.PLOT_CONFIG["marker_sizes"]["ukrainian"], color=color, line=dict(color="white", width=1)),
+                marker=dict(
+                    symbol="circle",
+                    size=self.PLOT_CONFIG["marker_sizes"]["ukrainian"],
+                    color=color,
+                    line=dict(color="white", width=1),
+                ),
                 text=[f"{value:,}"],
                 textposition=[position],
                 textfont=dict(size=self.PLOT_CONFIG["text_size"]),
@@ -319,7 +391,10 @@ class WeaponsStocksServer:
                     x=[float(row["ukr_prewar"]), float(row["current_stock"])],
                     y=[index, index],
                     mode="lines",
-                    line=dict(color=COLOR_PALETTE["weapon_stocks_delivered"], width=self.PLOT_CONFIG["line_width"]),
+                    line=dict(
+                        color=COLOR_PALETTE["weapon_stocks_delivered"],
+                        width=self.PLOT_CONFIG["line_width"],
+                    ),
                     showlegend=False,
                     hoverinfo="skip",
                 )
@@ -332,13 +407,18 @@ class WeaponsStocksServer:
                     x=[float(row["current_stock"]), float(row["projected_stock"])],
                     y=[index, index],
                     mode="lines",
-                    line=dict(color=COLOR_PALETTE["weapon_stocks_pending"], width=self.PLOT_CONFIG["line_width"]),
+                    line=dict(
+                        color=COLOR_PALETTE["weapon_stocks_pending"],
+                        width=self.PLOT_CONFIG["line_width"],
+                    ),
                     showlegend=False,
                     hoverinfo="skip",
                 )
             )
 
-    def _add_stock_points(self, fig: go.Figure, data: pd.DataFrame, column: str, name: str, color: str) -> None:
+    def _add_stock_points(
+        self, fig: go.Figure, data: pd.DataFrame, column: str, name: str, color: str
+    ) -> None:
         """Add stock points to the plot with alternating above/below text positions.
 
         Args:
@@ -369,7 +449,12 @@ class WeaponsStocksServer:
                     y=valid_data.index.tolist(),
                     mode="markers+text",
                     name=name,
-                    marker=dict(symbol="circle", size=self.PLOT_CONFIG["marker_sizes"]["ukrainian"], color=color, line=dict(color="white", width=1)),
+                    marker=dict(
+                        symbol="circle",
+                        size=self.PLOT_CONFIG["marker_sizes"]["ukrainian"],
+                        color=color,
+                        line=dict(color="white", width=1),
+                    ),
                     text=text_values,
                     textposition=text_positions,
                     textfont=dict(size=self.PLOT_CONFIG["text_size"]),
@@ -385,11 +470,15 @@ class WeaponsStocksServer:
             data: DataFrame containing weapon stocks data.
         """
         equipment_types = data["equipment_type"].unique()
-        plot_height = max(self.PLOT_CONFIG["min_height"], len(equipment_types) * self.PLOT_CONFIG["height_per_equipment"])
+        plot_height = max(
+            self.PLOT_CONFIG["min_height"],
+            len(equipment_types) * self.PLOT_CONFIG["height_per_equipment"],
+        )
 
         fig.update_layout(
             title=dict(
-                text=f"Weapon Stocks Comparison<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 12</sub>",
+                text=f"Weapon Stocks Comparison<br>"
+                f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 12</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
@@ -399,7 +488,15 @@ class WeaponsStocksServer:
             height=plot_height,
             margin=MARGIN,
             showlegend=True,
-            legend=dict(yanchor="top", y=0.99, xanchor="left", x=1.02, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.2)", borderwidth=1),
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=1.02,
+                bgcolor="rgba(255, 255, 255, 0.8)",
+                bordercolor="rgba(0, 0, 0, 0.2)",
+                borderwidth=1,
+            ),
             hovermode="closest",
             xaxis=dict(
                 title="Number of Units",

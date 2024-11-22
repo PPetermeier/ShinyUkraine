@@ -12,5 +12,5 @@ __all__ = [
     "GDPAllocationsCard",
     "GDPAllocationsServer",
     "CommittmentRatioCard",
-    "CommittmentRatioServer"
+    "CommittmentRatioServer",
 ]

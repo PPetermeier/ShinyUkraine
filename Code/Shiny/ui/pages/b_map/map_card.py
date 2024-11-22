@@ -18,7 +18,7 @@ from shinywidgets import output_widget, render_widget
 
 class MapCard:
     """UI components for the map visualization card.
-    
+
     This class handles the user interface elements for displaying and controlling
     the geographical visualization of support data.
     """
@@ -83,14 +83,14 @@ class MapCardServer:
             "value_column": "pct_gdp",
             "colorbar_title": "% of GDP",
             "hover_template": "%{text}<br>Total displayed Support: %{customdata[0]:.1f}B €<br>% of GDP: %{z:.2f}%",
-            "title_suffix": "as Percentage of GDP"
+            "title_suffix": "as Percentage of GDP",
         },
         "total": {
             "value_column": "total_support",
             "colorbar_title": "Billion €",
             "hover_template": "%{text}<br>Total displayed Support: %{z:.1f}B €<br>% of GDP: %{customdata[1]:.2f}%",
-            "title_suffix": "in Billion €"
-        }
+            "title_suffix": "in Billion €",
+        },
     }
 
     # Define map style configurations
@@ -115,7 +115,7 @@ class MapCardServer:
             "margin": dict(l=0, r=0, t=50, b=0, pad=0),
             "paper_bgcolor": "rgba(0,0,0,0)",
             "plot_bgcolor": "rgba(0,0,0,0)",
-        }
+        },
     }
 
     def __init__(self, input, output, session):
@@ -142,7 +142,11 @@ class MapCardServer:
         """
         if len(selected_types) == 1:
             # Fix for refugee_cost_estimation mapping to refugee in COLOR_PALETTE
-            aid_type = "refugee" if selected_types[0] == "refugee_cost_estimation" else selected_types[0]
+            aid_type = (
+                "refugee"
+                if selected_types[0] == "refugee_cost_estimation"
+                else selected_types[0]
+            )
             base_color = COLOR_PALETTE.get(aid_type)
         else:
             base_color = COLOR_PALETTE.get("Total Bilateral")
@@ -158,7 +162,7 @@ class MapCardServer:
         selected_types = self.input.map_aid_types()
         if not selected_types:
             return pd.DataFrame()
-            
+
         query = build_map_support_query(selected_types)
         return load_data_from_table(query)
 
@@ -175,7 +179,7 @@ class MapCardServer:
         fig = self._create_choropleth_map(data)
         self._add_ukraine_overlay(fig)
         self._update_map_layout(fig)
-        
+
         return fig
 
     def _create_choropleth_map(self, data: pd.DataFrame) -> go.Figure:
@@ -190,7 +194,7 @@ class MapCardServer:
         display_mode = self.input.map_display_mode()
         config = self.DISPLAY_CONFIGS[display_mode]
         colorscale = self._get_color_scale(self.input.map_aid_types())
-        
+
         fig = go.Figure(
             data=go.Choropleth(
                 locations=data["iso3_code"],
@@ -220,7 +224,10 @@ class MapCardServer:
             z=[1],
             text=["Ukraine"],
             hovertemplate="Ukraine<extra></extra>",
-            colorscale=[[0, COLOR_PALETTE.get("Ukraine Map")], [1, COLOR_PALETTE.get("Ukraine Map")]],
+            colorscale=[
+                [0, COLOR_PALETTE.get("Ukraine Map")],
+                [1, COLOR_PALETTE.get("Ukraine Map")],
+            ],
             showscale=False,
             marker_line_color="white",
             marker_line_width=0.5,
@@ -234,23 +241,24 @@ class MapCardServer:
         """
         display_mode = self.input.map_display_mode()
         config = self.DISPLAY_CONFIGS[display_mode]
-        
+
         fig.update_layout(
             title=dict(
                 text=f"Bilateral Support {config['title_suffix']}<br>"
-                     f"<sub>Last updated: {LAST_UPDATE}, Sheet: Country Summary(€)</sub>",
+                f"<sub>Last updated: {LAST_UPDATE}, Sheet: Country Summary(€)</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,
                 xanchor="center",
-                yanchor="top"
+                yanchor="top",
             ),
             geo=self.MAP_STYLE["geo"],
-            **self.MAP_STYLE["layout"]
+            **self.MAP_STYLE["layout"],
         )
 
     def register_outputs(self) -> None:
         """Register the map output with Shiny."""
+
         @self.output
         @render_widget
         def map_plot():

@@ -15,16 +15,13 @@ from .cards.b_budget_support import BudgetSupportCard, BudgetSupportServer
 
 class FinancialPageLayout:
     """Manages the layout and structure of the financial aid page.
-    
+
     This class defines the organization and presentation of visualization cards
     on the financial aid data page.
     """
 
     # Define the cards and their order
-    CARD_COMPONENTS: List[Type[Any]] = [
-        FinancialByTypeCard,
-        BudgetSupportCard
-    ]
+    CARD_COMPONENTS: List[Type[Any]] = [FinancialByTypeCard, BudgetSupportCard]
 
     @staticmethod
     def create_ui() -> ui.page_fillable:
@@ -44,7 +41,7 @@ class FinancialPageLayout:
 
 class FinancialPageServer:
     """Coordinates all visualization cards on the financial aid page.
-    
+
     This class manages the server-side components for all financial aid-related
     visualizations, handling their initialization and coordination.
 
@@ -69,8 +66,8 @@ class FinancialPageServer:
 
         # Initialize all card servers
         self.servers = {
-            'financial_by_type': FinancialByTypeServer(input, output, session),
-            'budget_support': BudgetSupportServer(input, output, session)
+            "financial_by_type": FinancialByTypeServer(input, output, session),
+            "budget_support": BudgetSupportServer(input, output, session),
         }
 
         self.initialize()

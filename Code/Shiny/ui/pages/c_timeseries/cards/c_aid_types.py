@@ -71,15 +71,37 @@ class AidTypesServer:
 
     # Define aid type configurations
     AID_TYPES: Dict[str, Dict[str, str]] = {
-        "military_aid_allocated__billion": {"display_name": "Military Aid", "color_key": "military", "sort_priority": 1},
-        "financial_aid_allocated__billion": {"display_name": "Financial Aid", "color_key": "financial", "sort_priority": 2},
-        "humanitarian_aid_allocated__billion": {"display_name": "Humanitarian Aid", "color_key": "humanitarian", "sort_priority": 3},
+        "military_aid_allocated__billion": {
+            "display_name": "Military Aid",
+            "color_key": "military",
+            "sort_priority": 1,
+        },
+        "financial_aid_allocated__billion": {
+            "display_name": "Financial Aid",
+            "color_key": "financial",
+            "sort_priority": 2,
+        },
+        "humanitarian_aid_allocated__billion": {
+            "display_name": "Humanitarian Aid",
+            "color_key": "humanitarian",
+            "sort_priority": 3,
+        },
     }
 
     # Define visualization modes
     VIZ_CONFIGS: Dict[str, Dict[str, object]] = {
-        "cumulative": {"title": "Cumulative Support Allocation Over Time", "mode": "lines", "line_width": 2, "desaturation_factor": 0.6},
-        "monthly": {"title": "Monthly Support Allocation", "text_position": "inside", "text_color": "white", "text_anchor": "middle"},
+        "cumulative": {
+            "title": "Cumulative Support Allocation Over Time",
+            "mode": "lines",
+            "line_width": 2,
+            "desaturation_factor": 0.6,
+        },
+        "monthly": {
+            "title": "Monthly Support Allocation",
+            "text_position": "inside",
+            "text_color": "white",
+            "text_anchor": "middle",
+        },
     }
 
     def __init__(self, input, output, session):
@@ -154,7 +176,9 @@ class AidTypesServer:
             data: DataFrame containing aid data.
         """
         data_cols = [col for col in data.columns if col != "month"]
-        sorted_cols = sorted(data_cols, key=lambda x: (self.AID_TYPES[x]["sort_priority"], data[x].max()))
+        sorted_cols = sorted(
+            data_cols, key=lambda x: (self.AID_TYPES[x]["sort_priority"], data[x].max())
+        )
 
         for i, col in enumerate(sorted_cols):
             config = self.AID_TYPES[col]
@@ -167,9 +191,14 @@ class AidTypesServer:
                     name=config["display_name"],
                     stackgroup="one",
                     mode=self.VIZ_CONFIGS["cumulative"]["mode"],
-                    line=dict(color=color, width=self.VIZ_CONFIGS["cumulative"]["line_width"]),
+                    line=dict(
+                        color=color, width=self.VIZ_CONFIGS["cumulative"]["line_width"]
+                    ),
                     fill="tonexty" if i > 0 else "tozeroy",
-                    fillcolor=desaturate_color(color, factor=self.VIZ_CONFIGS["cumulative"]["desaturation_factor"]),
+                    fillcolor=desaturate_color(
+                        color,
+                        factor=self.VIZ_CONFIGS["cumulative"]["desaturation_factor"],
+                    ),
                     hovertemplate=f"{config['display_name']}: %{{y:.1f}}B€<extra></extra>",
                 )
             )
@@ -207,7 +236,8 @@ class AidTypesServer:
 
         fig.update_layout(
             title=dict(
-                text=f"{self.VIZ_CONFIGS[mode]['title']}<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
+                text=f"{self.VIZ_CONFIGS[mode]['title']}<br>"
+                f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 1</sub>",
                 font=dict(size=14),
                 y=0.95,
                 x=0.5,

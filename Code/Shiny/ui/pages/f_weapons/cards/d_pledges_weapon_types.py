@@ -30,7 +30,9 @@ class WeaponTypeCard:
         to_deliver_col: Name of the column containing to-be-delivered weapons data.
     """
 
-    def __init__(self, title: str, weapon_type: str, delivered_col: str, to_deliver_col: str):
+    def __init__(
+        self, title: str, weapon_type: str, delivered_col: str, to_deliver_col: str
+    ):
         """Initialize the weapon type card.
 
         Args:
@@ -88,9 +90,22 @@ class WeaponTypeServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Any] = {"marker_color": COLOR_PALETTE["military"], "hover_template": "Pledged: %{x:.1f}%", "height": 600}
+    PLOT_CONFIG: Dict[str, Any] = {
+        "marker_color": COLOR_PALETTE["military"],
+        "hover_template": "Pledged: %{x:.1f}%",
+        "height": 600,
+    }
 
-    def __init__(self, input: Any, output: Any, session: Any, weapon_type: str, delivered_col: str, to_deliver_col: str, title: str):
+    def __init__(
+        self,
+        input: Any,
+        output: Any,
+        session: Any,
+        weapon_type: str,
+        delivered_col: str,
+        to_deliver_col: str,
+        title: str,
+    ):
         """Initialize the server component.
 
         Args:
@@ -121,10 +136,15 @@ class WeaponTypeServer:
 
         # Extract and process weapon-specific data
         weapon_data = data[["country", self.delivered_col, self.to_deliver_col]].copy()
-        weapon_data = weapon_data[weapon_data[self.delivered_col].notna() | weapon_data[self.to_deliver_col].notna()]
+        weapon_data = weapon_data[
+            weapon_data[self.delivered_col].notna()
+            | weapon_data[self.to_deliver_col].notna()
+        ]
 
         # Calculate totals and sort
-        weapon_data["total"] = weapon_data[self.delivered_col].fillna(0) + weapon_data[self.to_deliver_col].fillna(0)
+        weapon_data["total"] = weapon_data[self.delivered_col].fillna(0) + weapon_data[
+            self.to_deliver_col
+        ].fillna(0)
         weapon_data = weapon_data.sort_values("total", ascending=False)
 
         # Filter for delivered weapons and add one zero-delivery country if available
@@ -198,9 +218,18 @@ class WeaponTypeServer:
             barmode="stack",
             showlegend=True,
             hovermode="y unified",
-            legend=dict(orientation="h", yanchor="bottom", y=1.3, xanchor="center", x=0.5, bgcolor="rgba(255,255,255,0)", bordercolor="rgba(255,255,255,0)"),
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.3,
+                xanchor="center",
+                x=0.5,
+                bgcolor="rgba(255,255,255,0)",
+                bordercolor="rgba(255,255,255,0)",
+            ),
             title=dict(
-                text=f"{self.title}, pledged by donor country<br>" f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 14</sub>",
+                text=f"{self.title}, pledged by donor country<br>"
+                f"<sub>Last updated: {LAST_UPDATE}, Sheet: Fig 14</sub>",
                 y=0.95,
                 x=0.5,
                 xanchor="center",
@@ -211,7 +240,12 @@ class WeaponTypeServer:
             paper_bgcolor="rgba(255,255,255,1)",
         )
 
-        fig.update_xaxes(title="Share of National Stock (%)", showgrid=True, gridcolor="rgba(0,0,0,0.1)", ticksuffix="%")
+        fig.update_xaxes(
+            title="Share of National Stock (%)",
+            showgrid=True,
+            gridcolor="rgba(0,0,0,0.1)",
+            ticksuffix="%",
+        )
 
         fig.update_yaxes(
             autorange="reversed",
@@ -247,7 +281,10 @@ class WeaponTypesCard:
             ui.div: A Shiny div containing all weapon type visualizations.
         """
         return ui.div(
-            *(WeaponTypeCard(title, weapon_type, delivered, to_deliver).ui() for title, weapon_type, delivered, to_deliver in WeaponTypesCard.WEAPON_TYPES)
+            *(
+                WeaponTypeCard(title, weapon_type, delivered, to_deliver).ui()
+                for title, weapon_type, delivered, to_deliver in WeaponTypesCard.WEAPON_TYPES
+            )
         )
 
 
@@ -267,7 +304,15 @@ class WeaponTypesServer:
             session: Shiny session object.
         """
         self.servers = [
-            WeaponTypeServer(input, output, session, weapon_type=wtype, delivered_col=delivered, to_deliver_col=to_deliver, title=title)
+            WeaponTypeServer(
+                input,
+                output,
+                session,
+                weapon_type=wtype,
+                delivered_col=delivered,
+                to_deliver_col=to_deliver,
+                title=title,
+            )
             for title, wtype, delivered, to_deliver in WeaponTypesCard.WEAPON_TYPES
         ]
 

@@ -18,7 +18,7 @@ from shinywidgets import output_widget, render_widget
 
 class FinancialByTypeCard:
     """UI components for the financial aid by type visualization card.
-    
+
     This class handles the user interface elements for displaying and controlling
     the financial aid type visualization, including country selection.
     """
@@ -85,29 +85,29 @@ class FinancialByTypeServer:
             "color_key": "financial_loan",
             "default_color": "#2a9d8f",
             "column": "loan",
-            "hover_template": "Loan: %{x:.1f}B €"
+            "hover_template": "Loan: %{x:.1f}B €",
         },
         "grant": {
             "name": "Grant",
             "color_key": "financial_grant",
             "default_color": "#264653",
             "column": "grant",
-            "hover_template": "Grant: %{x:.1f}B €"
+            "hover_template": "Grant: %{x:.1f}B €",
         },
         "guarantee": {
             "name": "Guarantee",
             "color_key": "financial_guarantee",
             "default_color": "#e9c46a",
             "column": "guarantee",
-            "hover_template": "Guarantee: %{x:.1f}B €"
+            "hover_template": "Guarantee: %{x:.1f}B €",
         },
         "central_bank_swap_line": {
             "name": "Central Bank Swap Line",
             "color_key": "financial_swap",
             "default_color": "#f4a261",
             "column": "central_bank_swap_line",
-            "hover_template": "Central Bank Swap Line: %{x:.1f}B €"
-        }
+            "hover_template": "Central Bank Swap Line: %{x:.1f}B €",
+        },
     }
 
     def __init__(self, input, output, session):
@@ -134,7 +134,7 @@ class FinancialByTypeServer:
         # Calculate total aid for sorting
         aid_columns = [props["column"] for props in self.FINANCIAL_AID_TYPES.values()]
         df["total_aid"] = df[aid_columns].sum(axis=1)
-        
+
         # Filter to top N countries and sort
         df = df.nlargest(self.input.top_n_countries(), "total_aid")
         df = df.sort_values("total_aid", ascending=True)
@@ -168,17 +168,21 @@ class FinancialByTypeServer:
 
         # Add traces for each financial aid type
         for aid_type, properties in self.FINANCIAL_AID_TYPES.items():
-            fig.add_trace(self._create_bar_trace(
-                countries=countries,
-                values=data[properties["column"]].tolist(),
-                name=properties["name"],
-                color=COLOR_PALETTE.get(properties["color_key"], properties["default_color"]),
-                hover_template=properties["hover_template"]
-            ))
+            fig.add_trace(
+                self._create_bar_trace(
+                    countries=countries,
+                    values=data[properties["column"]].tolist(),
+                    name=properties["name"],
+                    color=COLOR_PALETTE.get(
+                        properties["color_key"], properties["default_color"]
+                    ),
+                    hover_template=properties["hover_template"],
+                )
+            )
 
         # Update layout
         self._update_figure_layout(fig)
-        
+
         return fig
 
     def _create_bar_trace(
@@ -187,7 +191,7 @@ class FinancialByTypeServer:
         values: List[float],
         name: str,
         color: str,
-        hover_template: str
+        hover_template: str,
     ) -> go.Bar:
         """Create a bar trace for the stacked bar chart.
 
@@ -242,7 +246,7 @@ class FinancialByTypeServer:
                 x=0.99,
                 bgcolor="rgba(255, 255, 255, 0.8)",
                 bordercolor="rgba(0, 0, 0, 0.2)",
-                borderwidth=1
+                borderwidth=1,
             ),
             showlegend=True,
             hovermode="y unified",
@@ -264,6 +268,7 @@ class FinancialByTypeServer:
 
     def register_outputs(self) -> None:
         """Register the plot output with Shiny."""
+
         @self.output
         @render_widget
         def financial_types_plot():

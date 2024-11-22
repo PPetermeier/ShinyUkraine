@@ -34,8 +34,8 @@ def desaturate_color(hex_color: str, factor: float = 0.75) -> str:
     rgb: Tuple[float, float, float] = tuple(int(hex_color[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
 
     # Convert RGB to HSL, adjust lightness, convert back to RGB
-    h, l, s = colorsys.rgb_to_hls(*rgb)
-    rgb_desat = colorsys.hls_to_rgb(h, min(1, l * (1 + factor)), s)
+    h_color, l_color, s_color = colorsys.rgb_to_hls(*rgb)
+    rgb_desat = colorsys.hls_to_rgb(h_color, min(1, l_color * (1 + factor)), s_color)
 
     # Convert back to hex format
     return "#{:02x}{:02x}{:02x}".format(int(rgb_desat[0] * 255), int(rgb_desat[1] * 255), int(rgb_desat[2] * 255))

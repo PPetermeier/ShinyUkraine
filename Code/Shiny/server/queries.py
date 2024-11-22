@@ -3,7 +3,12 @@ Standardized database query definitions.
 """
 
 # Keep existing column definitions
-TOTAL_SUPPORT_COLUMNS = ["month", "united_states_allocated__billion", "europe_allocated__billion", "other_donors_allocated__billion"]
+TOTAL_SUPPORT_COLUMNS = [
+    "month",
+    "united_states_allocated__billion",
+    "europe_allocated__billion",
+    "other_donors_allocated__billion",
+]
 
 AID_TYPES_COLUMNS = [
     "month",
@@ -14,26 +19,56 @@ AID_TYPES_COLUMNS = [
     "humanitarian_aid_allocated__billion",
 ]
 
-WEAPON_STOCKS_COLUMNS = [
+WEAPON_STOCKS_COLUMNS = ["country", "equipment_type", "status", "quantity"]
+
+COUNTRY_AID_COLUMNS = [
     "country",
-    "equipment_type",
-    "status",
-    "quantity"
+    "financial",
+    "humanitarian",
+    "military",
+    "refugee_cost_estimation",
 ]
 
-COUNTRY_AID_COLUMNS = ["country", "financial", "humanitarian", "military", "refugee_cost_estimation"]
-
-GDP_ALLOCATIONS_COLUMNS = ["country", "total_bilateral_allocation", "refugee_cost_estimation"]
+GDP_ALLOCATIONS_COLUMNS = [
+    "country",
+    "total_bilateral_allocation",
+    "refugee_cost_estimation",
+]
 
 ALLOCATIONS_VS_COMMITMENTS_COLUMNS = ["country", "allocated_aid", "committed_aid"]
 
-MAP_SUPPORT_COLUMNS = ["e.country", "l.iso3_code", "e.financial", "e.humanitarian", "e.military", "e.refugee_cost_estimation"]
+MAP_SUPPORT_COLUMNS = [
+    "e.country",
+    "l.iso3_code",
+    "e.financial",
+    "e.humanitarian",
+    "e.military",
+    "e.refugee_cost_estimation",
+]
 
-FINANCIAL_AID_COLUMNS = ["country", "loan", "grant", "guarantee", "central_bank_swap_line"]
+FINANCIAL_AID_COLUMNS = [
+    "country",
+    "loan",
+    "grant",
+    "guarantee",
+    "central_bank_swap_line",
+]
 
-BUDGET_SUPPORT_COLUMNS = ["country", "allocations_loans_grants_and_guarantees", "disbursements"]
+BUDGET_SUPPORT_COLUMNS = [
+    "country",
+    "allocations_loans_grants_and_guarantees",
+    "disbursements",
+]
 
-HEAVY_WEAPONS_COLUMNS = ["country", "tanks", "armored_vehicles", "artillery", "mlrs", "air_defense", "total_deliveries"]
+HEAVY_WEAPONS_COLUMNS = [
+    "country",
+    "tanks",
+    "armored_vehicles",
+    "artillery",
+    "mlrs",
+    "air_defense",
+    "total_deliveries",
+]
 
 # Table names
 TIME_SERIES_TABLE = "c_allocated_over_time"
@@ -47,7 +82,13 @@ WEAPON_STOCKS_BASE_TABLE = "weapon_stocks_base"
 WEAPON_STOCKS_DETAIL_TABLE = "weapon_stocks_detail"
 
 # New configurations for the aid allocation card
-AID_TYPE_CONFIG = {"total": {"label": "Total", "allocated_col": "allocated_aid", "committed_col": "committed_aid"}}
+AID_TYPE_CONFIG = {
+    "total": {
+        "label": "Total",
+        "allocated_col": "allocated_aid",
+        "committed_col": "committed_aid",
+    }
+}
 MAP_SUPPORT_TYPES = {
     "military": "Military Support",
     "financial": "Financial Support",
@@ -103,18 +144,18 @@ WEAPON_TYPE_PLEDGES_QUERY = """
 """
 
 WW2_WEAPON_CATEGORIES = {
-    'heavy': ['Tanks'],
-    'artillery': ['Artillery', 'Howitzer(155/152mm)', 'MLRS'],
-    'air': ['Combat Aircraft']
+    "heavy": ["Tanks"],
+    "artillery": ["Artillery", "Howitzer(155/152mm)", "MLRS"],
+    "air": ["Combat Aircraft"],
 }
 
 WW2_CONFLICTS = [
-    'WW2 lend-lease US total delivered',
-    'US to Great Britain (1941-45)',
-    'US to USSR (1941-45)',
-    'Spain (1936-39) Nationalists',
-    'Spain (1936-39) Republicans',
-    'Total supply to Ukraine'
+    "WW2 lend-lease US total delivered",
+    "US to Great Britain (1941-45)",
+    "US to USSR (1941-45)",
+    "Spain (1936-39) Nationalists",
+    "Spain (1936-39) Republicans",
+    "Total supply to Ukraine",
 ]
 
 # Base query for WW2 comparisons
@@ -430,6 +471,8 @@ GERMAN_COMPARISON_QUERY = """
             WHEN commitments LIKE '%Transport%' THEN 5
         END
 """
+
+
 def build_group_allocations_query(aid_type, selected_groups):
     """Build the complete query for group allocations."""
     group_filter = ", ".join(f"'{group}'" for group in selected_groups)
@@ -447,8 +490,12 @@ def build_map_support_query(selected_types):
 
     # Build column selections
     selected_columns = [f"e.{aid_type} as {aid_type}" for aid_type in selected_types]
-    sum_columns = " + ".join([f"COALESCE({aid_type}, 0)" for aid_type in selected_types])
+    sum_columns = " + ".join(
+        [f"COALESCE({aid_type}, 0)" for aid_type in selected_types]
+    )
 
-    query = MAP_SUPPORT_QUERY.format(selected_columns=", ".join(selected_columns), sum_columns=sum_columns)
+    query = MAP_SUPPORT_QUERY.format(
+        selected_columns=", ".join(selected_columns), sum_columns=sum_columns
+    )
 
     return query

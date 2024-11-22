@@ -33,7 +33,12 @@ class WeaponsPageLayout:
             on the page.
     """
 
-    CARD_COMPONENTS: List[Type[ui.Tag]] = [WeaponsStocksCard, HeavyWeaponsCard, PledgeStockCard, WeaponTypesCard]
+    CARD_COMPONENTS: List[Type[ui.Tag]] = [
+        WeaponsStocksCard,
+        HeavyWeaponsCard,
+        PledgeStockCard,
+        WeaponTypesCard,
+    ]
 
     @staticmethod
     def create_ui() -> ui.page_fillable:
@@ -48,7 +53,10 @@ class WeaponsPageLayout:
                 {"class": "container-fluid"},
                 ui.div(
                     {"class": "row g-4"},  # Add consistent spacing between cards
-                    *[_create_card_section(card) for card in WeaponsPageLayout.CARD_COMPONENTS],
+                    *[
+                        _create_card_section(card)
+                        for card in WeaponsPageLayout.CARD_COMPONENTS
+                    ],
                 ),
             )
         )

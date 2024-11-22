@@ -5,38 +5,45 @@ Database connection and query functions.
 import duckdb
 from config import DB_PATH
 
-from .queries import AID_TYPES_COLUMNS, COUNTRY_AID_COLUMNS, COUNTRY_AID_TABLE, TIME_SERIES_TABLE, TOTAL_SUPPORT_COLUMNS, WEAPON_STOCKS_QUERY
+from .queries import (
+    AID_TYPES_COLUMNS,
+    COUNTRY_AID_COLUMNS,
+    COUNTRY_AID_TABLE,
+    TIME_SERIES_TABLE,
+    TOTAL_SUPPORT_COLUMNS,
+    WEAPON_STOCKS_QUERY,
+)
 
-import duckdb
-from .queries import *  # Keep existing imports
 
 def get_db_connection():
     """Create and return a database connection."""
     return duckdb.connect(str(DB_PATH), read_only=True)
+
 
 def load_data_from_table(table_name_or_query: str, columns=None, where_clause=None, order_by=None):
     """Load data from table or execute query."""
     conn = get_db_connection()
     try:
         is_query = table_name_or_query.strip().upper().startswith(("SELECT", "WITH"))
-        
+
         if is_query:
             df = conn.execute(table_name_or_query).fetchdf()
         else:
             columns_str = ", ".join(columns) if columns else "*"
             query = f'SELECT {columns_str} FROM "{table_name_or_query}"'
-            
+
             if where_clause:
                 query += f" WHERE {where_clause}"
-                
+
             if order_by:
                 query += f" ORDER BY {order_by}"
-                
+
             df = conn.execute(query).fetchdf()
-            
+
         return df
     finally:
         conn.close()
+
 
 def load_time_series_data(columns=None):
     """
@@ -77,7 +84,12 @@ def load_country_data(columns=None):
 
     total_aid = " + ".join(col for col in columns if col != "country")
 
-    return load_data_from_table(table_name_or_query=COUNTRY_AID_TABLE, columns=columns, where_clause="country IS NOT NULL", order_by=f"({total_aid}) DESC")
+    return load_data_from_table(
+        table_name_or_query=COUNTRY_AID_TABLE,
+        columns=columns,
+        where_clause="country IS NOT NULL",
+        order_by=f"({total_aid}) DESC",
+    )
 
 
 def load_weapon_stocks_data():
@@ -92,4 +104,11 @@ def load_weapon_stocks_data():
 
 
 # For backward compatibility and convenience
-__all__ = ["get_db_connection", "load_time_series_data", "load_country_data", "TOTAL_SUPPORT_COLUMNS", "AID_TYPES_COLUMNS", "COUNTRY_AID_COLUMNS"]
+__all__ = [
+    "get_db_connection",
+    "load_time_series_data",
+    "load_country_data",
+    "TOTAL_SUPPORT_COLUMNS",
+    "AID_TYPES_COLUMNS",
+    "COUNTRY_AID_COLUMNS",
+]
