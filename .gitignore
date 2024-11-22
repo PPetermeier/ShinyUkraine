@@ -163,3 +163,4 @@ cython_debug/
 #.idea/
 Data/~$UkraineSupportTracker.xlsx
 .gitignore
+Code/Shiny/rsconnect-python/Shiny.json
