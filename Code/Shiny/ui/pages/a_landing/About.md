@@ -1,6 +1,6 @@
 ## Overview
 
-The The <a href="https://www.ifw-kiel.de/topics/war-against-ukraine/ukraine-support-tracker/" target="_blank">Ukraine Support Tracker</a> monitors and quantifies international support for Ukraine since Russia's invasion in February 2022. This interactive dashboard visualizes comprehensive data on military, financial, and humanitarian aid commitments from partner countries worldwide. I wrote this dashboard to enable as frictionless access as possible, hopefully doing my part in the provision of this global commons. I hope it will enable more informed debates about this subject by giving the data and the team behind it their time to...shine.
+The <a href="https://www.ifw-kiel.de/topics/war-against-ukraine/ukraine-support-tracker/" target="_blank">Ukraine Support Tracker</a> monitors and quantifies international support for Ukraine since Russia's invasion in February 2022. This interactive dashboard visualizes comprehensive data on military, financial, and humanitarian aid commitments from partner countries worldwide. I wrote this dashboard to enable as frictionless access as possible, hopefully doing my part in the provision of this global commons. I hope it will enable more informed debates about this subject by giving the data and the team behind it their time to...shine.
 
 ## Key Features
 
