@@ -230,14 +230,79 @@ class WeaponsStocksServer:
             fig: Plotly figure to update.
             data: DataFrame containing weapon stocks data.
         """
-        # Add connecting lines
+        # Add connecting lines first
         for i, row in data.iterrows():
             self._add_stock_lines(fig, row, i)
 
-        # Add points for each stock type
-        self._add_stock_points(fig, data, "ukr_prewar", "Ukrainian Pre-war Stock", COLOR_PALETTE["weapon_stocks_prewar"])
-        self._add_stock_points(fig, data, "current_stock", "Ukrainian Current Stock (with Delivered)", COLOR_PALETTE["weapon_stocks_delivered"])
-        self._add_stock_points(fig, data, "projected_stock", "Ukrainian Projected Stock (with Committed)", COLOR_PALETTE["weapon_stocks_pending"])
+        # Process each equipment type's row in sequence
+        for i, row in data.iterrows():
+            position_counter = 0  # Reset counter for each equipment type
+
+            # Add pre-war stock point if exists
+            if pd.notna(row["ukr_prewar"]):
+                self._add_single_point(
+                    fig,
+                    x=float(row["ukr_prewar"]),
+                    y=i,
+                    value=int(row["ukr_prewar"]),
+                    name="Ukrainian Pre-war Stock",
+                    color=COLOR_PALETTE["weapon_stocks_prewar"],
+                    position="top center" if position_counter % 2 == 0 else "bottom center",
+                )
+                position_counter += 1
+
+            # Add current stock point if exists
+            if pd.notna(row["current_stock"]):
+                self._add_single_point(
+                    fig,
+                    x=float(row["current_stock"]),
+                    y=i,
+                    value=int(row["current_stock"]),
+                    name="Ukrainian Current Stock (with Delivered)",
+                    color=COLOR_PALETTE["weapon_stocks_delivered"],
+                    position="top center" if position_counter % 2 == 0 else "bottom center",
+                )
+                position_counter += 1
+
+            # Add projected stock point if exists
+            if pd.notna(row["projected_stock"]):
+                self._add_single_point(
+                    fig,
+                    x=float(row["projected_stock"]),
+                    y=i,
+                    value=int(row["projected_stock"]),
+                    name="Ukrainian Projected Stock (with Committed)",
+                    color=COLOR_PALETTE["weapon_stocks_pending"],
+                    position="top center" if position_counter % 2 == 0 else "bottom center",
+                )
+                position_counter += 1
+
+    def _add_single_point(self, fig: go.Figure, x: float, y: int, value: int, name: str, color: str, position: str) -> None:
+        """Add a single point with text to the plot.
+
+        Args:
+            fig: Plotly figure to update.
+            x: X-coordinate for the point
+            y: Y-coordinate for the point
+            value: Value to display as text
+            name: Name for the legend
+            color: Color for the point
+            position: Text position ('top center' or 'bottom center')
+        """
+        fig.add_trace(
+            go.Scatter(
+                x=[x],
+                y=[y],
+                mode="markers+text",
+                name=name,
+                marker=dict(symbol="circle", size=self.PLOT_CONFIG["marker_sizes"]["ukrainian"], color=color, line=dict(color="white", width=1)),
+                text=[f"{value:,}"],
+                textposition=[position],
+                textfont=dict(size=self.PLOT_CONFIG["text_size"]),
+                hovertemplate=f"{name}: %{{x:,.0f}}<extra></extra>",
+                showlegend=y == 0,  # Only show in legend for first row
+            )
+        )
 
     def _add_stock_lines(self, fig: go.Figure, row: pd.Series, index: int) -> None:
         """Add connecting lines between stock points.
@@ -274,7 +339,7 @@ class WeaponsStocksServer:
             )
 
     def _add_stock_points(self, fig: go.Figure, data: pd.DataFrame, column: str, name: str, color: str) -> None:
-        """Add stock points to the plot.
+        """Add stock points to the plot with alternating above/below text positions.
 
         Args:
             fig: Plotly figure to update.
@@ -285,6 +350,19 @@ class WeaponsStocksServer:
         """
         valid_data = data[pd.notna(data[column])]
         if not valid_data.empty:
+            text_values = []
+            text_positions = []
+
+            for idx, row in valid_data.iterrows():
+                value = int(row[column])
+                text_values.append(f"{value:,}")
+
+                # Simple alternating pattern between top and bottom
+                if idx % 2 == 0:
+                    text_positions.append("top center")
+                else:
+                    text_positions.append("bottom center")
+
             fig.add_trace(
                 go.Scatter(
                     x=valid_data[column].astype(float),
@@ -292,8 +370,8 @@ class WeaponsStocksServer:
                     mode="markers+text",
                     name=name,
                     marker=dict(symbol="circle", size=self.PLOT_CONFIG["marker_sizes"]["ukrainian"], color=color, line=dict(color="white", width=1)),
-                    text=valid_data[column].apply(lambda x: f"{int(x):,}"),
-                    textposition="top center",
+                    text=text_values,
+                    textposition=text_positions,
                     textfont=dict(size=self.PLOT_CONFIG["text_size"]),
                     hovertemplate=f"{name}: %{{x:,.0f}}<extra></extra>",
                 )

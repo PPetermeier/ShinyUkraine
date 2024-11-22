@@ -9,10 +9,10 @@ from typing import Any
 
 from .pages.d_countrywise import country_aid_page_ui
 from .pages.b_map import map_page_ui
-from .pages.timeseries import time_series_page_ui
-from .pages.financial import financial_page_ui
-from .pages.weapons import weapons_page_ui
-from .pages.comparisons import comparisons_page_ui
+from .pages.c_timeseries import time_series_page_ui
+from .pages.e_financial import financial_page_ui
+from .pages.f_weapons import weapons_page_ui
+from .pages.g_comparisons import comparisons_page_ui
 from .pages.a_landing import landing_page_ui
 
 
