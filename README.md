@@ -37,8 +37,14 @@ uv venv
 source .venv/bin/activate  # Linux/Mac
 .venv\Scripts\activate     # Windows
 
-# Install dependencies
-uv pip install -r requirements.txt
+# Install dependencies (production)
+uv sync
+
+# Install with development dependencies
+uv sync --extra dev
+
+# Install all optional dependencies
+uv sync --all-extras
 ```
 
 ### 2. Database Setup
@@ -285,6 +291,140 @@ Common issues and solutions:
    - Implement data pagination
    - Optimize query performance
    - Increase server resources
+
+## For Economists: Software Engineering Practices in Research
+
+This project demonstrates several software engineering practices that can significantly improve economic research workflows. This section explains these practices and their benefits for economists interested in applying similar approaches.
+
+### 1. Separation of Concerns and Modular Architecture
+
+**What it is:** The project separates data processing (`Code/DataPipeline/`) from visualization (`Code/Shiny/`) and configuration from implementation.
+
+**Why it matters for economists:**
+- **Reproducibility:** Each component can be updated independently without breaking others
+- **Collaboration:** Multiple researchers can work on different parts simultaneously
+- **Maintenance:** Easier to fix bugs or update methods in isolated components
+
+**Implementation example:** See `Code/DataPipeline/pipeline_config.yaml:1-50` for configuration-driven ETL that allows economists to modify data processing without touching code.
+
+### 2. Configuration-Driven Development
+
+**What it is:** Critical parameters and settings are externalized to configuration files (YAML, TOML) rather than hardcoded in scripts.
+
+**Benefits for research:**
+- **Parameter sweeps:** Easy to test different assumptions or methodologies
+- **Documentation:** Configuration files serve as explicit documentation of research choices
+- **Replication:** Other researchers can replicate exactly by using the same config
+
+**Key files:**
+- `Code/DataPipeline/pipeline_config.yaml` - Data processing parameters
+- `pyproject.toml:124-234` - Project dependencies and tool configurations
+
+### 3. Dependency Management and Virtual Environments
+
+**What it is:** Using tools like `uv` and `pyproject.toml` to explicitly track all software dependencies and versions.
+
+**Critical for economics research:**
+- **Replication crisis mitigation:** Exact package versions ensure identical computational environments
+- **Collaboration:** Team members get identical software setups
+- **Long-term preservation:** Future researchers can recreate the exact environment
+
+**Implementation:** The `pyproject.toml:26-67` specifies exact dependency versions, while `uv` provides fast, deterministic environment creation.
+
+### 4. Extract-Transform-Load (ETL) Pipeline Design
+
+**What it is:** Structured approach to data processing with clear stages: extraction from sources, transformation/cleaning, and loading into analysis-ready formats.
+
+**Value for economists:**
+- **Transparency:** Each data transformation step is explicit and auditable
+- **Efficiency:** Incremental updates when new data arrives
+- **Quality assurance:** Built-in validation at each stage
+
+**Implementation:** See `Code/DataPipeline/ETL.py:1-200` for a comprehensive ETL implementation with monitoring and validation.
+
+### 5. Version Control with Git
+
+**What it is:** Systematic tracking of all changes to code, data configurations, and documentation.
+
+**Research benefits:**
+- **Experiment tracking:** Each research iteration is preserved
+- **Collaboration:** Multiple researchers can contribute without conflicts
+- **Paper trail:** Complete history of methodological decisions
+
+**Best practices demonstrated:**
+- Atomic commits with descriptive messages
+- Branching for experimental features
+- `.gitignore` to exclude temporary and sensitive files
+
+### 6. Documentation as Code
+
+**What it is:** Documentation written in markdown and maintained alongside code, ensuring it stays current.
+
+**Why it's essential:**
+- **Onboarding:** New team members or reviewers can quickly understand the project
+- **Methods section:** README serves as a draft for paper methodology
+- **Future self:** You'll thank yourself for documenting complex decisions
+
+**Examples:**
+- This README provides comprehensive setup and usage instructions
+- `Code/DataPipeline/pipeline-readme.md` documents ETL-specific processes
+- Inline code documentation follows consistent standards
+
+### 7. Testing and Validation
+
+**What it is:** Automated checks to ensure code correctness and data quality.
+
+**Research applications:**
+- **Data validation:** Ensure datasets meet expected properties
+- **Method verification:** Confirm statistical procedures work correctly
+- **Regression testing:** Prevent bugs when updating code
+
+**Implementation notes:**
+- `Code/DataPipeline/pipeline_validation.py` provides data quality checks
+- `pyproject.toml:206-219` configures testing frameworks
+- Pre-commit hooks (`.pre-commit-config.yaml`) ensure code quality
+
+### 8. Package and Environment Management
+
+**What it is:** Treating research code as a proper software package with clear dependencies and installation procedures.
+
+**Advantages:**
+- **Distribution:** Easy sharing with colleagues or journal reviewers
+- **Installation:** Simple setup on new machines or cloud platforms
+- **Professionalism:** Demonstrates software engineering competency to non-economists
+
+**Key concepts:**
+- `pyproject.toml` defines the project as an installable package
+- Optional dependencies (`[dev]`, `[jupyter]`) for different use cases
+- Entry points for command-line tools
+
+### 9. Continuous Integration Concepts
+
+**What it is:** Automated testing and validation whenever code changes.
+
+**Research value:**
+- **Quality assurance:** Catch errors before they affect results
+- **Confidence:** Know that changes don't break existing functionality
+- **Standards:** Enforce coding standards across team members
+
+**Setup:** Pre-commit hooks and ruff configuration ensure consistent code quality.
+
+### Getting Started with These Practices
+
+For economists interested in adopting these practices:
+
+1. **Start small:** Begin with configuration files for your main parameters
+2. **Use version control:** Start tracking your code with Git immediately
+3. **Document everything:** Write clear README files for your projects
+4. **Modularize:** Separate data processing from analysis scripts
+5. **Specify dependencies:** Use requirements.txt or pyproject.toml
+
+### Recommended Learning Resources
+
+- **Git for economists:** [Software Carpentry Git Tutorial](https://swcarpentry.github.io/git-novice/)
+- **Python packaging:** [Python Packaging Authority Guide](https://packaging.python.org/)
+- **Project structure:** [Cookiecutter Data Science](https://drivendata.github.io/cookiecutter-data-science/)
+- **Configuration management:** [Hydra framework](https://hydra.cc/) for complex parameter management
 
 ## Contributing
 

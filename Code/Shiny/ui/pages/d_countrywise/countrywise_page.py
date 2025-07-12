@@ -6,7 +6,7 @@ and commitment ratios. It provides both the page layout and server-side coordina
 for these components.
 """
 
-from typing import Any, List, Type
+from typing import Any
 
 from shiny import ui
 
@@ -23,7 +23,7 @@ class CountryAidPageLayout:
     """
 
     # Define the cards and their order
-    CARD_COMPONENTS: List[Type[Any]] = [
+    CARD_COMPONENTS: list[type[Any]] = [
         CountryAidCard,
         GDPAllocationsCard,
         CommittmentRatioCard,

@@ -4,16 +4,17 @@ This module defines the main navigation structure and page organization
 for the Ukraine Support Tracker Shiny application.
 """
 
-from shiny import ui
 from typing import Any
 
-from .pages.d_countrywise import country_aid_page_ui
+from shiny import ui
+
+from .pages.a_landing import landing_page_ui
 from .pages.b_map import map_page_ui
 from .pages.c_timeseries import time_series_page_ui
+from .pages.d_countrywise import country_aid_page_ui
 from .pages.e_financial import financial_page_ui
 from .pages.f_weapons import weapons_page_ui
 from .pages.g_comparisons import comparisons_page_ui
-from .pages.a_landing import landing_page_ui
 
 
 def get_main_ui() -> Any:  # Using Any since Shiny's return type isn't easily typed

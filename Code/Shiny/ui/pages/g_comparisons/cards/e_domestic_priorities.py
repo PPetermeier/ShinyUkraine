@@ -5,7 +5,7 @@ that compare different types of European support, including crisis responses,
 domestic support vs Ukraine aid, and German spending programs.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, COMPARISONS_MARGIN, LAST_UPDATE
@@ -33,7 +33,6 @@ class DomesticPrioritiesCard:
         Returns:
             ui.div: A Shiny div containing the visualization cards.
         """
-
         return ui.div(
             ui.div(
                 {"class": "text-center mb-4"},
@@ -107,7 +106,7 @@ class DomesticPrioritiesServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Any] = {
+    PLOT_CONFIG: dict[str, Any] = {
         "height": 550,
         "title_font_size": 14,
         "subtitle_font_size": 12,
@@ -165,7 +164,7 @@ class DomesticPrioritiesServer:
         self._update_german_layout(fig)
         return fig
 
-    def _prepare_german_data(self) -> List[Dict[str, Any]]:
+    def _prepare_german_data(self) -> list[dict[str, Any]]:
         """Prepare German spending data for visualization.
 
         Returns:
@@ -190,7 +189,9 @@ class DomesticPrioritiesServer:
         fig = go.Figure()
 
         for commitment, value in zip(
-            self.crisis_data["commitments"], self.crisis_data["total_support__billion"]
+            self.crisis_data["commitments"],
+            self.crisis_data["total_support__billion"],
+            strict=False,
         ):
             fig.add_trace(self._create_crisis_trace(commitment, value))
 
@@ -211,7 +212,7 @@ class DomesticPrioritiesServer:
 
         return fig
 
-    def _get_domestic_display_config(self) -> Dict[str, Any]:
+    def _get_domestic_display_config(self) -> dict[str, Any]:
         """Get display configuration for domestic support visualization.
 
         Returns:
@@ -233,7 +234,7 @@ class DomesticPrioritiesServer:
             "ukraine_values": self.domestic_data["ukraine_gdp"].tolist(),
         }
 
-    def _create_base_layout(self, title: str, sheet: str) -> Dict[str, Any]:
+    def _create_base_layout(self, title: str, sheet: str) -> dict[str, Any]:
         """Create base layout configuration for all plots.
 
         Args:
@@ -263,7 +264,7 @@ class DomesticPrioritiesServer:
             "hovermode": "y unified",
         }
 
-    def _create_german_spending_trace(self, program: Dict[str, Any]) -> go.Bar:
+    def _create_german_spending_trace(self, program: dict[str, Any]) -> go.Bar:
         """Create a trace for German spending visualization.
 
         Args:
@@ -329,7 +330,7 @@ class DomesticPrioritiesServer:
         fig.update_layout(**base_layout)
 
     def _add_domestic_traces(
-        self, fig: go.Figure, display_config: Dict[str, Any]
+        self, fig: go.Figure, display_config: dict[str, Any]
     ) -> None:
         """Add traces for domestic support visualization.
 
@@ -356,6 +357,7 @@ class DomesticPrioritiesServer:
                     zip(
                         display_config["fiscal_values"],
                         display_config["ukraine_values"],
+                        strict=False,
                     )
                 ),
                 hovertemplate=(
@@ -383,6 +385,7 @@ class DomesticPrioritiesServer:
                     zip(
                         display_config["fiscal_values"],
                         display_config["ukraine_values"],
+                        strict=False,
                     )
                 ),
                 hovertemplate=(

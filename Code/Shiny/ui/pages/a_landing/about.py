@@ -1,7 +1,8 @@
 import os
-from shiny import Session, ui
-from config import LAST_UPDATE
 from typing import Any
+
+from config import LAST_UPDATE
+from shiny import Session, ui
 
 
 def landing_page_ui() -> ui.page_fillable:
@@ -13,7 +14,7 @@ def landing_page_ui() -> ui.page_fillable:
     # Read the markdown content from file
     current_dir = os.path.dirname(os.path.abspath(__file__))
     markdown_path = os.path.join(current_dir, "about.md")
-    with open(markdown_path, "r", encoding="utf-8") as f:
+    with open(markdown_path, encoding="utf-8") as f:
         about_content = f.read()
 
     # Replace the placeholder using format

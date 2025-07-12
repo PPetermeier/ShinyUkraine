@@ -1,7 +1,5 @@
-"""
-Export the main page components.
-"""
+"""Export the main page components."""
 
-from .weapons_page import weapons_page_ui, WeaponsPageServer
+from .weapons_page import WeaponsPageServer, weapons_page_ui
 
 __all__ = ["weapons_page_ui", "WeaponsPageServer"]

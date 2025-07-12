@@ -5,7 +5,7 @@ that compares historical US military expenditure across major conflicts with cur
 Ukraine support, showing both absolute values and GDP share comparisons.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -69,7 +69,7 @@ class ColdWarServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Any] = {
+    PLOT_CONFIG: dict[str, Any] = {
         "height": 700,
         "title_font_size": 16,
         "subtitle_font_size": 12,

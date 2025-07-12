@@ -5,7 +5,7 @@ that compares military support values between WW2 Lend-Lease programs and curren
 Ukraine support, showing both absolute values and GDP share comparisons.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -71,7 +71,7 @@ class WW2UkraineComparisonServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Any] = {
+    PLOT_CONFIG: dict[str, Any] = {
         "height": 700,
         "legend_mapping": {
             "US support to UK": "WW2 US to UK",
@@ -176,11 +176,11 @@ class WW2UkraineComparisonServer:
 
     def _create_bar_trace(
         self,
-        x_values: List[float],
-        y_values: List[str],
+        x_values: list[float],
+        y_values: list[str],
         legend_name: str,
-        text_values: List[str],
-        customdata: List[List[Optional[float]]],
+        text_values: list[str],
+        customdata: list[list[float | None]],
     ) -> go.Bar:
         """Create a bar trace for the visualization.
 

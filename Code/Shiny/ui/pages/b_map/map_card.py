@@ -5,8 +5,6 @@ visualization that shows bilateral support either as total values or as percenta
 with configurable support types and display modes.
 """
 
-from typing import Dict, List
-
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE
@@ -23,7 +21,7 @@ class MapCard:
     the geographical visualization of support data.
     """
 
-    DISPLAY_MODES: Dict[str, str] = {
+    DISPLAY_MODES: dict[str, str] = {
         "gdp": "As % of GDP",
         "total": "Total Value (Billion €)",
     }
@@ -78,7 +76,7 @@ class MapCardServer:
     """
 
     # Define display mode configurations
-    DISPLAY_CONFIGS: Dict[str, Dict[str, str]] = {
+    DISPLAY_CONFIGS: dict[str, dict[str, str]] = {
         "gdp": {
             "value_column": "pct_gdp",
             "colorbar_title": "% of GDP",
@@ -94,7 +92,7 @@ class MapCardServer:
     }
 
     # Define map style configurations
-    MAP_STYLE: Dict = {
+    MAP_STYLE: dict = {
         "geo": {
             "showframe": False,
             "showcoastlines": True,
@@ -131,7 +129,7 @@ class MapCardServer:
         self.session = session
         self._filtered_data = reactive.Calc(self._compute_filtered_data)
 
-    def _get_color_scale(self, selected_types: List[str]) -> List[List]:
+    def _get_color_scale(self, selected_types: list[str]) -> list[list]:
         """Get color scale based on selected aid types.
 
         Args:

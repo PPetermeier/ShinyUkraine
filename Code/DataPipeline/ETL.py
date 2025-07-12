@@ -1,5 +1,4 @@
-"""
-ETL pipeline for the Ukraine Support Tracker application.
+"""ETL pipeline for the Ukraine Support Tracker application.
 
 This module handles the extraction, transformation and loading of data from Excel
 files into a DuckDB database. It includes functionality for:
@@ -15,7 +14,7 @@ transformation rules, and loading destinations for each data sheet.
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import duckdb
 import pandas as pd
@@ -53,14 +52,14 @@ class TransformationConfig:
     """Configuration for data transformations."""
 
     clean_column_names: bool = False
-    columnnames: Optional[Dict[str, str]] = None
-    datetime: Optional[Dict[str, str]] = None
-    datatypes: Optional[Dict[str, Any]] = None
-    reshape: Optional[Dict[str, Any]] = None
-    replace_values: Optional[Dict[str, Dict[Any, Any]]] = None
-    forward_fill_column: Optional[str] = None
+    columnnames: dict[str, str] | None = None
+    datetime: dict[str, str] | None = None
+    datatypes: dict[str, Any] | None = None
+    reshape: dict[str, Any] | None = None
+    replace_values: dict[str, dict[Any, Any]] | None = None
+    forward_fill_column: str | None = None
     entry_correction: bool = False
-    add_columns: Optional[Dict[str, Dict[str, str]]] = None
+    add_columns: dict[str, dict[str, str]] | None = None
 
 
 @dataclass
@@ -76,12 +75,11 @@ class ETLPipeline:
     def __init__(
         self,
         database: duckdb.DuckDBPyConnection,
-        excel_path: Union[str, Path],
-        config_path: Union[str, Path],
-        country_categories_path: Union[str, Path],
+        excel_path: str | Path,
+        config_path: str | Path,
+        country_categories_path: str | Path,
     ):
-        """
-        Initialize ETL pipeline.
+        """Initialize ETL pipeline.
 
         Args:
             database: DuckDB connection
@@ -116,8 +114,7 @@ class ETLPipeline:
         )
 
     def _create_country_lookup(self) -> DataFrame:
-        """
-        Create country lookup DataFrame with categories and ISO codes.
+        """Create country lookup DataFrame with categories and ISO codes.
 
         Returns:
             DataFrame with country information and category flags
@@ -158,9 +155,8 @@ class ETLPipeline:
 
         return lookup_df
 
-    def _extract(self, config: Dict[str, Any]) -> DataFrame:
-        """
-        Extract data from Excel sheet according to configuration.
+    def _extract(self, config: dict[str, Any]) -> DataFrame:
+        """Extract data from Excel sheet according to configuration.
 
         Args:
             config: Extraction configuration dictionary
@@ -195,9 +191,8 @@ class ETLPipeline:
 
         return data
 
-    def _transform(self, data: DataFrame, config: Dict[str, Any]) -> DataFrame:
-        """
-        Apply transformations to DataFrame according to configuration.
+    def _transform(self, data: DataFrame, config: dict[str, Any]) -> DataFrame:
+        """Apply transformations to DataFrame according to configuration.
 
         Args:
             data: Input DataFrame
@@ -226,9 +221,8 @@ class ETLPipeline:
 
         return data
 
-    def _load(self, data: DataFrame, config: Dict[str, str]) -> None:
-        """
-        Load DataFrame into database table.
+    def _load(self, data: DataFrame, config: dict[str, str]) -> None:
+        """Load DataFrame into database table.
 
         Args:
             data: DataFrame to load
@@ -241,9 +235,8 @@ class ETLPipeline:
         )
 
     @staticmethod
-    def _load_config(path: Path) -> Dict[str, Any]:
-        """
-        Load YAML configuration file.
+    def _load_config(path: Path) -> dict[str, Any]:
+        """Load YAML configuration file.
 
         Args:
             path: Path to YAML file
@@ -251,7 +244,7 @@ class ETLPipeline:
         Returns:
             Configuration dictionary
         """
-        with open(path, "r", encoding="utf-8") as file:
+        with open(path, encoding="utf-8") as file:
             return yaml.safe_load(file)
 
     def _apply_value_replacements(

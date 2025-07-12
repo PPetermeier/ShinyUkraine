@@ -1,6 +1,4 @@
-"""
-Standardized database query definitions.
-"""
+"""Standardized database query definitions."""
 
 # Keep existing column definitions
 TOTAL_SUPPORT_COLUMNS = [

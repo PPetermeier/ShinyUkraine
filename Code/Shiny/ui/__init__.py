@@ -1,6 +1,4 @@
-"""
-Makes the UI directory a Python package and exposes the main UI builder.
-"""
+"""Makes the UI directory a Python package and exposes the main UI builder."""
 
 from .main import get_main_ui
 

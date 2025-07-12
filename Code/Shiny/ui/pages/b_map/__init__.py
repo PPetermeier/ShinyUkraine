@@ -1,6 +1,4 @@
-"""
-Landing page module initialization.
-"""
+"""Landing page module initialization."""
 
 from .map_page import MapPageServer, map_page_ui
 

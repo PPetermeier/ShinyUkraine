@@ -10,6 +10,7 @@ Russia's invasion in February 2022.
 """
 
 from typing import Any
+
 from shiny import Session, ui
 
 from .map_card import MapCard, MapCardServer

@@ -7,7 +7,7 @@ including WW2 equipment comparisons, Cold War values, Gulf War comparisons, and
 domestic priorities.
 """
 
-from typing import Any, List, Type
+from typing import Any
 
 from shiny import ui
 
@@ -29,7 +29,7 @@ class ComparisonsPageLayout:
     """
 
     # Define the cards and their order
-    CARD_COMPONENTS: List[Type[Any]] = [
+    CARD_COMPONENTS: list[type[Any]] = [
         WW2EquipmentComparisonCard,
         WW2UkraineComparisonCard,
         ColdWarCard,

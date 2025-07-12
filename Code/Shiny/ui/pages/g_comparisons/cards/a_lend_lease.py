@@ -6,16 +6,17 @@ WW2 Lend-Lease and current support for Ukraine. It shows both delivered and plan
 equipment transfers across different categories (heavy equipment, artillery, air).
 """
 
-from typing import Any, Dict, List
+from typing import Any
+
 import pandas as pd
 import plotly.graph_objects as go
+from config import COLOR_PALETTE, LAST_UPDATE
 from plotly.subplots import make_subplots
+from server import WW2_CONFLICTS, WW2_EQUIPMENT_CATEGORIZED_QUERY, load_data_from_table
 from shiny import ui
 from shinywidgets import output_widget, render_widget
 
 from ....colorutilities import desaturate_color
-from config import COLOR_PALETTE, LAST_UPDATE
-from server import WW2_CONFLICTS, WW2_EQUIPMENT_CATEGORIZED_QUERY, load_data_from_table
 
 
 class WW2EquipmentComparisonCard:
@@ -70,7 +71,7 @@ class WW2EquipmentComparisonServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Any] = {
+    PLOT_CONFIG: dict[str, Any] = {
         "height": 700,
         "margin": dict(t=180, l=50, r=50, b=50),
         "subplot_titles": {
@@ -153,7 +154,7 @@ class WW2EquipmentComparisonServer:
         """
         return make_subplots(rows=1, cols=3, horizontal_spacing=0.05)
 
-    def _get_value_formatting(self) -> Dict[str, str]:
+    def _get_value_formatting(self) -> dict[str, str]:
         """Get formatting configuration based on view type.
 
         Returns:
@@ -203,7 +204,7 @@ class WW2EquipmentComparisonServer:
         fig: go.Figure,
         category_data: pd.DataFrame,
         col: int,
-        formatting: Dict[str, str],
+        formatting: dict[str, str],
     ) -> None:
         """Add traces for a specific category to the figure.
 
@@ -243,8 +244,8 @@ class WW2EquipmentComparisonServer:
                 )
 
     def _get_trace_values(
-        self, conflict_data: pd.DataFrame, formatting: Dict[str, str]
-    ) -> Dict[str, Any]:
+        self, conflict_data: pd.DataFrame, formatting: dict[str, str]
+    ) -> dict[str, Any]:
         """Get values for creating traces.
 
         Args:
@@ -267,8 +268,8 @@ class WW2EquipmentComparisonServer:
     def _create_delivered_trace(
         self,
         conflict: str,
-        values: Dict[str, Any],
-        formatting: Dict[str, str],
+        values: dict[str, Any],
+        formatting: dict[str, str],
         show_legend: bool,
     ) -> go.Bar:
         """Create a trace for delivered equipment.
@@ -291,7 +292,8 @@ class WW2EquipmentComparisonServer:
             legendgroup=conflict,
             showlegend=show_legend,
             customdata=[
-                [d, t] for d, t in zip(values["delivered"], values["to_deliver"])
+                [d, t]
+                for d, t in zip(values["delivered"], values["to_deliver"], strict=False)
             ],
             hovertemplate=(
                 f"%{{y}}<br>"
@@ -310,7 +312,7 @@ class WW2EquipmentComparisonServer:
         )
 
     def _create_planned_trace(
-        self, conflict: str, values: Dict[str, Any], formatting: Dict[str, str]
+        self, conflict: str, values: dict[str, Any], formatting: dict[str, str]
     ) -> go.Bar:
         """Create a trace for planned equipment deliveries.
 
@@ -377,7 +379,7 @@ class WW2EquipmentComparisonServer:
 
         self._update_subplot_axes(fig)
 
-    def _create_title_dict(self) -> Dict[str, Any]:
+    def _create_title_dict(self) -> dict[str, Any]:
         """Create the title configuration dictionary.
 
         Returns:
@@ -398,7 +400,7 @@ class WW2EquipmentComparisonServer:
             font=dict(size=16),
         )
 
-    def _create_subplot_annotations(self) -> List[Dict[str, Any]]:
+    def _create_subplot_annotations(self) -> list[dict[str, Any]]:
         """Create annotations for subplot titles.
 
         Returns:
@@ -417,6 +419,7 @@ class WW2EquipmentComparisonServer:
             for (title, (x_pos, _)) in zip(
                 self.PLOT_CONFIG["subplot_titles"].values(),
                 self.PLOT_CONFIG["subplot_positions"].values(),
+                strict=False,
             )
         ]
 

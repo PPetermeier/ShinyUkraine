@@ -5,8 +5,7 @@ that compares military expenditure during the Gulf War (1990/91) with current ai
 to Ukraine, showing both absolute values and GDP share comparisons.
 """
 
-from typing import Any, Dict
-
+from typing import Any
 
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, COMPARISONS_MARGIN, LAST_UPDATE
@@ -71,7 +70,7 @@ class GulfWarServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Any] = {
+    PLOT_CONFIG: dict[str, Any] = {
         "height": 700,
         "title_font_size": 16,
         "subtitle_font_size": 12,
@@ -102,7 +101,7 @@ class GulfWarServer:
         self.session = session
         self.comparison_data = load_data_from_table(GULF_WAR_COMPARISON_QUERY)
 
-    def _get_display_config(self) -> Dict[str, str]:
+    def _get_display_config(self) -> dict[str, str]:
         """Get display configuration based on view type.
 
         Returns:
@@ -151,7 +150,7 @@ class GulfWarServer:
         return fig
 
     def _create_bar_trace(
-        self, trace_config: Dict[str, Any], value_suffix: str
+        self, trace_config: dict[str, Any], value_suffix: str
     ) -> go.Bar:
         """Create a bar trace for the visualization.
 

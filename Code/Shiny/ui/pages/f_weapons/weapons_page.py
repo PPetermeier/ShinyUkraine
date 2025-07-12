@@ -11,14 +11,14 @@ The module maintains a clear separation between layout management and server-sid
 coordination while providing a consistent interface for all visualization components.
 """
 
-from typing import Dict, List, Type, Any
+from typing import Any
 
 from shiny import Session, ui
 
+from .cards.a_weapons_stocks import WeaponsStocksCard, WeaponsStocksServer
 from .cards.b_heavy_weapons import HeavyWeaponsCard, HeavyWeaponsServer
 from .cards.c_pledge_stock_ratio import PledgeStockCard, PledgeStockServer
 from .cards.d_pledges_weapon_types import WeaponTypesCard, WeaponTypesServer
-from .cards.a_weapons_stocks import WeaponsStocksCard, WeaponsStocksServer
 
 
 class WeaponsPageLayout:
@@ -33,7 +33,7 @@ class WeaponsPageLayout:
             on the page.
     """
 
-    CARD_COMPONENTS: List[Type[ui.Tag]] = [
+    CARD_COMPONENTS: list[type[ui.Tag]] = [
         WeaponsStocksCard,
         HeavyWeaponsCard,
         PledgeStockCard,
@@ -62,7 +62,7 @@ class WeaponsPageLayout:
         )
 
 
-def _create_card_section(card_component: Type[ui.Tag]) -> ui.Tag:
+def _create_card_section(card_component: type[ui.Tag]) -> ui.Tag:
     """Create a section for a single visualization card.
 
     Args:
@@ -106,7 +106,7 @@ class WeaponsPageServer:
         self.session = session
 
         # Initialize all card servers with consistent naming
-        self.servers: Dict[str, Any] = {
+        self.servers: dict[str, Any] = {
             "weapons_stocks": WeaponsStocksServer(input, output, session),
             "heavy_weapons": HeavyWeaponsServer(input, output, session),
             "pledge_stock": PledgeStockServer(input, output, session),

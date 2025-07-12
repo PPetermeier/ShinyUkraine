@@ -13,10 +13,9 @@ from typing import Any
 
 from shiny import Session, ui
 
-
 from .cards.a_aid_allocation import AidAllocationCard, AidAllocationServer
-from .cards.c_aid_types import AidTypesCard, AidTypesServer
 from .cards.b_total_support import TotalSupportCard, TotalSupportServer
+from .cards.c_aid_types import AidTypesCard, AidTypesServer
 
 
 def time_series_page_ui() -> ui.page_fillable:

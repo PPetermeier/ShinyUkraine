@@ -5,8 +5,6 @@ that breaks down different types of aid (financial, humanitarian, military, refu
 provided by each donor country.
 """
 
-from typing import Dict, List
-
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
@@ -77,7 +75,7 @@ class CountryAidServer:
     """
 
     # Define aid type configurations as a class constant
-    AID_TYPES: Dict[str, Dict[str, str]] = {
+    AID_TYPES: dict[str, dict[str, str]] = {
         "financial": {"color": "financial", "name": "Financial"},
         "humanitarian": {"color": "humanitarian", "name": "Humanitarian"},
         "military": {"color": "military", "name": "Military"},
@@ -167,7 +165,7 @@ class CountryAidServer:
         return fig
 
     def _create_bar_trace(
-        self, countries: List[str], values: List[float], name: str, color: str
+        self, countries: list[str], values: list[float], name: str, color: str
     ) -> go.Bar:
         """Create a bar trace for the stacked bar chart.
 

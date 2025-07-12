@@ -5,7 +5,7 @@ to financial aid data, including breakdowns by type and budget support. It provi
 both the page layout and server-side coordination for these components.
 """
 
-from typing import Any, List, Type
+from typing import Any
 
 from shiny import ui
 
@@ -21,7 +21,7 @@ class FinancialPageLayout:
     """
 
     # Define the cards and their order
-    CARD_COMPONENTS: List[Type[Any]] = [FinancialByTypeCard, BudgetSupportCard]
+    CARD_COMPONENTS: list[type[Any]] = [FinancialByTypeCard, BudgetSupportCard]
 
     @staticmethod
     def create_ui() -> ui.page_fillable:

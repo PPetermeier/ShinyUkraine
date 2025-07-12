@@ -6,18 +6,17 @@ and color palettes for different types of visualizations.
 """
 
 import os
-from typing import Dict
 
 # Database configuration
 DB_PATH: str = os.path.join(os.getcwd(), "Data", "ukrainesupporttracker.db")
 
 # Plot configuration
 LAST_UPDATE: str = "2024/08/31"
-MARGIN: Dict[str, int] = dict(l=20, r=20, t=80, b=20)
-COMPARISONS_MARGIN: Dict[str, int] = dict(t=200, l=50, r=50, b=50)
+MARGIN: dict[str, int] = dict(l=20, r=20, t=80, b=20)
+COMPARISONS_MARGIN: dict[str, int] = dict(t=200, l=50, r=50, b=50)
 
 # Color palette configuration
-ColorType = Dict[str, str]
+ColorType = dict[str, str]
 
 # Color palette organized by visualization category
 TIMESERIES_COLORS: ColorType = {

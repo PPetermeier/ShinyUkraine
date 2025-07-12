@@ -5,7 +5,6 @@ creating visual variations of existing colors in visualizations.
 """
 
 import colorsys
-from typing import Tuple
 
 
 def desaturate_color(hex_color: str, factor: float = 0.75) -> str:
@@ -31,11 +30,13 @@ def desaturate_color(hex_color: str, factor: float = 0.75) -> str:
     hex_color = hex_color.lstrip("#")
 
     # Convert hex to RGB (0-1 range)
-    rgb: Tuple[float, float, float] = tuple(int(hex_color[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
+    rgb: tuple[float, float, float] = tuple(
+        int(hex_color[i : i + 2], 16) / 255.0 for i in (0, 2, 4)
+    )
 
     # Convert RGB to HSL, adjust lightness, convert back to RGB
     h_color, l_color, s_color = colorsys.rgb_to_hls(*rgb)
     rgb_desat = colorsys.hls_to_rgb(h_color, min(1, l_color * (1 + factor)), s_color)
 
     # Convert back to hex format
-    return "#{:02x}{:02x}{:02x}".format(int(rgb_desat[0] * 255), int(rgb_desat[1] * 255), int(rgb_desat[2] * 255))
+    return f"#{int(rgb_desat[0] * 255):02x}{int(rgb_desat[1] * 255):02x}{int(rgb_desat[2] * 255):02x}"

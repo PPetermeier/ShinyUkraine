@@ -6,7 +6,7 @@ pre-war levels. It includes both UI components and server-side logic for data
 processing and visualization using a dot plot with connecting lines.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -65,7 +65,7 @@ class WeaponsStocksServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Any] = {
+    PLOT_CONFIG: dict[str, Any] = {
         "min_height": 400,
         "height_per_equipment": 120,
         "marker_sizes": {"russian": 20, "ukrainian": 16},
@@ -74,7 +74,7 @@ class WeaponsStocksServer:
     }
 
     # Equipment type mapping
-    EQUIPMENT_MAPPING: Dict[str, str] = {
+    EQUIPMENT_MAPPING: dict[str, str] = {
         "mlrs": "Multiple Launch Rocket Systems",
         "ifvs": "IFVs",
         "howitzer155mm": "Howitzer (155/152mm)",
@@ -96,7 +96,7 @@ class WeaponsStocksServer:
 
     def _get_safe_value(
         self, data: pd.DataFrame, condition: pd.Series, column: str
-    ) -> Optional[float]:
+    ) -> float | None:
         """Safely extract a numeric value from a DataFrame.
 
         Args:

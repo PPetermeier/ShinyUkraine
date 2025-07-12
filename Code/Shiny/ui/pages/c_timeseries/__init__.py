@@ -1,7 +1,5 @@
-"""
-Export the main page components.
-"""
+"""Export the main page components."""
 
-from .timeseries_page import time_series_page_ui, TimeSeriesPageServer
+from .timeseries_page import TimeSeriesPageServer, time_series_page_ui
 
 __all__ = ["time_series_page_ui", "TimeSeriesPageServer"]

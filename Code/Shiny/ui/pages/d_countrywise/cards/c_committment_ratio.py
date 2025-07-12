@@ -4,10 +4,8 @@ This module provides components for creating and managing an interactive visuali
 that compares allocated aid against committed aid across different countries.
 """
 
-from typing import Dict, List
-
-import plotly.graph_objects as go
 import pandas as pd
+import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
 from server import load_data_from_table
 from shiny import reactive, ui
@@ -173,7 +171,7 @@ class CommittmentRatioServer:
 
         return fig
 
-    def _prepare_country_data(self, data: pd.DataFrame, show_percentage: bool) -> Dict:
+    def _prepare_country_data(self, data: pd.DataFrame, show_percentage: bool) -> dict:
         """Prepare country-specific data for plotting.
 
         Args:
@@ -200,7 +198,7 @@ class CommittmentRatioServer:
         return country_data
 
     def _create_stacked_bar_chart(
-        self, country_data: Dict, show_percentage: bool, reverse_sort: bool, height: int
+        self, country_data: dict, show_percentage: bool, reverse_sort: bool, height: int
     ) -> go.Figure:
         """Create a stacked bar chart visualization.
 
@@ -265,8 +263,8 @@ class CommittmentRatioServer:
 
     def _create_bar_trace(
         self,
-        countries: List[str],
-        values: List[float],
+        countries: list[str],
+        values: list[float],
         name: str,
         color: str,
         hover_suffix: str,

@@ -5,8 +5,6 @@ that compares allocated budget support against actual disbursements for differen
 donor countries supporting Ukraine.
 """
 
-from typing import Dict, List
-
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
@@ -80,7 +78,7 @@ class BudgetSupportServer:
     """
 
     # Define support types and their properties
-    SUPPORT_TYPES: Dict[str, Dict[str, str]] = {
+    SUPPORT_TYPES: dict[str, dict[str, str]] = {
         "disbursements": {
             "name": "Disbursements",
             "color": "financial_disbursements",
@@ -172,8 +170,8 @@ class BudgetSupportServer:
 
     def _create_bar_trace(
         self,
-        countries: List[str],
-        values: List[float],
+        countries: list[str],
+        values: list[float],
         name: str,
         color: str,
         hover_template: str,

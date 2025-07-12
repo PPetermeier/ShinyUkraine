@@ -1,6 +1,4 @@
-"""
-Database connection and query functions.
-"""
+"""Database connection and query functions."""
 
 import duckdb
 from config import DB_PATH
@@ -20,7 +18,9 @@ def get_db_connection():
     return duckdb.connect(str(DB_PATH), read_only=True)
 
 
-def load_data_from_table(table_name_or_query: str, columns=None, where_clause=None, order_by=None):
+def load_data_from_table(
+    table_name_or_query: str, columns=None, where_clause=None, order_by=None
+):
     """Load data from table or execute query."""
     conn = get_db_connection()
     try:
@@ -46,8 +46,7 @@ def load_data_from_table(table_name_or_query: str, columns=None, where_clause=No
 
 
 def load_time_series_data(columns=None):
-    """
-    Load time series data from database.
+    """Load time series data from database.
 
     Args:
         columns (list, optional): List of column names to fetch. If None, fetches all columns.
@@ -65,12 +64,13 @@ def load_time_series_data(columns=None):
     if "month" not in columns:
         columns.insert(0, "month")
 
-    return load_data_from_table(table_name_or_query=TIME_SERIES_TABLE, columns=columns, order_by="month")
+    return load_data_from_table(
+        table_name_or_query=TIME_SERIES_TABLE, columns=columns, order_by="month"
+    )
 
 
 def load_country_data(columns=None):
-    """
-    Load country-level aid data from database.
+    """Load country-level aid data from database.
 
     Args:
         columns (list, optional): List of column names to fetch. If None, fetches default columns.
@@ -93,8 +93,7 @@ def load_country_data(columns=None):
 
 
 def load_weapon_stocks_data():
-    """
-    Load weapon stocks comparison data from database.
+    """Load weapon stocks comparison data from database.
 
     Returns:
         pandas.DataFrame: Weapon stocks data with countries, equipment types,

@@ -1,10 +1,8 @@
-"""
-Export card components.
-"""
+"""Export card components."""
 
+from .a_aid_allocation import AidAllocationCard, AidAllocationServer
 from .b_total_support import TotalSupportCard, TotalSupportServer
 from .c_aid_types import AidTypesCard, AidTypesServer
-from .a_aid_allocation import AidAllocationCard, AidAllocationServer
 
 __all__ = [
     "TotalSupportCard",

@@ -5,8 +5,6 @@ that breaks down different types of financial aid (loans, grants, guarantees, sw
 provided by donor countries to Ukraine.
 """
 
-from typing import Dict, List
-
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
@@ -79,7 +77,7 @@ class FinancialByTypeServer:
     """
 
     # Define financial aid types and their properties
-    FINANCIAL_AID_TYPES: Dict[str, Dict[str, str]] = {
+    FINANCIAL_AID_TYPES: dict[str, dict[str, str]] = {
         "loan": {
             "name": "Loan",
             "color_key": "financial_loan",
@@ -187,8 +185,8 @@ class FinancialByTypeServer:
 
     def _create_bar_trace(
         self,
-        countries: List[str],
-        values: List[float],
+        countries: list[str],
+        values: list[float],
         name: str,
         color: str,
         hover_template: str,

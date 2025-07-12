@@ -6,7 +6,7 @@ that countries have pledged and delivered to Ukraine, split between delivered an
 to-be-delivered amounts.
 """
 
-from typing import Dict, Any
+from typing import Any
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -76,7 +76,7 @@ class PledgeStockServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Dict] = {
+    PLOT_CONFIG: dict[str, dict] = {
         "traces": {
             "delivered": {
                 "name": "Delivered",

@@ -5,8 +5,6 @@ that compares committed versus allocated aid across different country groups,
 with support for toggling visibility of individual groups.
 """
 
-from typing import Dict
-
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
@@ -17,6 +15,7 @@ from server import (
 )
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
+
 from ....colorutilities import desaturate_color
 
 
@@ -60,7 +59,7 @@ class AidAllocationServer:
     """
 
     # Define country group configurations
-    COUNTRY_GROUP_CONFIG: Dict[str, Dict[str, str]] = {
+    COUNTRY_GROUP_CONFIG: dict[str, dict[str, str]] = {
         "EU_member": {"display_name": "EU Members", "color_key": "Europe"},
         "EU_institutions": {
             "display_name": "EU Institutions",
@@ -77,7 +76,7 @@ class AidAllocationServer:
     }
 
     # Define trace configurations
-    TRACE_TYPES: Dict[str, Dict[str, object]] = {
+    TRACE_TYPES: dict[str, dict[str, object]] = {
         "committed": {
             "name_suffix": "(Committed)",
             "use_desaturated_color": True,

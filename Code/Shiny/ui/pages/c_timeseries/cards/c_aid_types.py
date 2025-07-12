@@ -5,14 +5,13 @@ that shows either monthly or cumulative aid allocations across different aid typ
 (military, financial, humanitarian) over time.
 """
 
-from typing import Dict
-
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
 from server.database import AID_TYPES_COLUMNS, load_time_series_data
 from shiny import reactive, ui
 from shinywidgets import output_widget, render_widget
+
 from ....colorutilities import desaturate_color
 
 
@@ -70,7 +69,7 @@ class AidTypesServer:
     """
 
     # Define aid type configurations
-    AID_TYPES: Dict[str, Dict[str, str]] = {
+    AID_TYPES: dict[str, dict[str, str]] = {
         "military_aid_allocated__billion": {
             "display_name": "Military Aid",
             "color_key": "military",
@@ -89,7 +88,7 @@ class AidTypesServer:
     }
 
     # Define visualization modes
-    VIZ_CONFIGS: Dict[str, Dict[str, object]] = {
+    VIZ_CONFIGS: dict[str, dict[str, object]] = {
         "cumulative": {
             "title": "Cumulative Support Allocation Over Time",
             "mode": "lines",

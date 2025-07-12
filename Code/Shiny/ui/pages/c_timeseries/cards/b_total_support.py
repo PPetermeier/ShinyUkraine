@@ -5,8 +5,6 @@ that shows either monthly or cumulative support allocations across different don
 regions (United States, Europe, Rest of World) over time.
 """
 
-from typing import Dict
-
 import pandas as pd
 import plotly.graph_objects as go
 from config import COLOR_PALETTE, LAST_UPDATE, MARGIN
@@ -75,7 +73,7 @@ class TotalSupportServer:
     """
 
     # Define region configurations
-    REGIONS: Dict[str, Dict[str, str]] = {
+    REGIONS: dict[str, dict[str, str]] = {
         "united_states": {
             "column": "united_states_allocated__billion",
             "display_name": "United States",
@@ -94,7 +92,7 @@ class TotalSupportServer:
     }
 
     # Define visualization modes
-    VIZ_CONFIGS: Dict[str, Dict[str, object]] = {
+    VIZ_CONFIGS: dict[str, dict[str, object]] = {
         "cumulative": {
             "title": "Cumulative Support Allocation Over Time",
             "mode": "lines",

@@ -6,7 +6,7 @@ value (billion euros). It includes both UI components and server-side logic for 
 processing and visualization.
 """
 
-from typing import Dict, Any
+from typing import Any
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -77,7 +77,7 @@ class HeavyWeaponsServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Dict] = {
+    PLOT_CONFIG: dict[str, dict] = {
         "marker_color": COLOR_PALETTE.get("military", "#264653"),
         "hover_template": "%{y}<br>Value Estimate: %{x:.1f}B €<extra></extra>",
         "title": "Estimated Value of Heavy Weapons Delivered to Ukraine",

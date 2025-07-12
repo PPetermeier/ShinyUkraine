@@ -6,7 +6,7 @@ of weapons (tanks, howitzers, and MLRS). It includes both UI components and serv
 logic for data processing and visualization of each weapon type.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -90,7 +90,7 @@ class WeaponTypeServer:
     """
 
     # Define visualization properties
-    PLOT_CONFIG: Dict[str, Any] = {
+    PLOT_CONFIG: dict[str, Any] = {
         "marker_color": COLOR_PALETTE["military"],
         "hover_template": "Pledged: %{x:.1f}%",
         "height": 600,
